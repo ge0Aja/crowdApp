@@ -23,7 +23,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
@@ -31,10 +30,7 @@ import java.util.TimerTask;
 
 public class MyService extends Service
 {
-    // This set stores the list of 3rd party packages installed on the device (Local to the user)
-    public List<String> packages = new ArrayList<>();
-    public HashSet installedApps = new HashSet();
-    public HashMap <String, String> Map = new HashMap <>();
+    String messageLogged = "";
 
     // This function is called every time an entry needs to be logged with a Timestamp
     public String getTimestamp() {
@@ -84,26 +80,24 @@ public class MyService extends Service
             String packageName;
             String action = intent.getAction();
             switch (action) {
-                case "Intent.ACTION_SCREEN_OFF": appendLog("Screen switched off ");
+                case "Intent.ACTION_SCREEN_OFF": messageLogged = "Screen switched off ";
+                    appendLog(messageLogged); Log.i("Reduced", messageLogged);
                     screenON = false;
                     break;
-                case "Intent.ACTION_SCREEN_ON": appendLog("Screen switched on ");
+                case "Intent.ACTION_SCREEN_ON": messageLogged = "Screen switched on ";
+                    appendLog(messageLogged); Log.i("Reduced", messageLogged);
                     screenON = true;
                     break;
-                case "Intent.ACTION_PACKAGE_ADDED": packageName = intent.getData().getEncodedSchemeSpecificPart().toString();
-                    appendLog(getAppName(packageName) + " installed ");
-                    installedApps.add(packageName);
+                case "Intent.ACTION_PACKAGE_ADDED": packageName = intent.getData().getEncodedSchemeSpecificPart();
+                    messageLogged = getAppName(packageName) + " installed";
+                    appendLog(messageLogged); Log.i("Reduced", messageLogged);
                     break;
                 case "Intent.ACTION_PACKAGE_REMOVED": Uri uri = intent.getData();
                     packageName = uri != null ? uri.getSchemeSpecificPart() : null;
                     try {
                         Date dateAdded = new Date(context.getPackageManager().getPackageInfo(packageName, 0).firstInstallTime);
-                        Date dateRemoved = new Date();
-                        long daysInstalled = (dateRemoved.getTime() - dateAdded.getTime()/(1000 * 60 * 60 *24));
-                        // This works with UTC dates. The difference may be a day off if you look at local dates.
-                        // Getting it to work correctly with local dates requires a different approach due to daylight savings.
-                        appendLog(getAppName(packageName) + " uninstalled after " + daysInstalled + " days");
-                        installedApps.remove(packageName);
+                        messageLogged = getAppName(packageName) + " uninstalled (installed on " + dateAdded + ")";
+                        appendLog(messageLogged); Log.i("Reduced", messageLogged);
                     } catch (PackageManager.NameNotFoundException e) {
                         e.printStackTrace();
                     }
@@ -124,68 +118,50 @@ public class MyService extends Service
         public String aName;
     }
 
+    // This class contains the previous and new values of the collected traffic stats
+    public class trafficClass {
+        public String name = "name";
+        public long txBytesO;
+        public long rxBytesO;
+        public long txPacketsO;
+        public long rxPacketsO;
+        public long txBytesN;
+        public long rxBytesN;
+        public long txPacketsN;
+        public long rxPacketsN;
+    }
+
+    // These define the collection frequency (collect every 10 seconds)
     Integer interval = 10000;
     Timer timer = new Timer();
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
         Toast.makeText(getApplicationContext(), "Service Started..", Toast.LENGTH_LONG).show();
 
-        // This snippet runs the Linux pm command to get a list of 3rd party packages installed on the device and it stores them in the created HashSet
-        String pLine = null;
-        String tLine = null;
-        try {
-            Process pmProcess = Runtime.getRuntime().exec("pm list packages -3");
-            BufferedReader bufferedStream = new BufferedReader(new InputStreamReader(pmProcess.getInputStream()));
-            while ((pLine = bufferedStream.readLine()) != null) {
-                String packageLine[] = pLine.split(":");
-                String packageName = packageLine[packageLine.length - 1];
-                installedApps.add(packageName);
-            }
-            Process topProcess = Runtime.getRuntime().exec("top -n 1 -d 0");
-            bufferedStream = new BufferedReader(new InputStreamReader(topProcess.getInputStream()));
-            while ((tLine = bufferedStream.readLine()) != null) {
-                if (!tLine.contains("u0_")) {
-                    continue;
-                }
-                String[] tokens = tLine.split("\\s+");
-                topClass top = new topClass();
-                if (tokens.length == 10) {
-                    top.PID = tokens[0];
-                    top.CPU = tokens[2];
-                    top.VSS = tokens[5];
-                    top.RSS = tokens[6];
-                    top.PCY = tokens[7];
-                    top.UID = tokens[8];
-                    top.pName = tokens[9];
-                }
-                else if (tokens.length == 11) {
-                    top.PID = tokens[1];
-                    top.CPU = tokens[3];
-                    top.VSS = tokens[6];
-                    top.RSS = tokens[7];
-                    top.PCY = tokens[8];
-                    top.UID = tokens[9];
-                    top.pName = tokens[10];
-                }
-                if (installedApps.contains(top.pName)) {
-                    Map.put(top.PID, top.pName);
-                }
-            }
-            Log.i("Packages"," Packages from map " + Map.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // This snippet runs the Linux top command every 'interval' amount of milliseconds
+        final List<HashMap<String,HashMap<String,Long>>> cumulativeTrafficStats = new ArrayList<HashMap<String, HashMap<String, Long>>>();
+        final HashMap<String, HashMap<String, Long>> cumulativeOuterHash = new HashMap<String, HashMap<String, Long>>();
+        final HashMap<String, Long> cumulativeInnerHash = new HashMap<String, Long>();
 
-        // This snippet runs the Linux top command every 'interval' amount of milliseconds and it stores the parsed results in the Log.txt file
+        final PackageManager PM = getApplicationContext().getPackageManager();
+        final List<String> installedPackagesRunning = new ArrayList<>();
+        final trafficClass traffic = new trafficClass();
         final String previousOnTop = "";
+
         timer.schedule(new TimerTask() {
             public void run() {
                 try {
+
+                    installedPackagesRunning.clear();
+                    List<ApplicationInfo> installedPackages = PM.getInstalledApplications(0);
+                    Log.i("temp",installedPackages.toString());
+
                     String tLine = null;
                     Process topProcess = Runtime.getRuntime().exec("top -n 1 -d 0");
                     BufferedReader bufferedStream = new BufferedReader(new InputStreamReader(topProcess.getInputStream()));
-                    packages.clear();
+
                     while ((tLine = bufferedStream.readLine()) != null) {
                         if (!tLine.contains("u0_")) {
                             continue;
@@ -200,8 +176,7 @@ public class MyService extends Service
                             top.PCY = tokens[7];
                             top.UID = tokens[8];
                             top.pName = tokens[9];
-                        }
-                        else if (tokens.length == 11) {
+                        } else if (tokens.length == 11) {
                             top.PID = tokens[1];
                             top.CPU = tokens[3];
                             top.VSS = tokens[6];
@@ -211,39 +186,75 @@ public class MyService extends Service
                             top.pName = tokens[10];
                         }
 
-                        // Map is ready
-                        packages.add(top.pName);
+                        installedPackagesRunning.add(top.pName);
 
                         top.aName = getAppName(top.pName);
                         if (top.aName.equals("(unknown)")) {
                             top.aName = top.pName;
                         }
-                        if (installedApps.contains(top.pName)) {
-                            appendLog(top.aName + " CPU " + top.CPU + " VSS " + top.VSS + " RSS " + top.RSS);
-                            if (top.PCY.equals("fg") && !top.aName.equals("top")) {
-                                appendLog(top.aName + " on top");
-                                if (!top.aName.equals(previousOnTop)) {
-                                    appendLog(top.aName + " opened");
-                                    previousOnTop.equals(top.aName);
+                        for (Iterator<ApplicationInfo> iterator = installedPackages.iterator(); iterator.hasNext(); ) {
+                            if (iterator.next().packageName.equals(top.pName)) {
+                                messageLogged = top.aName + " CPU " + top.CPU + " VSS " + top.VSS + " RSS " + top.RSS;
+                                appendLog(messageLogged);
+                                Log.i("Reduced", messageLogged);
+                                if (top.PCY.equals("fg") && !top.aName.equals("top")) {
+                                    messageLogged = top.aName + " on top";
+                                    appendLog(messageLogged);
+                                    Log.i("Reduced", messageLogged);
+                                    if (!top.aName.equals(previousOnTop)) {
+                                        messageLogged = top.aName + " opened";
+                                        appendLog(messageLogged);
+                                        Log.i("Reduced", messageLogged);
+                                        previousOnTop.equals(top.aName);
+                                    }
                                 }
                             }
                         }
                     }
-                    Log.i("Traffic", "Running 3rd party processes names: " + packages.toString());
-                    PackageManager pm = getApplicationContext().getPackageManager();
-                    List<ApplicationInfo> apps = pm.getInstalledApplications(0);
-                    // Remove apps which are not running.
-                    for (Iterator<ApplicationInfo> it = apps.iterator(); it.hasNext(); ) {
-                        if (!packages.contains(it.next().packageName)) {
-                            it.remove();
+
+                    // This for loop removes installed apps which are not running (installedPackages - !installedPackagesRunning)
+                    for (Iterator<ApplicationInfo> iterator = installedPackages.iterator(); iterator.hasNext(); ) {
+                        if (!installedPackagesRunning.contains(iterator.next().packageName)) {
+                            iterator.remove();
                         }
                     }
-                    for (ApplicationInfo app : apps) {
-                        String appName = app.loadLabel(pm).toString();
+
+                    // This for loop computes the 4 traffic stats for each running app (collected value - previous value)
+                    List<HashMap<String,HashMap<String,Long>>> trafficStats = new ArrayList<HashMap<String, HashMap<String, Long>>>();
+                    HashMap<String, HashMap<String, Long>> outerHash = new HashMap<String, HashMap<String, Long>>();
+                    HashMap<String, Long> innerHash = new HashMap<String, Long>();
+                    for (ApplicationInfo app : installedPackages) {
+                        String appName = app.loadLabel(PM).toString();
                         int uid = app.uid;
                         long txBytes = TrafficStats.getUidTxBytes(uid);
                         long rxBytes = TrafficStats.getUidRxBytes(uid);
-                        Log.i("Traffic", appName + " TxBytes " + txBytes + " RxBytes " + rxBytes);
+                        long txPackets = TrafficStats.getUidTxPackets(uid);
+                        long rxPackets = TrafficStats.getUidRxPackets(uid);
+
+                        if (cumulativeTrafficStats.isEmpty()) {
+                            innerHash.put("txBytes", txBytes);
+                            innerHash.put("rxBytes", rxBytes);
+                            innerHash.put("txPackets", txPackets);
+                            innerHash.put("rxPackets", rxPackets);
+                            outerHash.put(appName, innerHash);
+                            trafficStats.add(outerHash);
+                            cumulativeTrafficStats.addAll(trafficStats);
+                        } else {
+                            innerHash.put("txBytes", txBytes - (long) cumulativeOuterHash.get(appName).get("txBytes"));
+                            innerHash.put("rxBytes", rxBytes - (long) cumulativeOuterHash.get(appName).get("rxBytes"));
+                            innerHash.put("txPackets", txPackets - (long) cumulativeOuterHash.get(appName).get("txPackets"));
+                            innerHash.put("rxPackets", rxPackets - (long) cumulativeOuterHash.get(appName).get("rxPackets"));
+                            outerHash.put(appName, innerHash);
+                            trafficStats.add(outerHash);
+                            cumulativeInnerHash.put("txBytes", txBytes);
+                            cumulativeInnerHash.put("rxBytes", rxBytes);
+                            cumulativeInnerHash.put("txPackets", txPackets);
+                            cumulativeInnerHash.put("rxPackets", rxPackets);
+                            cumulativeOuterHash.put("", cumulativeInnerHash);
+                            cumulativeTrafficStats.add(cumulativeOuterHash);
+                        }
+                        messageLogged = appName + " TxBytes " + outerHash.get(appName).get("txBytes") + " RxBytes " + outerHash.get(appName).get("rxBytes") + " TxPackets " + outerHash.get(appName).get("txPackets") + " RxPackets " + outerHash.get(appName).get("rxPackets");
+                        appendLog(messageLogged); Log.i("Traffic", messageLogged);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -256,7 +267,11 @@ public class MyService extends Service
     @Override
     public void onDestroy() {
         Toast.makeText(getApplicationContext(), "Service Stopped..", Toast.LENGTH_LONG).show();
-        unregisterReceiver(receiver);
+        try {
+            unregisterReceiver(receiver);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         timer.cancel();
         super.onDestroy();
     }
