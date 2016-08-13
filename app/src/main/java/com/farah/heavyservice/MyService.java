@@ -260,6 +260,8 @@ public class MyService extends Service
                         appendLog(messageLogged); Log.i("Traffic", messageLogged);
                     }
                     // Here We Should be Adding the Reulst Recevier and Starting the Serivce
+
+                  ///// Start You can comment this section out and keep working fine
                     HttpResultsReceiver mRec = new HttpResultsReceiver(new android.os.Handler());
                     Intent intent = new Intent(Intent.ACTION_SYNC,null,getApplicationContext(),ClientServerService.class);
                     intent.putExtra("url","The URL on the Server");
@@ -267,7 +269,7 @@ public class MyService extends Service
                     intent.putExtra("Method","POST");
                     intent.putExtra("HashMap",outerHash); // I'm not sure wetehr to send the List or the Outer Hash every 10 Secs
                     startService(intent);
-
+                    ///// End You can comment this section out and keep working fine
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
