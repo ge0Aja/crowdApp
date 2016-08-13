@@ -21,6 +21,12 @@
             android:enabled="true"
             android:exported="true" >
         </service>
+
+        <service
+            android:name=".ClientServerService"
+            android:enabled="true"
+            android:exported="true" />
+
     </application>
 
 </manifest>

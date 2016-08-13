@@ -27,6 +27,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Handler;
+import android.os.ResultReceiver;
 
 public class MyService extends Service
 {
@@ -144,7 +146,7 @@ public class MyService extends Service
         final List<HashMap<String,HashMap<String,Long>>> cumulativeTrafficStats = new ArrayList<HashMap<String, HashMap<String, Long>>>();
         final HashMap<String, HashMap<String, Long>> cumulativeOuterHash = new HashMap<String, HashMap<String, Long>>();
         final HashMap<String, Long> cumulativeInnerHash = new HashMap<String, Long>();
-
+        final HashMap<String, HashMap<String, Long>> outerHash = new HashMap<String, HashMap<String, Long>>() ;
         final PackageManager PM = getApplicationContext().getPackageManager();
         final List<String> installedPackagesRunning = new ArrayList<>();
         final trafficClass traffic = new trafficClass();
@@ -221,7 +223,8 @@ public class MyService extends Service
 
                     // This for loop computes the 4 traffic stats for each running app (collected value - previous value)
                     List<HashMap<String,HashMap<String,Long>>> trafficStats = new ArrayList<HashMap<String, HashMap<String, Long>>>();
-                    HashMap<String, HashMap<String, Long>> outerHash = new HashMap<String, HashMap<String, Long>>();
+                   // I deleted the Outer Hash From Here I'm just clearing it
+                    outerHash.clear();
                     HashMap<String, Long> innerHash = new HashMap<String, Long>();
                     for (ApplicationInfo app : installedPackages) {
                         String appName = app.loadLabel(PM).toString();
@@ -256,9 +259,20 @@ public class MyService extends Service
                         messageLogged = appName + " TxBytes " + outerHash.get(appName).get("txBytes") + " RxBytes " + outerHash.get(appName).get("rxBytes") + " TxPackets " + outerHash.get(appName).get("txPackets") + " RxPackets " + outerHash.get(appName).get("rxPackets");
                         appendLog(messageLogged); Log.i("Traffic", messageLogged);
                     }
+                    // Here We Should be Adding the Reulst Recevier and Starting the Serivce
+                    HttpResultsReceiver mRec = new HttpResultsReceiver(new android.os.Handler());
+                    Intent intent = new Intent(Intent.ACTION_SYNC,null,getApplicationContext(),ClientServerService.class);
+                    intent.putExtra("url","The URL on the Server");
+                    intent.putExtra("receiver",mRec);
+                    intent.putExtra("Method","POST");
+                    intent.putExtra("HashMap",outerHash); // I'm not sure wetehr to send the List or the Outer Hash every 10 Secs
+                    startService(intent);
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+
+
             }
         }, 0, interval);
         return START_STICKY;

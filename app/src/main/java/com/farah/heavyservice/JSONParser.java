@@ -11,7 +11,9 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -65,7 +67,7 @@ public class JSONParser {
 
         return sb.toString();
     }
-    public String makeHTTPPostRequest(String url,List<Pair<String,String>> params) throws IOException {
+    public String makeHTTPPostRequest(String url,HashMap<String,HashMap<String,Long>> params) throws IOException {
         String output = "";
         DataOutputStream out =null;
         StringBuilder sb = new StringBuilder();
@@ -121,12 +123,13 @@ public class JSONParser {
     }
 
 
-    public JSONObject makeJsonObject(List<Pair<String,String>> params){
+    public JSONObject makeJsonObject(HashMap<String,HashMap<String,Long>> params){
             JSONObject jsonobj = new JSONObject();
-        for (Pair<String,String > param : params)
+        for (Map.Entry<String,HashMap<String,Long>> entry : params.entrySet())
                 {
                     try {
-                        jsonobj.put(param.first,param.second);
+                        jsonobj.put("App Name",entry.getKey());
+                        jsonobj.put("Stats",entry.getValue());
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
