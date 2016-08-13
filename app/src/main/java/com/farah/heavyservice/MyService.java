@@ -269,6 +269,7 @@ public class MyService extends Service
                     intent.putExtra("Method","POST");
                     intent.putExtra("HashMap",outerHash); // I'm not sure wetehr to send the List or the Outer Hash every 10 Secs
                     startService(intent);*/
+
                     ///// End You can comment this section out and keep working fine
                 } catch (IOException e) {
                     e.printStackTrace();
