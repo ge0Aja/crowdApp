@@ -33,6 +33,10 @@ import android.os.ResultReceiver;
 public class MyService extends Service
 {
     String messageLogged = "";
+    HashMap<String, HashMap<String, Long>> outerHash = new HashMap<String, HashMap<String, Long>>();
+    List<HashMap<String,HashMap<String,Long>>> trafficStats = new ArrayList<HashMap<String, HashMap<String, Long>>>();
+    HashMap<String, HashMap<String, Long>> cumulativeOuterHash = new HashMap<String, HashMap<String, Long>>();
+    List<HashMap<String,HashMap<String,Long>>> cumulativeTrafficStats = new ArrayList<HashMap<String, HashMap<String, Long>>>();
 
     // This function is called every time an entry needs to be logged with a Timestamp
     public String getTimestamp() {
@@ -120,19 +124,6 @@ public class MyService extends Service
         public String aName;
     }
 
-    // This class contains the previous and new values of the collected traffic stats
-    public class trafficClass {
-        public String name = "name";
-        public long txBytesO;
-        public long rxBytesO;
-        public long txPacketsO;
-        public long rxPacketsO;
-        public long txBytesN;
-        public long rxBytesN;
-        public long txPacketsN;
-        public long rxPacketsN;
-    }
-
     // These define the collection frequency (collect every 10 seconds)
     Integer interval = 10000;
     Timer timer = new Timer();
@@ -145,25 +136,30 @@ public class MyService extends Service
         // This snippet runs the Linux top command every 'interval' amount of milliseconds
         final PackageManager PM = getApplicationContext().getPackageManager();
         final List<String> installedPackagesRunning = new ArrayList<>();
-        final trafficClass traffic = new trafficClass();
+        final List<String> installed3rdPartyApps = new ArrayList<>();
         final String previousOnTop = "";
 
         timer.schedule(new TimerTask() {
             public void run() {
                 try {
-
-                    List<HashMap<String,HashMap<String,Long>>> cumulativeTrafficStats = new ArrayList<HashMap<String, HashMap<String, Long>>>();
-                    HashMap<String, HashMap<String, Long>> cumulativeOuterHash = new HashMap<String, HashMap<String, Long>>();
                     HashMap<String, Long> cumulativeInnerHash = new HashMap<String, Long>();
+
+                    String pLine = null;
+                    Process pmProcess = Runtime.getRuntime().exec("pm list packages -3");
+                    BufferedReader pmBufferedStream = new BufferedReader(new InputStreamReader(pmProcess.getInputStream()));
+                    while ((pLine = pmBufferedStream.readLine()) != null) {
+                        String packageLine[] = pLine.split(":");
+                        String packageName = packageLine[packageLine.length - 1];
+                        installed3rdPartyApps.add(packageName);
+                    }
 
                     installedPackagesRunning.clear();
                     List<ApplicationInfo> installedPackages = PM.getInstalledApplications(0);
 
                     String tLine = null;
                     Process topProcess = Runtime.getRuntime().exec("top -n 1 -d 0");
-                    BufferedReader bufferedStream = new BufferedReader(new InputStreamReader(topProcess.getInputStream()));
-
-                    while ((tLine = bufferedStream.readLine()) != null) {
+                    BufferedReader topBufferedStream = new BufferedReader(new InputStreamReader(topProcess.getInputStream()));
+                    while ((tLine = topBufferedStream.readLine()) != null) {
                         if (!tLine.contains("u0_")) {
                             continue;
                         }
@@ -193,18 +189,19 @@ public class MyService extends Service
                         if (top.aName.equals("(unknown)")) {
                             top.aName = top.pName;
                         }
-                        for (Iterator<ApplicationInfo> iterator = installedPackages.iterator(); iterator.hasNext(); ) {
-                            if (iterator.next().packageName.equals(top.pName)) {
-                                messageLogged = top.aName + " CPU " + top.CPU + " VSS " + top.VSS + " RSS " + top.RSS;
-                                appendLog(messageLogged); Log.i("Reduced", messageLogged);
-                                if (top.PCY.equals("fg") && !top.aName.equals("top")) {
-                                    messageLogged = top.aName + " on top";
-                                    appendLog(messageLogged); Log.i("Reduced", messageLogged);
-                                    if (!top.aName.equals(previousOnTop)) {
-                                        messageLogged = top.aName + " opened";
-                                        appendLog(messageLogged); Log.i("Reduced", messageLogged);
-                                        previousOnTop.equals(top.aName);
-                                    }
+                        if (installed3rdPartyApps.contains(top.pName)) {
+                            messageLogged = top.aName + " CPU " + top.CPU + " VSS " + top.VSS + " RSS " + top.RSS;
+                            appendLog(messageLogged);
+                            Log.i("Reduced", messageLogged);
+                            if (top.PCY.equals("fg") && !top.aName.equals("top")) {
+                                messageLogged = top.aName + " on top";
+                                appendLog(messageLogged);
+                                Log.i("Reduced", messageLogged);
+                                if (!top.aName.equals(previousOnTop)) {
+                                    messageLogged = top.aName + " opened";
+                                    appendLog(messageLogged);
+                                    Log.i("Reduced", messageLogged);
+                                    previousOnTop.equals(top.aName);
                                 }
                             }
                         }
@@ -218,8 +215,6 @@ public class MyService extends Service
                     }
 
                     // This for loop computes the 4 traffic stats for each running app (collected value - previous value)
-                    List<HashMap<String,HashMap<String,Long>>> trafficStats = new ArrayList<HashMap<String, HashMap<String, Long>>>();
-                    HashMap<String, HashMap<String, Long>> outerHash = new HashMap<String, HashMap<String, Long>>() ;
                     HashMap<String, Long> innerHash = new HashMap<String, Long>();
                     for (ApplicationInfo app : installedPackages) {
                         String appName = app.loadLabel(PM).toString();
@@ -228,35 +223,32 @@ public class MyService extends Service
                         long rxBytes = TrafficStats.getUidRxBytes(uid);
                         long txPackets = TrafficStats.getUidTxPackets(uid);
                         long rxPackets = TrafficStats.getUidRxPackets(uid);
-                        if (cumulativeTrafficStats.isEmpty()) {
-                            innerHash.put("txBytes", txBytes);
-                            innerHash.put("rxBytes", rxBytes);
-                            innerHash.put("txPackets", txPackets);
-                            innerHash.put("rxPackets", rxPackets);
-                            outerHash.put(appName, innerHash);
-                            trafficStats.add(outerHash);
-                            cumulativeTrafficStats.add(outerHash);
+                        if (!cumulativeOuterHash.containsKey(appName)) {
+                            innerHash.put("txBytes", Long.valueOf(0));
+                            innerHash.put("rxBytes", Long.valueOf(0));
+                            innerHash.put("txPackets", Long.valueOf(0));
+                            innerHash.put("rxPackets", Long.valueOf(0));
                         } else {
                             innerHash.put("txBytes", txBytes - cumulativeOuterHash.get(appName).get("txBytes"));
                             innerHash.put("rxBytes", rxBytes - cumulativeOuterHash.get(appName).get("rxBytes"));
                             innerHash.put("txPackets", txPackets - cumulativeOuterHash.get(appName).get("txPackets"));
                             innerHash.put("rxPackets", rxPackets - cumulativeOuterHash.get(appName).get("rxPackets"));
-                            outerHash.put(appName, innerHash);
-                            trafficStats.add(outerHash);
-                            cumulativeInnerHash.put("txBytes", txBytes);
-                            cumulativeInnerHash.put("rxBytes", rxBytes);
-                            cumulativeInnerHash.put("txPackets", txPackets);
-                            cumulativeInnerHash.put("rxPackets", rxPackets);
-                            cumulativeOuterHash.put("", cumulativeInnerHash);
-                            cumulativeTrafficStats.add(cumulativeOuterHash);
                         }
+                        outerHash.put(appName, innerHash);
+                        cumulativeInnerHash.put("txBytes", txBytes);
+                        cumulativeInnerHash.put("rxBytes", rxBytes);
+                        cumulativeInnerHash.put("txPackets", txPackets);
+                        cumulativeInnerHash.put("rxPackets", rxPackets);
+                        cumulativeOuterHash.put(appName, cumulativeInnerHash);
                         messageLogged = appName + " TxBytes " + outerHash.get(appName).get("txBytes") + " RxBytes " + outerHash.get(appName).get("rxBytes") + " TxPackets " + outerHash.get(appName).get("txPackets") + " RxPackets " + outerHash.get(appName).get("rxPackets");
-                        appendLog(messageLogged); Log.i("Reduced", messageLogged);
+                        appendLog(messageLogged); Log.i("Traffic", messageLogged);
                     }
-                    // Here We Should be Adding the Reulst Recevier and Starting the Serivce
 
-                  ///// Start You can comment this section out and keep working fine
-                    /*HttpResultsReceiver mRec = new HttpResultsReceiver(new android.os.Handler());
+                    trafficStats.add(outerHash);
+                    cumulativeTrafficStats.add(cumulativeOuterHash);
+                    /* Here We Should be Adding the Reulst Recevier and Starting the Serivce
+                    Start You can comment this section out and keep working fine
+                    HttpResultsReceiver mRec = new HttpResultsReceiver(new android.os.Handler());
                     Intent intent = new Intent(Intent.ACTION_SYNC,null,getApplicationContext(),ClientServerService.class);
                     intent.putExtra("url","The URL on the Server");
                     intent.putExtra("receiver",mRec);
