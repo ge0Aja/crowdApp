@@ -143,10 +143,6 @@ public class MyService extends Service
         Toast.makeText(getApplicationContext(), "Service Started..", Toast.LENGTH_LONG).show();
 
         // This snippet runs the Linux top command every 'interval' amount of milliseconds
-        final List<HashMap<String,HashMap<String,Long>>> cumulativeTrafficStats = new ArrayList<HashMap<String, HashMap<String, Long>>>();
-        final HashMap<String, HashMap<String, Long>> cumulativeOuterHash = new HashMap<String, HashMap<String, Long>>();
-        final HashMap<String, Long> cumulativeInnerHash = new HashMap<String, Long>();
-        final HashMap<String, HashMap<String, Long>> outerHash = new HashMap<String, HashMap<String, Long>>() ;
         final PackageManager PM = getApplicationContext().getPackageManager();
         final List<String> installedPackagesRunning = new ArrayList<>();
         final trafficClass traffic = new trafficClass();
@@ -156,9 +152,12 @@ public class MyService extends Service
             public void run() {
                 try {
 
+                    List<HashMap<String,HashMap<String,Long>>> cumulativeTrafficStats = new ArrayList<HashMap<String, HashMap<String, Long>>>();
+                    HashMap<String, HashMap<String, Long>> cumulativeOuterHash = new HashMap<String, HashMap<String, Long>>();
+                    HashMap<String, Long> cumulativeInnerHash = new HashMap<String, Long>();
+
                     installedPackagesRunning.clear();
                     List<ApplicationInfo> installedPackages = PM.getInstalledApplications(0);
-                    Log.i("temp",installedPackages.toString());
 
                     String tLine = null;
                     Process topProcess = Runtime.getRuntime().exec("top -n 1 -d 0");
@@ -197,16 +196,13 @@ public class MyService extends Service
                         for (Iterator<ApplicationInfo> iterator = installedPackages.iterator(); iterator.hasNext(); ) {
                             if (iterator.next().packageName.equals(top.pName)) {
                                 messageLogged = top.aName + " CPU " + top.CPU + " VSS " + top.VSS + " RSS " + top.RSS;
-                                appendLog(messageLogged);
-                                Log.i("Reduced", messageLogged);
+                                appendLog(messageLogged); Log.i("Reduced", messageLogged);
                                 if (top.PCY.equals("fg") && !top.aName.equals("top")) {
                                     messageLogged = top.aName + " on top";
-                                    appendLog(messageLogged);
-                                    Log.i("Reduced", messageLogged);
+                                    appendLog(messageLogged); Log.i("Reduced", messageLogged);
                                     if (!top.aName.equals(previousOnTop)) {
                                         messageLogged = top.aName + " opened";
-                                        appendLog(messageLogged);
-                                        Log.i("Reduced", messageLogged);
+                                        appendLog(messageLogged); Log.i("Reduced", messageLogged);
                                         previousOnTop.equals(top.aName);
                                     }
                                 }
@@ -223,8 +219,7 @@ public class MyService extends Service
 
                     // This for loop computes the 4 traffic stats for each running app (collected value - previous value)
                     List<HashMap<String,HashMap<String,Long>>> trafficStats = new ArrayList<HashMap<String, HashMap<String, Long>>>();
-                   // I deleted the Outer Hash From Here I'm just clearing it
-                    outerHash.clear();
+                    HashMap<String, HashMap<String, Long>> outerHash = new HashMap<String, HashMap<String, Long>>() ;
                     HashMap<String, Long> innerHash = new HashMap<String, Long>();
                     for (ApplicationInfo app : installedPackages) {
                         String appName = app.loadLabel(PM).toString();
@@ -233,7 +228,6 @@ public class MyService extends Service
                         long rxBytes = TrafficStats.getUidRxBytes(uid);
                         long txPackets = TrafficStats.getUidTxPackets(uid);
                         long rxPackets = TrafficStats.getUidRxPackets(uid);
-
                         if (cumulativeTrafficStats.isEmpty()) {
                             innerHash.put("txBytes", txBytes);
                             innerHash.put("rxBytes", rxBytes);
@@ -241,12 +235,12 @@ public class MyService extends Service
                             innerHash.put("rxPackets", rxPackets);
                             outerHash.put(appName, innerHash);
                             trafficStats.add(outerHash);
-                            cumulativeTrafficStats.addAll(trafficStats);
+                            cumulativeTrafficStats.add(outerHash);
                         } else {
-                            innerHash.put("txBytes", txBytes - (long) cumulativeOuterHash.get(appName).get("txBytes"));
-                            innerHash.put("rxBytes", rxBytes - (long) cumulativeOuterHash.get(appName).get("rxBytes"));
-                            innerHash.put("txPackets", txPackets - (long) cumulativeOuterHash.get(appName).get("txPackets"));
-                            innerHash.put("rxPackets", rxPackets - (long) cumulativeOuterHash.get(appName).get("rxPackets"));
+                            innerHash.put("txBytes", txBytes - cumulativeOuterHash.get(appName).get("txBytes"));
+                            innerHash.put("rxBytes", rxBytes - cumulativeOuterHash.get(appName).get("rxBytes"));
+                            innerHash.put("txPackets", txPackets - cumulativeOuterHash.get(appName).get("txPackets"));
+                            innerHash.put("rxPackets", rxPackets - cumulativeOuterHash.get(appName).get("rxPackets"));
                             outerHash.put(appName, innerHash);
                             trafficStats.add(outerHash);
                             cumulativeInnerHash.put("txBytes", txBytes);
@@ -257,7 +251,7 @@ public class MyService extends Service
                             cumulativeTrafficStats.add(cumulativeOuterHash);
                         }
                         messageLogged = appName + " TxBytes " + outerHash.get(appName).get("txBytes") + " RxBytes " + outerHash.get(appName).get("rxBytes") + " TxPackets " + outerHash.get(appName).get("txPackets") + " RxPackets " + outerHash.get(appName).get("rxPackets");
-                        appendLog(messageLogged); Log.i("Traffic", messageLogged);
+                        appendLog(messageLogged); Log.i("Reduced", messageLogged);
                     }
                     // Here We Should be Adding the Reulst Recevier and Starting the Serivce
 
@@ -274,8 +268,6 @@ public class MyService extends Service
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
-
             }
         }, 0, interval);
         return START_STICKY;
