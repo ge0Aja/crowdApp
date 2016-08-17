@@ -5,14 +5,25 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.ResultReceiver;
+import android.text.TextUtils;
+import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutionException;
@@ -22,161 +33,114 @@ import java.util.concurrent.ExecutionException;
  */
 public class ClientServerService extends IntentService {
    // public static final int STATUS_RUNNING = 0;
+   public static final int STATUS_RUNNING = 0;
     public static final int STATUS_FINISHED = 1;
     public static final int STATUS_ERROR = 2;
-    String rtrnValGet = "";
-    String rtrnValPost = "";
-    Boolean postFinished = false;
-    Boolean getFinished = false;
-    String url = "";
 
-    public ClientServerService() {
+    private static final String TAG = "UploadService";
+
+    public ClientServerService(){
         super("ClientServerService");
     }
-
-    private void HandleAsyncTaskReturnGet(String s){
-        rtrnValGet = s;
-        getFinished = true;
-    }
-
-    private void HandleAsyncTaskReturnPost(String s){
-        rtrnValPost = s;
-        postFinished = true;
-    }
     @Override
-    public void onCreate() {
-        super.onCreate();
-    }
+    protected void onHandleIntent(Intent intent) {
 
-    @Override
-    protected void onHandleIntent(final Intent intent) {
-        /*
-        * we haveto put the extras in the intent when calling the method
-        * */
-        final Bundle bundle = intent.getExtras();
-        url = bundle.getString("url");
-        final String method = bundle.getString("Method");
-        final HashMap<String, HashMap<String, Long>> Hash_map = (HashMap<String, HashMap<String, Long>>) bundle.getSerializable("HashMap");;
+        Log.d(TAG, "Service Started!");
+
         final ResultReceiver receiver = intent.getParcelableExtra("receiver");
-        final Timer t = new Timer();
-        t.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                Bundle toSend = new Bundle();
-                if (method == "POST" && Hash_map != null) {
-                    try {
-                        new CreateHttpPostConn().execute(Hash_map);
-                        if(postFinished) {
-                            try {
-                                toSend.putString("Method", "POST");
-                                toSend.putString("POSTResult", rtrnValPost);
-                                receiver.send(STATUS_FINISHED, toSend);
-                                postFinished =false;
-                                stopSelf();
-                            } catch (Exception e) {
-                               // e.printStackTrace();
-                                toSend.putString(Intent.EXTRA_TEXT,e.toString());
-                                receiver.send(STATUS_ERROR, toSend);
-                            }
-                        }
-                    } catch (Exception e) {
-                        toSend.putString(Intent.EXTRA_TEXT,e.toString());
-                        receiver.send(STATUS_ERROR, toSend);
-                    }
-                } else {
-                    try {
-                        new CreateHttpGetConn().execute();
-                        if(getFinished){
-                            try {
-                                toSend.putString("Method", "GET");
-                                toSend.putString("GETResult",rtrnValGet);
-                                receiver.send(STATUS_FINISHED, toSend);
-                                getFinished=false;
-                                stopSelf();
-                            } catch (Exception e) {
-                                toSend.putString(Intent.EXTRA_TEXT,e.toString());
-                                receiver.send(STATUS_ERROR, toSend);
-                            }
-                        }
-                    } catch (Exception e) {
-                       // e.printStackTrace();
-                        toSend.putString(Intent.EXTRA_TEXT,e.toString());
-                        receiver.send(STATUS_ERROR, toSend);
-                    }
+        String url = intent.getStringExtra("url");
+        HashMap<String,String> params = (HashMap<String,String>) intent.getSerializableExtra("map");
+        Bundle bundle = new Bundle();
+
+        if (!TextUtils.isEmpty(url)) {
+            /* Update UI: Download Service is Running */
+            receiver.send(STATUS_RUNNING, Bundle.EMPTY);
+            try {
+                String results = uploadData(url,params);
+                /* Sending result back to activity */
+                if (null != results) {
+                    bundle.putString("result", results);
+                    receiver.send(STATUS_FINISHED, bundle);
                 }
-
-                // put a broadcast rtrn value method call here !!
-            }
-        }, 0, 5000); // The Interval for sending the stats
-    }
-
-    class CreateHttpGetConn extends AsyncTask<Void,Integer,String> {
-        //private ProgressBar progressBar;
-        private JSONParser parser = new JSONParser();
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            Toast.makeText(getApplicationContext(), "Getting Data from server..", Toast.LENGTH_LONG).show();
-        }
-
-        @Override
-        protected String doInBackground(Void... params) {
-            String rtrnval ="";
-            try {
-                rtrnval =  parser.makeHTTPGetRequest(url);
             } catch (Exception e) {
-                e.printStackTrace();
+                /* Sending error message back to activity */
+                bundle.putString(Intent.EXTRA_TEXT, e.toString());
+                receiver.send(STATUS_ERROR, bundle);
             }
-            return rtrnval;
         }
+        Log.d(TAG, "Service Stopping!");
+        this.stopSelf();
 
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-            super.onProgressUpdate(values);
-         //   progressBar.setProgress(values[0]);
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-          //  return s;
-           // super.onPostExecute(s);
-            HandleAsyncTaskReturnGet(s);
-        }
     }
 
-    class CreateHttpPostConn extends AsyncTask<HashMap<String,HashMap<String,Long>>,Integer,String> {
-       // private ProgressBar progressBar;
-        private JSONParser parser = new JSONParser();
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            Toast.makeText(getApplicationContext(), "Posting Data from server..", Toast.LENGTH_LONG).show();
-        }
 
-        @Override
-        protected String doInBackground(HashMap<String,HashMap<String,Long>>... params) {
-            String rtrnVal ="";
-            try {
-                rtrnVal =   parser.makeHTTPPostRequest(url,params[0]);
-            } catch (IOException e) {
-                e.printStackTrace();
+    private String uploadData(String url, HashMap<String,String> params) throws IOException {
+        String output = "";
+        // DataOutputStream out =null;
+        StringBuilder sb = new StringBuilder();
+        HttpURLConnection postUrlConnection = null;
+        try {
+            URL useURL = new URL(url);
+            //  if (method == "POST"){
+            postUrlConnection = (HttpURLConnection) useURL.openConnection();
+            postUrlConnection.setReadTimeout(1000);
+            postUrlConnection.setConnectTimeout(1000);
+            postUrlConnection.setRequestMethod("POST");
+            postUrlConnection.setDoInput(true);
+            postUrlConnection.setDoOutput(true);
+            postUrlConnection.setUseCaches(false);
+            postUrlConnection.setRequestProperty("Content-Type", "application/json");
+            postUrlConnection.setRequestProperty("Host", "192.168.0.1");
+            postUrlConnection.connect();
+
+            // create JSON OBJECT
+            JSONObject newJsonObj = makeJsonObject(params);
+            Log.i(TAG, newJsonObj.toString());
+            OutputStream os = postUrlConnection.getOutputStream();
+            OutputStreamWriter osw = new OutputStreamWriter(os,"UTF-8");
+            osw.write(newJsonObj.toString());
+            osw.flush();
+            osw.close();
+            // Log.i("Response from server", String.valueOf(postUrlConnection.getResponseCode()));
+
+            if (postUrlConnection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                throw new RuntimeException("Failed : HTTP error code : "
+                        + postUrlConnection.getResponseCode());
             }
-            return rtrnVal;
-        }
 
-        @Override
-        protected void onProgressUpdate(Integer... values) {
-          //  progressBar.setProgress(values[0]);
-            super.onProgressUpdate(values);
+            BufferedReader br = new BufferedReader(new InputStreamReader(
+                    (postUrlConnection.getInputStream())));
+            //String output;
+            sb.append("Output from Server .... \n");
+            sb.append(postUrlConnection.getResponseCode()+"\n");
+            while ((output = br.readLine()) != null) {
+                sb.append(output);
+                //System.out.println(output);
+            }
+            //  Log.i("Return Result",sb.toString());
+            // postUrlConnection.disconnect();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }  catch (java.net.SocketTimeoutException e) {
+            return "Server Time Out!";
+        }catch (IOException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } finally {
+            if(postUrlConnection != null)
+                postUrlConnection.disconnect();
         }
+        return sb.toString();
+    }
 
-        @Override
-        protected void onPostExecute(String s) {
-           // return s;
-            //super.onPostExecute(s);
-            HandleAsyncTaskReturnPost(s);
+    private JSONObject makeJsonObject(HashMap<String,String> params) throws JSONException {
+        JSONObject json = new JSONObject();
+        for (Map.Entry<String,String> param: params.entrySet()
+                ) {
+            json.put(param.getKey(),param.getValue());
         }
+        return json;
     }
 
 }
