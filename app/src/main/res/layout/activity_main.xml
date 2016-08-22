@@ -28,4 +28,22 @@
         android:layout_centerVertical="true"
         android:layout_alignEnd="@+id/startButton"
         android:onClick="stopCollecting" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="CPC array"
+        android:id="@+id/btncpcarray"
+        android:onClick="getarray"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/editText"
+        android:layout_above="@+id/btncpcarray"
+        android:layout_centerHorizontal="true" />
+
+
 </RelativeLayout>
