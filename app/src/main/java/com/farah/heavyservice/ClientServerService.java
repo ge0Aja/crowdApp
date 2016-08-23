@@ -92,7 +92,6 @@ public class ClientServerService extends IntentService {
     }
 
     private String uploadData(String url, String type, String filename) throws IOException {
-
         String output = "";
         StringBuilder sb = new StringBuilder();
         HttpURLConnection postUrlConnection = null;

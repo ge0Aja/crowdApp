@@ -19,6 +19,7 @@ import android.widget.Toast;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -35,11 +36,14 @@ public class MyService extends Service {
     public final String TAG = "Heavy Service";
     String messageLogged = "";
     private static boolean isWiFi = false;
+    public static boolean screenON = false;
+
+    //TODO put the variables in the strings.xml file
     private static boolean startUpload = false;
     private static String fileToUpload = "";
     private static String fileUploadType = "";
 
-    public static String filetypeCPC = "CPC";
+    public static final String filetypeCPC = "CPC";
     public static String filetypeCx = "Cx";
     public static String filetypeTf = "TF";
 
@@ -51,8 +55,6 @@ public class MyService extends Service {
     //TODO read from files if they exist if not create new outerHashses
 
     HashMap<String, HashMap<String, HashMap<String, String>>> catOuterHash = new HashMap<>();
-
-
     HashMap<String, HashMap<String, Long>> outerHash = new HashMap<String, HashMap<String, Long>>();
     HashMap<String, HashMap<String, String>> outerHashCPUMEM = new HashMap<String, HashMap<String, String>>();
 
@@ -62,8 +64,7 @@ public class MyService extends Service {
     HashMap<String, HashMap<String, HashMap<String, String>>> cumulativeOuterHashCx;//= new HashMap<String, HashMap<String, String>>();
 
 
-    public static void setUploadSettings(String fileName, Boolean upload, String filetypetoupload){
-
+    public static void setUploadSettings(String fileName, Boolean upload, String filetypetoupload) {
         fileToUpload = fileName;
         startUpload = upload;
         fileUploadType = filetypetoupload;
@@ -101,48 +102,6 @@ public class MyService extends Service {
 
     }
 
-
-    // The broadcast receiver is used to detect changes in screen status, new installations, and packages removed from device
-    public boolean screenON = false;
-    private final BroadcastReceiver receiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-            String packageName;
-            String action = intent.getAction();
-            switch (action) {
-                case "Intent.ACTION_SCREEN_OFF":
-                    messageLogged = "Screen switched off ";
-                    Common.appendLog(messageLogged);
-                    Log.i("Reduced", messageLogged);
-                    screenON = false;
-                    break;
-                case "Intent.ACTION_SCREEN_ON":
-                    messageLogged = "Screen switched on ";
-                    Common.appendLog(messageLogged);
-                    Log.i("Reduced", messageLogged);
-                    screenON = true;
-                    break;
-                case "Intent.ACTION_PACKAGE_ADDED":
-                    packageName = intent.getData().getEncodedSchemeSpecificPart();
-                    messageLogged = Common.getAppName(packageName, getApplicationContext()) + " installed";
-                    Common.appendLog(messageLogged);
-                    Log.i("Reduced", messageLogged);
-                    break;
-                case "Intent.ACTION_PACKAGE_REMOVED":
-                    Uri uri = intent.getData();
-                    packageName = uri != null ? uri.getSchemeSpecificPart() : null;
-                    try {
-                        Date dateAdded = new Date(context.getPackageManager().getPackageInfo(packageName, 0).firstInstallTime);
-                        messageLogged = Common.getAppName(packageName, getApplicationContext()) + " uninstalled (installed on " + dateAdded + ")";
-                        Common.appendLog(messageLogged);
-                        Log.i("Reduced", messageLogged);
-                    } catch (PackageManager.NameNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                    break;
-            }
-        }
-    };
-
     //Results receiver for the upload service
     ResultsReceiver uploadResult = new ResultsReceiver(new Handler()) {
         @Override
@@ -165,18 +124,26 @@ public class MyService extends Service {
                     break;
                 case ClientServerService.STATUS_FINISHED:
                     //delete the file from filename
-                    Log.i("FileUpload",resultData.get("result").toString());
+                    String result = resultData.get("result").toString();
+                    if (result.equals(HttpURLConnection.HTTP_ACCEPTED) ||
+                            result.equals(HttpURLConnection.HTTP_CREATED) ||
+                                    result.equals(HttpURLConnection.HTTP_OK)
+                                    ){
+                    Log.i("FileUpload", resultData.get("result").toString());
                     Log.i("FileUpload", "Files are Uploaded Successfully");
-                    startUpload =false;
-                    break;
+                    startUpload = false;
+                }else{
+                        //TODO reschedule the upload
+                    }
+                break;
                 case ClientServerService.STATUS_ERROR:
-                    startUpload =false;
+                    startUpload = false;
                     String error = resultData.getString("result");
                     Log.i("FileUpload", "Boom");
                     Log.i("FileUpload", error);
-                    startUpload =false;
-                    stopSelf();
-                    //keep the file and reschedule an upload for that file
+                    startUpload = false;
+                    //  stopSelf();
+                    //TODO keep the file and reschedule an upload for that file timer + check connectivity
                     break;
             }
         }
@@ -184,8 +151,9 @@ public class MyService extends Service {
 
     // These define the collection frequency (collect every 10 seconds)
     //TODO we have to replace the hard coded intervals
+
     Integer interval = 10000;
-    int uploadInterval = 3;
+    //int uploadInterval = 3;
     Timer timer = new Timer();
 
     @Override
@@ -280,6 +248,7 @@ public class MyService extends Service {
                                             }
                                         }
                                     } else {
+                                        //TODO when connection lasts for more that one hour !!!!!
                                         catInnerHash.put("Age", "0");
                                         cumulativeOuterHashCx.get(callingApp).put(P + sourceIP + sourcePort + destinationIP + destinationPort, catInnerHash);
                                         catOuterHash.get(callingApp).put(P + sourceIP + sourcePort + destinationIP + destinationPort, catInnerHash);
@@ -437,13 +406,14 @@ public class MyService extends Service {
 // this schedules the upload service to run at user click
 
                 if (isWiFi) {
+                    //TODO Upload inteval as a fucntion of the collect interval
                     Log.i("WiFi", "The phone is connected to wifi");
                     if (startUpload) {
-                        Intent intent = new Intent(Intent.ACTION_SYNC, null,getApplicationContext(), ClientServerService.class);
-                        intent.putExtra("url","http://192.168.137.234/CrowdApp/InsertUser.php");
-                        intent.putExtra("filename",fileToUpload);
-                        intent.putExtra("type",fileUploadType);
-                        intent.putExtra("receiver",uploadResult);
+                        Intent intent = new Intent(Intent.ACTION_SYNC, null, getApplicationContext(), ClientServerService.class);
+                        intent.putExtra("url", "http://192.168.137.234/CrowdApp/InsertUser.php");
+                        intent.putExtra("filename", fileToUpload);
+                        intent.putExtra("type", fileUploadType);
+                        intent.putExtra("receiver", uploadResult);
                         startService(intent);
                     }
                     // check upload service interval
@@ -462,11 +432,6 @@ public class MyService extends Service {
     @Override
     public void onDestroy() {
         Toast.makeText(getApplicationContext(), "Service Stopped..", Toast.LENGTH_LONG).show();
-        try {
-            unregisterReceiver(receiver);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         timer.cancel();
         super.onDestroy();
     }

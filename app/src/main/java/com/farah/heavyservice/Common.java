@@ -79,30 +79,7 @@ public class Common {
             dir.mkdirs();
         }
         File myFile = new File(dir, fileName); //"CPUMEMStats"
-        /*if (!myFile.exists()) {
-            try {
-                myFile.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }*/
-        /*
-        try {
             //// TODO: 8/17/2016 we have to replace the hardcoded file name
-            fileOut = new FileOutputStream(myFile,true);
-            ObjectOutputStream out = new ObjectOutputStream(fileOut);
-            out.writeObject(captures);
-            out.close();
-            fileOut.close();
-            Log.d(TAG, "The CPU outerhash is appended to a file");
-            return true;
-        } catch (FileNotFoundException e) {
-            Log.d(TAG, "File Not found exception while saving list to file");
-            return false;
-        } catch (IOException e) {
-            Log.d(TAG, "Input output exception while saving list to file");
-            return false;
-        }*/
         try {
             if (!myFile.exists() || !append) {
                 //Log.i("ReadList", "The file " + fileName + " Doesn't exist and should be created");
@@ -192,7 +169,6 @@ public class Common {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp");
         File myFile = new File(dir, filename);
         List<HashMap<String,HashMap<String,Long>>> rtrnList = new ArrayList<>();
-        ;
         if (myFile.exists()) {
             ObjectInputStream ois = null;
             try {
