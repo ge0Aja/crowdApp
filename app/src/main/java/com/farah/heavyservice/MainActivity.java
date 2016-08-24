@@ -36,13 +36,13 @@ public class MainActivity extends AppCompatActivity {
         String type = txtType.getText().toString();
         switch (type) {
             case "CPC":
-                MyService.setUploadSettings(MyService.CPCBkup, true, MyService.filetypeCPC);
+                CommonVariables.setUploadSettings(CommonVariables.CPCBkup, true, String.valueOf(R.string.filetypeCPC));
                 break;
             case "TF":
-                MyService.setUploadSettings(MyService.TFBkup, true, MyService.filetypeTf);
+                CommonVariables.setUploadSettings(CommonVariables.TFBkup, true, String.valueOf(R.string.filetypeTf));
                 break;
             case "Cx":
-                MyService.setUploadSettings(MyService.CxBkup, true, MyService.filetypeCx);
+                CommonVariables.setUploadSettings(CommonVariables.CxBkup, true, String.valueOf(R.string.filetypeCx));
         }
     }
 }

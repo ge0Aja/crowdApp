@@ -16,13 +16,41 @@ public class CommonVariables {
 
     public static boolean screenOn = false;
     public static boolean isWiFi = false;
-    public static boolean uploadFile = false;
-    public static boolean uploadType = false;
+    public static boolean startUpload=false;
 
+    public static String fileToUpload = "";
+    public static String fileUploadType = "";
 
-    private static String fileToUpload = "";
-    private static String fileUploadType = "";
     public static String TFBkup = "TrafficStatsBkup";
     public static String CPCBkup = "CPUMEMStatsBkup";
     public static String CxBkup = "CxStatsBkup";
+    public static String TFUploadURL = "url";
+    public static String CPCUploadURL = "url";
+    public static String CxUploadURL = "url";
+    public static String UploadHost = "IP";
+
+    public static String UploadTypeFile = "File";
+    public static String UploadTypeDir = "Dir";
+
+    public static void setWiFi(boolean WiFi) {
+        isWiFi = WiFi;
+    }
+
+    public static void setUploadSettings(String fileName, Boolean upload, String filetypetoupload) {
+        fileToUpload = fileName;
+        startUpload = upload;
+        fileUploadType = filetypetoupload;
+    }
+
+    public static void changeCxBkupName(String Name) {
+        CxBkup = Name;
+    }
+
+    public static void changeCPCBkupName(String Name) {
+        CPCBkup = Name;
+    }
+
+    public static void changeTFBkupName(String Name) {
+        TFBkup = Name;
+    }
 }

@@ -17,6 +17,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -35,22 +36,9 @@ import java.util.TimerTask;
 public class MyService extends Service {
     public final String TAG = "Heavy Service";
     String messageLogged = "";
-    private static boolean isWiFi = false;
-    public static boolean screenON = false;
+
 
     //TODO put the variables in the strings.xml file
-    private static boolean startUpload = false;
-    private static String fileToUpload = "";
-    private static String fileUploadType = "";
-
-    public static final String filetypeCPC = "CPC";
-    public static String filetypeCx = "Cx";
-    public static String filetypeTf = "TF";
-
-
-    public static String TFBkup = "TrafficStatsBkup";
-    public static String CPCBkup = "CPUMEMStatsBkup";
-    public static String CxBkup = "CxStatsBkup";
 
     //TODO read from files if they exist if not create new outerHashses
 
@@ -63,28 +51,6 @@ public class MyService extends Service {
     HashMap<String, HashMap<String, Long>> cumulativeOuterHash;//= new HashMap<String, HashMap<String, Long>>();
     HashMap<String, HashMap<String, HashMap<String, String>>> cumulativeOuterHashCx;//= new HashMap<String, HashMap<String, String>>();
 
-
-    public static void setUploadSettings(String fileName, Boolean upload, String filetypetoupload) {
-        fileToUpload = fileName;
-        startUpload = upload;
-        fileUploadType = filetypetoupload;
-    }
-
-    public static void setWiFi(boolean WiFi) {
-        isWiFi = WiFi;
-    }
-
-    public static void changeCxBkupName(String Name) {
-        CxBkup = Name;
-    }
-
-    public static void changeCPCBkupName(String Name) {
-        CPCBkup = Name;
-    }
-
-    public static void changeTFBkupName(String Name) {
-        TFBkup = Name;
-    }
 
     private void getOuterHashes() {
         try {
@@ -111,13 +77,13 @@ public class MyService extends Service {
                     String filenametype = (String) resultData.get("type");
                     switch (filenametype) {
                         case "CPC":
-                            changeCPCBkupName(CPCBkup + System.currentTimeMillis());
+                            CommonVariables.changeCPCBkupName(CommonVariables.CPCBkup + System.currentTimeMillis());
                             break;
                         case "Cx":
-                            changeCxBkupName(CxBkup + System.currentTimeMillis());
+                            CommonVariables.changeCxBkupName(CommonVariables.CxBkup + System.currentTimeMillis());
                             break;
                         case "TF":
-                            changeTFBkupName(TFBkup + System.currentTimeMillis());
+                            CommonVariables.changeTFBkupName(CommonVariables.TFBkup + System.currentTimeMillis());
                             break;
                     }
                     Log.i("FileName", "Backup File Name are changed");
@@ -125,23 +91,35 @@ public class MyService extends Service {
                 case ClientServerService.STATUS_FINISHED:
                     //delete the file from filename
                     String result = resultData.get("result").toString();
+                    String filePlanned = resultData.get("filename").toString();
+                    String filePlannedType = resultData.get("type").toString();
+
                     if (result.equals(HttpURLConnection.HTTP_ACCEPTED) ||
                             result.equals(HttpURLConnection.HTTP_CREATED) ||
                                     result.equals(HttpURLConnection.HTTP_OK)
                                     ){
                     Log.i("FileUpload", resultData.get("result").toString());
                     Log.i("FileUpload", "Files are Uploaded Successfully");
-                    startUpload = false;
+                        File delF = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/CrowdApp"+filePlannedType+"/"+filePlanned);
+                        boolean del = delF.delete();
+
+                        if(del)
+                            Log.i("FileUpload", "Files are Deleted Successfully");
+                        else{
+                            File delFR = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/CrowdApp"+filePlannedType+"/delete"+System.currentTimeMillis());
+                            delF.renameTo(delFR);
+                        }
+                        CommonVariables.startUpload = false;
                 }else{
                         //TODO reschedule the upload
                     }
                 break;
                 case ClientServerService.STATUS_ERROR:
-                    startUpload = false;
+                    //CommonVariables.startUpload = false;
                     String error = resultData.getString("result");
                     Log.i("FileUpload", "Boom");
                     Log.i("FileUpload", error);
-                    startUpload = false;
+                    CommonVariables.startUpload = false;
                     //  stopSelf();
                     //TODO keep the file and reschedule an upload for that file timer + check connectivity
                     break;
@@ -160,7 +138,7 @@ public class MyService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Toast.makeText(getApplicationContext(), "Service Started..", Toast.LENGTH_LONG).show();
         // This snippet runs the Linux top command every 'interval' amount of milliseconds
-        isWiFi = Common.isConnectedToWifi(getApplicationContext());
+        CommonVariables.isWiFi = Common.isConnectedToWifi(getApplicationContext());
         final PackageManager PM = getApplicationContext().getPackageManager();
         final List<String> installedPackagesRunning = new ArrayList<>();
         final List<String> installed3rdPartyApps = new ArrayList<>();
@@ -392,9 +370,9 @@ public class MyService extends Service {
                     // End Traffic Stats
 
                     // Start Write Lists to Storage
-                    Common.writeListToFile(outerHash, TFBkup, true);
-                    Common.writeListToFilecpc(outerHashCPUMEM, CPCBkup, true);
-                    Common.writeListToFilecxn(catOuterHash, CxBkup, true);
+                    Common.writeListToFile(outerHash, CommonVariables.TFBkup, true);
+                    Common.writeListToFilecpc(outerHashCPUMEM, CommonVariables.CPCBkup, true);
+                    Common.writeListToFilecxn(catOuterHash, CommonVariables.CxBkup, true);
                     Common.writeListToFile(cumulativeOuterHash, "CumulativeTrafficStatsBkup", false);
                     Common.writeListToFilecxn(cumulativeOuterHashCx, "CumulativeCxStatsBkup", false);
 
@@ -405,14 +383,15 @@ public class MyService extends Service {
                 }
 // this schedules the upload service to run at user click
 
-                if (isWiFi) {
+                if (CommonVariables.isWiFi) {
                     //TODO Upload inteval as a fucntion of the collect interval
                     Log.i("WiFi", "The phone is connected to wifi");
-                    if (startUpload) {
+                    if (CommonVariables.startUpload) {
                         Intent intent = new Intent(Intent.ACTION_SYNC, null, getApplicationContext(), ClientServerService.class);
+                        intent.putExtra("uploadtype",CommonVariables.UploadTypeFile);
                         intent.putExtra("url", "http://192.168.137.234/CrowdApp/InsertUser.php");
-                        intent.putExtra("filename", fileToUpload);
-                        intent.putExtra("type", fileUploadType);
+                        intent.putExtra("filename", CommonVariables.fileToUpload);
+                        intent.putExtra("type", CommonVariables.fileUploadType);
                         intent.putExtra("receiver", uploadResult);
                         startService(intent);
                     }

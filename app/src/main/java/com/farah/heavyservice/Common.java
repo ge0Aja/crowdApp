@@ -74,12 +74,12 @@ public class Common {
 
     public static boolean writeListToFilecpc(HashMap<String, HashMap<String, String>> captures, String fileName, Boolean append) {
         ObjectOutputStream fileOut = null;
-        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp");
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + R.string.filetypeCPC + "/");
         if (!dir.exists()) {
             dir.mkdirs();
         }
         File myFile = new File(dir, fileName); //"CPUMEMStats"
-            //// TODO: 8/17/2016 we have to replace the hardcoded file name
+        //// TODO: 8/17/2016 we have to replace the hardcoded file name
         try {
             if (!myFile.exists() || !append) {
                 //Log.i("ReadList", "The file " + fileName + " Doesn't exist and should be created");
@@ -103,9 +103,9 @@ public class Common {
     }
 
 
-    public static boolean writeListToFilecxn(HashMap<String, HashMap<String,HashMap<String, String>>> captures, String fileName, Boolean append) {
+    public static boolean writeListToFilecxn(HashMap<String, HashMap<String, HashMap<String, String>>> captures, String fileName, Boolean append) {
         ObjectOutputStream fileOut = null;
-        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp");
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp" + R.string.filetypeCx + "/");
         if (!dir.exists()) {
             dir.mkdirs();
         }
@@ -136,7 +136,7 @@ public class Common {
     public static boolean writeListToFile(HashMap<String, HashMap<String, Long>> captures, String fileName, Boolean append) {
         //  AppendToFileNoHeader fileOut = null;
         ObjectOutputStream fileOut = null;
-        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp");
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp" + R.string.filetypeTf + "/");
         if (!dir.exists()) {
             dir.mkdirs();
         }
@@ -144,7 +144,7 @@ public class Common {
 
         try {
             if (!myFile.exists() || !append) {
-              //  Log.i("ReadList", "The file " + fileName + " Doesn't exist and should be created");
+                //  Log.i("ReadList", "The file " + fileName + " Doesn't exist and should be created");
                 fileOut = new ObjectOutputStream(new FileOutputStream(myFile));
             } else {
                 fileOut = new AppendableObjectOutputStream(new FileOutputStream(myFile, append));
@@ -165,19 +165,18 @@ public class Common {
         return true;
     }
 
-    public static List<HashMap<String,HashMap<String,Long>>> readListFromFiletf(String filename) {
-        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp");
-        File myFile = new File(dir, filename);
-        List<HashMap<String,HashMap<String,Long>>> rtrnList = new ArrayList<>();
-        if (myFile.exists()) {
+    public static List<HashMap<String, HashMap<String, Long>>> readListFromFiletf(File file) {
+        List<HashMap<String, HashMap<String, Long>>> rtrnList = new ArrayList<>();
+
+        if (file.exists()) {
             ObjectInputStream ois = null;
             try {
-                ois = new ObjectInputStream(new FileInputStream(myFile));
+                ois = new ObjectInputStream(new FileInputStream(file));
                 while (true) {
-                    rtrnList.add((HashMap<String,HashMap<String,Long>>)ois.readObject());
+                    rtrnList.add((HashMap<String, HashMap<String, Long>>) ois.readObject());
                 }
             } catch (EOFException e) {
-              // e.printStackTrace();
+                // e.printStackTrace();
                 return rtrnList;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -193,17 +192,99 @@ public class Common {
         return rtrnList;
     }
 
-    public static List<HashMap<String,HashMap<String,String>>> readListFromFilecpc(String filename) {
-        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp");
+    public static List<HashMap<String, HashMap<String, Long>>> readListFromFiletf(String filename) {
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp" + R.string.filetypeTf + "/");
         File myFile = new File(dir, filename);
-        List<HashMap<String,HashMap<String,String>>> rtrnList = new ArrayList<>();
+        List<HashMap<String, HashMap<String, Long>>> rtrnList = new ArrayList<>();
+        if (myFile.exists()) {
+            ObjectInputStream ois = null;
+            try {
+                ois = new ObjectInputStream(new FileInputStream(myFile));
+                while (true) {
+                    rtrnList.add((HashMap<String, HashMap<String, Long>>) ois.readObject());
+                }
+            } catch (EOFException e) {
+                // e.printStackTrace();
+                return rtrnList;
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (ois != null) ois.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return rtrnList;
+    }
+
+    public static List<HashMap<String, HashMap<String, String>>> readListFromFilecpc(File file) {
+        List<HashMap<String, HashMap<String, String>>> rtrnList = new ArrayList<>();
+        if (file.exists()) {
+            ObjectInputStream ois = null;
+            try {
+                ois = new ObjectInputStream(new FileInputStream(file));
+                while (true) {
+                    rtrnList.add((HashMap<String, HashMap<String, String>>) ois.readObject());
+                }
+            } catch (EOFException e) {
+                //e.printStackTrace();
+                return rtrnList;
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (ois != null) ois.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return rtrnList;
+
+    }
+
+    public static List<HashMap<String, HashMap<String, String>>> readListFromFilecpc(String filename) {
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp" + R.string.filetypeCPC + "/");
+        File myFile = new File(dir, filename);
+        List<HashMap<String, HashMap<String, String>>> rtrnList = new ArrayList<>();
         ;
         if (myFile.exists()) {
             ObjectInputStream ois = null;
             try {
                 ois = new ObjectInputStream(new FileInputStream(myFile));
                 while (true) {
-                    rtrnList.add((HashMap<String,HashMap<String,String>>)ois.readObject());
+                    rtrnList.add((HashMap<String, HashMap<String, String>>) ois.readObject());
+                }
+            } catch (EOFException e) {
+                //e.printStackTrace();
+                return rtrnList;
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (ois != null) ois.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return rtrnList;
+    }
+
+    public static List<HashMap<String, HashMap<String, HashMap<String, String>>>> readListFromFilecxn(File file) {
+
+        List<HashMap<String, HashMap<String, HashMap<String, String>>>> rtrnList = new ArrayList<>();
+
+        if (file.exists()) {
+            ObjectInputStream ois = null;
+            try {
+                ois = new ObjectInputStream(new FileInputStream(file));
+                while (true) {
+                    rtrnList.add((HashMap<String, HashMap<String, HashMap<String, String>>>) ois.readObject());
                 }
             } catch (EOFException e) {
                 //e.printStackTrace();
@@ -223,18 +304,16 @@ public class Common {
     }
 
 
-
-    public static List<HashMap<String, HashMap<String,HashMap<String, String>>>> readListFromFilecxn(String filename) {
-        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp");
+    public static List<HashMap<String, HashMap<String, HashMap<String, String>>>> readListFromFilecxn(String filename) {
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp" + R.string.filetypeCx + "/");
         File myFile = new File(dir, filename);
-        List<HashMap<String, HashMap<String,HashMap<String, String>>>> rtrnList = new ArrayList<>();
-        ;
+        List<HashMap<String, HashMap<String, HashMap<String, String>>>> rtrnList = new ArrayList<>();
         if (myFile.exists()) {
             ObjectInputStream ois = null;
             try {
                 ois = new ObjectInputStream(new FileInputStream(myFile));
                 while (true) {
-                    rtrnList.add((HashMap<String, HashMap<String,HashMap<String, String>>>)ois.readObject());
+                    rtrnList.add((HashMap<String, HashMap<String, HashMap<String, String>>>) ois.readObject());
                 }
             } catch (EOFException e) {
                 //e.printStackTrace();
@@ -267,64 +346,64 @@ public class Common {
     }
 
 
-    public static JSONArray makeJsonArraytf(String filename){
-        List<HashMap<String,HashMap<String,Long>>> tfArray;
+    public static JSONArray makeJsonArraytf(String filename) {
+        List<HashMap<String, HashMap<String, Long>>> tfArray;
         JSONArray jsonArray = null;
         try {
             tfArray = readListFromFiletf(filename);
-            if(!tfArray.isEmpty()) {
-                 jsonArray = new JSONArray(tfArray);
+            if (!tfArray.isEmpty()) {
+                jsonArray = new JSONArray(tfArray);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return  jsonArray;
+        return jsonArray;
     }
 
 
-    public static JSONArray makeJsonArraycpc(String filename){
-        List<HashMap<String,HashMap<String,String>>> cpcArray;
+    public static JSONArray makeJsonArraycpc(String filename) {
+        List<HashMap<String, HashMap<String, String>>> cpcArray;
         JSONArray jsonArray = null;
         try {
             cpcArray = readListFromFilecpc(filename);
-            if(!cpcArray.isEmpty()) {
+            if (!cpcArray.isEmpty()) {
                 jsonArray = new JSONArray(cpcArray);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return  jsonArray;
+        return jsonArray;
     }
 
-    public static JSONArray makeJsonArraycxn(String filename){
-        List<HashMap<String, HashMap<String,HashMap<String, String>>>> cpcArray;
+    public static JSONArray makeJsonArraycxn(String filename) {
+        List<HashMap<String, HashMap<String, HashMap<String, String>>>> cpcArray;
         JSONArray jsonArray = null;
         try {
             cpcArray = readListFromFilecxn(filename);
-            if(!cpcArray.isEmpty()) {
+            if (!cpcArray.isEmpty()) {
                 jsonArray = new JSONArray(cpcArray);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return  jsonArray;
+        return jsonArray;
     }
 
-    public static boolean isConnectedToWifi(Context context){
+    public static boolean isConnectedToWifi(Context context) {
 
-        boolean isConnected =false;
-        boolean isWiFi =false;
+        boolean isConnected = false;
+        boolean isWiFi = false;
         ConnectivityManager cm =
-                (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         isConnected = activeNetwork != null &&
                 activeNetwork.isConnectedOrConnecting();
-        if(isConnected){
-           isWiFi = activeNetwork.getType() == ConnectivityManager.TYPE_WIFI;
+        if (isConnected) {
+            isWiFi = activeNetwork.getType() == ConnectivityManager.TYPE_WIFI;
         }
 
-        return  isWiFi;
+        return isWiFi;
     }
 
 }

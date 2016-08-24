@@ -29,10 +29,10 @@ public class BootReceiver extends BroadcastReceiver {
             case "android.net.conn.CONNECTIVITY_CHANGE":
                 if (Common.isConnectedToWifi(context)) {
                     // Start uploading remaining files
-                    MyService.setWiFi(true);
+                    CommonVariables.setWiFi(true);
                     Log.i("ConnectivityChange", "The WIFI status should change");
                 } else {
-                    MyService.setWiFi(false);
+                    CommonVariables.setWiFi(false);
                     Log.i("ConnectivityChange", "The WIFI status should change");
                 }
                 break;
@@ -40,13 +40,13 @@ public class BootReceiver extends BroadcastReceiver {
                 messageLogged = "Screen switched off ";
                 Common.appendLog(messageLogged);
                 Log.i("Reduced", messageLogged);
-                MyService.screenON = false;
+                CommonVariables.screenOn = false;
                 break;
             case "Intent.ACTION_SCREEN_ON":
                 messageLogged = "Screen switched on ";
                 Common.appendLog(messageLogged);
                 Log.i("Reduced", messageLogged);
-                MyService.screenON = true;
+                CommonVariables.screenOn = true;
                 break;
             case "Intent.ACTION_PACKAGE_ADDED":
                 packageName = intent.getData().getEncodedSchemeSpecificPart();
