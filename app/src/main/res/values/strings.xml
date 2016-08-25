@@ -3,5 +3,6 @@
     <string name="filetypeCPC">CPC</string>
     <string name="filetypeCx">CX</string>
     <string name="filetypeTf">TF</string>
+    <string name="filetypeAll">All</string>
     <string name="upload_service_name">UploadService</string>
 </resources>

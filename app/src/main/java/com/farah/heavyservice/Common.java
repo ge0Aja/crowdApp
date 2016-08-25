@@ -8,8 +8,6 @@ import android.net.NetworkInfo;
 import android.os.Environment;
 
 import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.BufferedWriter;
 import java.io.EOFException;

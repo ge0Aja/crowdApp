@@ -1,14 +1,10 @@
 package com.farah.heavyservice;
 
 import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.database.DatabaseErrorHandler;
 import android.net.TrafficStats;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -20,15 +16,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -50,24 +42,6 @@ public class MyService extends Service {
     //TODO read from files if they exist if not create new Cumulative outerHashses
     HashMap<String, HashMap<String, Long>> cumulativeOuterHash;//= new HashMap<String, HashMap<String, Long>>();
     HashMap<String, HashMap<String, HashMap<String, String>>> cumulativeOuterHashCx;//= new HashMap<String, HashMap<String, String>>();
-
-
-    private void getOuterHashes() {
-        try {
-            //Log.i("ListCumTraffic",Common.readListFromFiletf("CumulativeTrafficStatsBkup").get(Common.readListFromFilecpc("CumulativeTrafficStatsBkup").size() - 1).toString());
-            cumulativeOuterHash = Common.readListFromFiletf("CumulativeTrafficStatsBkup").get(Common.readListFromFilecpc("CumulativeTrafficStatsBkup").size() - 1);
-        } catch (Exception e) {
-            cumulativeOuterHash = new HashMap<String, HashMap<String, Long>>();
-        }
-        try {
-            //  Log.i("ListCumCx",Common.readListFromFilecpc("CumulativeCxStatsBkup").get(Common.readListFromFilecpc("CumulativeCxStatsBkup").size() - 1).toString());
-            cumulativeOuterHashCx = Common.readListFromFilecxn("CumulativeCxStatsBkup").get(Common.readListFromFilecpc("CumulativeCxStatsBkup").size() - 1);
-        } catch (Exception e) {
-            cumulativeOuterHashCx = new HashMap<String, HashMap<String, HashMap<String, String>>>();
-        }
-
-    }
-
     //Results receiver for the upload service
     ResultsReceiver uploadResult = new ResultsReceiver(new Handler()) {
         @Override
@@ -90,30 +64,31 @@ public class MyService extends Service {
                     break;
                 case ClientServerService.STATUS_FINISHED:
                     //delete the file from filename
-                    String result = resultData.get("result").toString();
+                    int status = resultData.getInt("Status");
                     String filePlanned = resultData.get("filename").toString();
                     String filePlannedType = resultData.get("type").toString();
-
-                    if (result.equals(HttpURLConnection.HTTP_ACCEPTED) ||
-                            result.equals(HttpURLConnection.HTTP_CREATED) ||
-                                    result.equals(HttpURLConnection.HTTP_OK)
-                                    ){
-                    Log.i("FileUpload", resultData.get("result").toString());
-                    Log.i("FileUpload", "Files are Uploaded Successfully");
-                        File delF = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/CrowdApp"+filePlannedType+"/"+filePlanned);
-                        boolean del = delF.delete();
-
-                        if(del)
-                            Log.i("FileUpload", "Files are Deleted Successfully");
-                        else{
-                            File delFR = new File(Environment.getExternalStorageDirectory().getAbsolutePath()+"/CrowdApp"+filePlannedType+"/delete"+System.currentTimeMillis());
-                            delF.renameTo(delFR);
-                        }
-                        CommonVariables.startUpload = false;
-                }else{
-                        //TODO reschedule the upload
+                    switch (status) {
+                        case ClientServerService.STATUS_FINISHED_SUCCESS:
+                            Log.i("FileUpload", resultData.get("result").toString());
+                            Log.i("FileUpload", "Files are Uploaded Successfully");
+                            File delF = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp" + filePlannedType + "/" + filePlanned);
+                            boolean del = delF.delete();
+                            if (del)
+                                Log.i("FileUpload", "Files are Deleted Successfully");
+                            else {
+                                File delFR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp" + filePlannedType + "/delete" + System.currentTimeMillis());
+                                delF.renameTo(delFR);
+                            }
+                            CommonVariables.startUpload = false;
+                            break;
+                        case ClientServerService.STATUS_FINISHED_NO_RESPONSE_FROM_SERVER:
+                            // TODO What to do if we didn't get a confirmation from the server
+                            break;
+                        case ClientServerService.STATUS_FINISHED_ERROR:
+                            // TODO Check out the error and maybe wait for the secheduled upload service
+                            break;
                     }
-                break;
+                    break;
                 case ClientServerService.STATUS_ERROR:
                     //CommonVariables.startUpload = false;
                     String error = resultData.getString("result");
@@ -126,13 +101,28 @@ public class MyService extends Service {
             }
         }
     };
+    Integer interval = 10000;
 
     // These define the collection frequency (collect every 10 seconds)
     //TODO we have to replace the hard coded intervals
-
-    Integer interval = 10000;
     //int uploadInterval = 3;
     Timer timer = new Timer();
+
+    private void getOuterHashes() {
+        try {
+            //Log.i("ListCumTraffic",Common.readListFromFiletf("CumulativeTrafficStatsBkup").get(Common.readListFromFilecpc("CumulativeTrafficStatsBkup").size() - 1).toString());
+            cumulativeOuterHash = Common.readListFromFiletf("CumulativeTrafficStatsBkup").get(Common.readListFromFilecpc("CumulativeTrafficStatsBkup").size() - 1);
+        } catch (Exception e) {
+            cumulativeOuterHash = new HashMap<String, HashMap<String, Long>>();
+        }
+        try {
+            //  Log.i("ListCumCx",Common.readListFromFilecpc("CumulativeCxStatsBkup").get(Common.readListFromFilecpc("CumulativeCxStatsBkup").size() - 1).toString());
+            cumulativeOuterHashCx = Common.readListFromFilecxn("CumulativeCxStatsBkup").get(Common.readListFromFilecpc("CumulativeCxStatsBkup").size() - 1);
+        } catch (Exception e) {
+            cumulativeOuterHashCx = new HashMap<String, HashMap<String, HashMap<String, String>>>();
+        }
+
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -388,7 +378,7 @@ public class MyService extends Service {
                     Log.i("WiFi", "The phone is connected to wifi");
                     if (CommonVariables.startUpload) {
                         Intent intent = new Intent(Intent.ACTION_SYNC, null, getApplicationContext(), ClientServerService.class);
-                        intent.putExtra("uploadtype",CommonVariables.UploadTypeFile);
+                        intent.putExtra("uploadtype", CommonVariables.UploadTypeFile);
                         intent.putExtra("url", "http://192.168.137.234/CrowdApp/InsertUser.php");
                         intent.putExtra("filename", CommonVariables.fileToUpload);
                         intent.putExtra("type", CommonVariables.fileUploadType);

@@ -1,12 +1,13 @@
 package com.farah.heavyservice;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.BatteryManager;
 import android.util.Log;
 
 import java.util.Date;
@@ -18,7 +19,7 @@ public class BootReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String messageLogged = "";
-        String packageName="";
+        String packageName = "";
         String action = intent.getAction();
 
         switch (action) {
@@ -28,9 +29,16 @@ public class BootReceiver extends BroadcastReceiver {
                 break;
             case "android.net.conn.CONNECTIVITY_CHANGE":
                 if (Common.isConnectedToWifi(context)) {
-                    // Start uploading remaining files
                     CommonVariables.setWiFi(true);
                     Log.i("ConnectivityChange", "The WIFI status should change");
+                    Intent intentStartUpload = new Intent(context, ClientServerService.class);
+                    intentStartUpload.putExtra("uploadtype", CommonVariables.UploadTypeDir);
+                    intentStartUpload.putExtra("receiver", CommonVariables.uploadResultDir);
+                    intentStartUpload.putExtra("type", R.string.filetypeAll);
+                    CommonVariables.pintent = PendingIntent.getService(context, 0, intentStartUpload, 0);
+                    CommonVariables.alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+                    //TODO reschedule inerval
+                    CommonVariables.alarm.setRepeating(AlarmManager.RTC_WAKEUP, CommonVariables.cal.getTimeInMillis(), 30 * 1000, CommonVariables.pintent);
                 } else {
                     CommonVariables.setWiFi(false);
                     Log.i("ConnectivityChange", "The WIFI status should change");
@@ -64,6 +72,17 @@ public class BootReceiver extends BroadcastReceiver {
                     Log.i("Reduced", messageLogged);
                 } catch (PackageManager.NameNotFoundException e) {
                     e.printStackTrace();
+                }
+                break;
+            case "android.intent.action.ACTION_BATTERY_LOW":
+                // TODO edit  intervals
+                break;
+            case "android.intent.action.ACTION_BATTERY_OKAY":
+                int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+                boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING;
+
+                if (isCharging) {
+                    // TODO edit intervals
                 }
                 break;
         }

@@ -1,5 +1,13 @@
 package com.farah.heavyservice;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
+
+import java.util.Calendar;
+
 /**
  * Created by Georgi on 8/23/2016.
  */
@@ -16,14 +24,19 @@ public class CommonVariables {
 
     public static boolean screenOn = false;
     public static boolean isWiFi = false;
-    public static boolean startUpload=false;
+    public static boolean startUpload = false;
 
+    public static boolean startUploadDir = false;
+
+    public static String TAG = "Collect Service";
+    public static String TAG_U = "Upload Service";
     public static String fileToUpload = "";
     public static String fileUploadType = "";
 
     public static String TFBkup = "TrafficStatsBkup";
     public static String CPCBkup = "CPUMEMStatsBkup";
     public static String CxBkup = "CxStatsBkup";
+
     public static String TFUploadURL = "url";
     public static String CPCUploadURL = "url";
     public static String CxUploadURL = "url";
@@ -31,6 +44,53 @@ public class CommonVariables {
 
     public static String UploadTypeFile = "File";
     public static String UploadTypeDir = "Dir";
+
+
+    public static Calendar cal = Calendar.getInstance();
+    public static AlarmManager alarm;
+    public static PendingIntent pintent;
+
+    public static ResultsReceiver uploadResultDir = new ResultsReceiver(new Handler()) {
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+            switch (resultCode) {
+                case ClientServerService.STATUS_RUNNING:
+                    // TODO use this flag somewhere
+                    startUploadDir = true;
+                    break;
+                case ClientServerService.STATUS_FINISHED:
+                    //TODO get the results and see what is happening
+                    int status = resultData.getInt("status");
+                    String type = "";
+                    switch (status) {
+                        case ClientServerService.STATUS_FINISHED_SUCCESS:
+                            type = resultData.getString("type");
+                            Log.i(TAG_U, "Files from " + type + " directory is uploaded !");
+                            alarm.cancel(pintent);
+                            break;
+                        case ClientServerService.STATUS_FINISHED_NOFILES:
+                            type = resultData.getString("type");
+                            Log.i(TAG_U, "No Files found in " + type + " directory !");
+                            alarm.cancel(pintent);
+                            break;
+                        case ClientServerService.STATUS_FINISHED_NOWIFI:
+                            Log.i(TAG_U, "No Wifi Schedule upload for later");
+                            //TODO reschedule inerval
+                            alarm.setRepeating(AlarmManager.RTC_WAKEUP, CommonVariables.cal.getTimeInMillis(), 30 * 1000, CommonVariables.pintent);
+                            break;
+                        case ClientServerService.STATUS_FINISHED_ERROR:
+                            //TODO Errors
+                            break;
+                    }
+                  //  alarm.cancel(pintent);
+                    break;
+                case ClientServerService.STATUS_ERROR:
+                    //TODO something
+                    alarm.cancel(pintent);
+                    break;
+            }
+        }
+    };
 
     public static void setWiFi(boolean WiFi) {
         isWiFi = WiFi;
