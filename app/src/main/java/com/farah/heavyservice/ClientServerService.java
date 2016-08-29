@@ -517,4 +517,7 @@ public class ClientServerService extends IntentService {
         }
         return sb.toString();
     }
+
+
+    //TODO create a post method for errors and a get method for the thresholds and intervals
 }
