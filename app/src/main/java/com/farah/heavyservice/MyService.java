@@ -63,6 +63,9 @@ public class MyService extends Service {
                     }
                     Log.i("FileName", "Backup File Name are changed");
                     break;
+                case ClientServerService.STATUS_FINISHED_NOWIFI:
+                    Log.i(ClientServerService.TAG, "No Wifi Schedule upload for later");
+                    break;
                 case ClientServerService.STATUS_FINISHED:
                     //delete the file from filename
                     int status = resultData.getInt("Status");
@@ -72,21 +75,40 @@ public class MyService extends Service {
                         case ClientServerService.STATUS_FINISHED_SUCCESS:
                             Log.i("FileUpload", resultData.get("result").toString());
                             Log.i("FileUpload", "Files are Uploaded Successfully");
-                            File delF = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp" + filePlannedType + "/" + filePlanned);
+                            File delF = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + filePlannedType + "/" + filePlanned);
                             boolean del = delF.delete();
                             if (del)
                                 Log.i("FileUpload", "Files are Deleted Successfully");
                             else {
-                                File delFR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp" + filePlannedType + "/delete" + System.currentTimeMillis());
+                                File delFR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + filePlannedType + "/delete" + System.currentTimeMillis());
                                 delF.renameTo(delFR);
                             }
                             CommonVariables.startUpload = false;
                             break;
                         case ClientServerService.STATUS_FINISHED_NO_RESPONSE_FROM_SERVER:
                             // TODO What to do if we didn't get a confirmation from the server
+                            Log.i("FileUpload", "No response from server !");
+                            CommonVariables.startUpload = false;
+
                             break;
                         case ClientServerService.STATUS_FINISHED_ERROR:
+                            String error = resultData.getString("result");
+                            switch (error) {
+                                case "Forbidden":
+                                    // TODO send not to server
+                                    break;
+                                case "500":
+                                case "503":
+                                    break;
+                                case "404":
+                                    // TODO send not to server
+                                    break;
+                                default:
+                                    // TODO send not to server
+                                    break;
+                            }
                             // TODO Check out the error and maybe wait for the secheduled upload service
+                            CommonVariables.startUpload = false;
                             break;
                     }
                     break;
@@ -387,7 +409,7 @@ public class MyService extends Service {
                     }
                     //TODO Upload inteval as a fucntion of the collect interval
                     Log.i("WiFi", "The phone is connected to wifi");
-                    if (CommonVariables.startUpload) {
+                    if (CommonVariables.startUpload && !CommonVariables.startUploadDir) {
                         Intent intent = new Intent(Intent.ACTION_SYNC, null, getApplicationContext(), ClientServerService.class);
                         intent.putExtra("uploadtype", CommonVariables.UploadTypeFile);
                         intent.putExtra("filename", CommonVariables.fileToUpload);

@@ -23,7 +23,7 @@ public class CommonVariables {
     public static int retryIntervalEvent = 0;
     public static int collectInterval = 0;
     public static int uploadIntervalNormal = 10 * 1000;
-    public static int uploadIntervalRetry = 0;
+    public static int uploadIntervalRetry = 7200 * 1000;
     public static int thresholdInterval = 0;
     public static int[] thresholds = new int[10];
     public static int maxFileSize = 1024;
@@ -62,7 +62,7 @@ public class CommonVariables {
             switch (resultCode) {
                 case ClientServerService.STATUS_RUNNING:
                     // TODO use this flag somewhere
-                    startUploadDir = true;
+                    // startUploadDir = true;
                     break;
                 case ClientServerService.STATUS_FINISHED:
                     //TODO get the results and see what is happening
@@ -74,29 +74,38 @@ public class CommonVariables {
                         case ClientServerService.STATUS_FINISHED_SUCCESS:
                             type = resultData.getString("type");
                             Log.i(ClientServerService.TAG, "Files from " + type + " directory are uploaded !");
-                            alarm.cancel(pintent);
-                           // startUpload = false;
+                            // alarm.cancel(pintent);
+                            startUploadDir = false;
                             break;
                         case ClientServerService.STATUS_FINISHED_NOFILES:
                             type = resultData.getString("type");
                             Log.i(ClientServerService.TAG, "No Files found in " + type + " directory !");
                             alarm.cancel(pintent);
-                            startUpload = false;
+                            startUploadDir = false;
                             break;
                         case ClientServerService.STATUS_FINISHED_NOWIFI:
                             Log.i(ClientServerService.TAG, "No Wifi Schedule upload for later");
                             //TODO I think better not to reschedule just leave it for the regular upload service
-                           // alarm.setRepeating(AlarmManager.RTC_WAKEUP, CommonVariables.cal.getTimeInMillis(), 30 * 1000, CommonVariables.pintent);
-                            alarm.cancel(pintent);
-                            startUpload = false;
+                            // alarm.setRepeating(AlarmManager.RTC_WAKEUP, CommonVariables.cal.getTimeInMillis(), 30 * 1000, CommonVariables.pintent);
+                            // alarm.cancel(pintent);
+                            startUploadDir = false;
                             break;
                         case ClientServerService.STATUS_FINISHED_ERROR:
                             Log.i(ClientServerService.TAG, "FINISHED WITH ERRORS" + String.valueOf(status));
+                            // TODO send not to server
                             break;
                         case ClientServerService.STATUS_FINISHED_SERVER_UNAVAILABLE:
                             // TODO the server is not responding right now cancel for the rest
-                            Log.i(ClientServerService.TAG," The response was found to be server not found the alaram should turn off");
-                            alarm.cancel(pintent);
+                            Log.i(ClientServerService.TAG, " The response was found to be server not found the alaram should turn off");
+                            // alarm.cancel(pintent);
+                            startUploadDir = false;
+                            break;
+                        case ClientServerService.STATUS_FINISHED_FORBIDDEN:
+                            // TODO send not to server
+                            startUploadDir = false;
+                            break;
+                        case ClientServerService.STATUS_FINISHED_MALFORMED_HTTP:
+                            // TODO send not to server
                             startUploadDir = false;
                             break;
                     }

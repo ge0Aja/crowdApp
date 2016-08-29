@@ -51,7 +51,7 @@ public class BootReceiver extends BroadcastReceiver {
                     CommonVariables.alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
                     CommonVariables.startUploadDir = true;
                     //TODO reschedule inerval
-                    CommonVariables.alarm.setRepeating(AlarmManager.RTC_WAKEUP, CommonVariables.cal.getTimeInMillis() + CommonVariables.uploadIntervalNormal, 3600 * 1000, CommonVariables.pintent);
+                    CommonVariables.alarm.setRepeating(AlarmManager.RTC_WAKEUP, CommonVariables.cal.getTimeInMillis() + CommonVariables.uploadIntervalNormal, CommonVariables.uploadIntervalRetry, CommonVariables.pintent);
                     Log.i(CommonVariables.TAG_U,"Upload Scheduled after"+CommonVariables.uploadIntervalNormal+"Seconds");
                 } else {
                     CommonVariables.setWiFi(false);

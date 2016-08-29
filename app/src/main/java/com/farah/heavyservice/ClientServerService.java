@@ -19,14 +19,12 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 
 /**
  * Created by Georgi on 8/13/2016.
  */
 public class ClientServerService extends IntentService {
-    // public static final int STATUS_RUNNING = 0;
     public static final int STATUS_RUNNING = 0;
     public static final int STATUS_FINISHED = 1;
     public static final int STATUS_ERROR = 2;
@@ -34,6 +32,8 @@ public class ClientServerService extends IntentService {
     public static final int STATUS_FINISHED_SUCCESS = 1;
     public static final int STATUS_FINISHED_ERROR = 2;
     public static final int STATUS_FINISHED_NOFILES = 3;
+    public static final int STATUS_FINISHED_FORBIDDEN = 8;
+    public static final int STATUS_FINISHED_SERVER_ERROR = 9;
     public static final int STATUS_FINISHED_NOWIFI = 4;
     public static final int STATUS_FINISHED_SERVER_UNAVAILABLE = 5;
     public static final int STATUS_FINISHED_MALFORMED_HTTP = 6;
@@ -53,7 +53,7 @@ public class ClientServerService extends IntentService {
         String uploadType = intent.getStringExtra("uploadtype");
         Bundle bundle = new Bundle();
         if (uploadType.equals(CommonVariables.UploadTypeFile) && CommonVariables.isWiFi && CommonVariables.startUpload) {
-            Log.i(TAG,"The upload type is file and should start uploading");
+            Log.i(TAG, "The upload type is file and should start uploading");
             String url = intent.getStringExtra("url");
             String filename = intent.getStringExtra("filename");
             String type = intent.getStringExtra("type");
@@ -64,7 +64,7 @@ public class ClientServerService extends IntentService {
                     String results = uploadData(url, type, filename);
                     Log.i(TAG, String.valueOf(results));
                 /* Sending result back to Service */
-                    if (!results.equals("")) {
+                    if (!results.equals("Unconfirmed")) {
                         bundle.putString("filename", filename);
                         bundle.putString("type", type);
                         if (results.equals(HttpURLConnection.HTTP_ACCEPTED) ||
@@ -95,32 +95,33 @@ public class ClientServerService extends IntentService {
                 }
             }
         } else if (uploadType.equals(CommonVariables.UploadTypeDir) && CommonVariables.isWiFi && CommonVariables.startUploadDir) {
-
             String type = intent.getStringExtra("type");
             if (!type.equals(CommonVariables.filetypeAll)) {
-                Log.i(TAG,"The upload type is one Dir and should start uploading");
+                Log.i(TAG, "The upload type is one Dir and should start uploading");
                 try {
-                    ArrayList<String> results = uploadDataDir(type);
+                    HashMap<String, String> results = uploadDataDir(type);
                     bundle.putString("type", type);
-                    receiver.send(STATUS_RUNNING, bundle);
-                    if (results.size() == 1 && results.contains(String.valueOf(HttpURLConnection.HTTP_UNAVAILABLE))) {
-                        bundle.putInt("Status", STATUS_FINISHED_SERVER_UNAVAILABLE);
+                    if (results.get("Forbidden") != null) {
+                        bundle.putInt("Status", STATUS_FINISHED_FORBIDDEN);
                         receiver.send(STATUS_FINISHED, bundle);
-                    } else if (results.contains("Can't delete")) {
-                        //TODO there are files that can't be deleted
-                    } else if (results.size() == 1 && results.contains("No Files")) {
-                        bundle.putInt("Status", STATUS_FINISHED_NOFILES);
+                    } else if (results.get("500") != null || results.get("Error").equals(String.valueOf(HttpURLConnection.HTTP_UNAVAILABLE))) {
+                        bundle.putInt("Status", STATUS_FINISHED_SERVER_ERROR);
                         receiver.send(STATUS_FINISHED, bundle);
-                    } else if (results.contains("Error")) {
-                        //TODO there are files aren't uploaded
-                        int count = Collections.frequency(results, "Error");
-                        bundle.putInt("Status", STATUS_FINISHED_ERROR);
-                        bundle.putInt("Error", count);
-                        receiver.send(STATUS_FINISHED, bundle);
+                    } else if (results.get("Error") != null) {
+                        String err = results.get("Error");
+                        if (err.equals(String.valueOf(HttpURLConnection.HTTP_NOT_FOUND))) {
+                            bundle.putInt("Status", STATUS_FINISHED_MALFORMED_HTTP);
+                            receiver.send(STATUS_FINISHED, bundle);
+                        } else if (err.equals("NoFiles")) {
+                            bundle.putInt("Status", STATUS_FINISHED_NOFILES);
+                            receiver.send(STATUS_FINISHED, bundle);
+                        } else {
+                            bundle.putInt("Status", STATUS_FINISHED_ERROR);
+                            receiver.send(STATUS_FINISHED, bundle);
+                        }
                     } else {
                         bundle.putInt("Status", STATUS_FINISHED_SUCCESS);
                         receiver.send(STATUS_FINISHED, bundle);
-                        //TODO All files were uploaded sucessfully
                     }
                     Log.d(TAG, "Upload Service executed successfully!");
                     this.stopSelf();
@@ -132,35 +133,35 @@ public class ClientServerService extends IntentService {
                     this.stopSelf();
                 }
             } else {
-                Log.i(TAG,"The upload type is multiple Dir and should start uploading");
+                Log.i(TAG, "The upload type is multiple Dir and should start uploading");
                 String[] fileTypes = {CommonVariables.filetypeCPC, CommonVariables.filetypeCx, CommonVariables.filetypeTf};
                 for (String t : fileTypes
                         ) {
                     try {
-                        ArrayList<String> results = uploadDataDir(String.valueOf(t));
-                        bundle.putString("type", String.valueOf(t));
                         receiver.send(STATUS_RUNNING, bundle);
-                        if (results.size() == 1 && results.contains(String.valueOf(HttpURLConnection.HTTP_UNAVAILABLE))) {
-                            bundle.putInt("Status", STATUS_FINISHED_SERVER_UNAVAILABLE);
+                        HashMap<String, String> results = uploadDataDir(String.valueOf(t));
+                        bundle.putString("type", String.valueOf(t));
+                        if (results.get("Forbidden") != null) {
+                            bundle.putInt("Status", STATUS_FINISHED_FORBIDDEN);
                             receiver.send(STATUS_FINISHED, bundle);
-                        } else if (results.size() == 1 && results.contains(String.valueOf(HttpURLConnection.HTTP_NOT_FOUND))) {
-                            bundle.putInt("Status", STATUS_FINISHED_MALFORMED_HTTP);
+                        } else if (results.get("500") != null || results.get("Error").equals(String.valueOf(HttpURLConnection.HTTP_UNAVAILABLE))) {
+                            bundle.putInt("Status", STATUS_FINISHED_SERVER_ERROR);
                             receiver.send(STATUS_FINISHED, bundle);
-                        } else if (results.contains("Can't delete")) {
-                            //TODO there are files that can't be deleted
-                        } else if (results.size() == 1 && results.contains("No Files")) {
-                            bundle.putInt("Status", STATUS_FINISHED_NOFILES);
-                            receiver.send(STATUS_FINISHED, bundle);
-                        } else if (results.contains("Error")) {
-                            //TODO there are files aren't uploaded
-                            int count = Collections.frequency(results, "Error");
-                            bundle.putInt("Status", STATUS_FINISHED_ERROR);
-                            bundle.putInt("Error", count);
-                            receiver.send(STATUS_FINISHED, bundle);
+                        } else if (results.get("Error") != null) {
+                            String err = results.get("Error");
+                            if (err.equals(String.valueOf(HttpURLConnection.HTTP_NOT_FOUND))) {
+                                bundle.putInt("Status", STATUS_FINISHED_MALFORMED_HTTP);
+                                receiver.send(STATUS_FINISHED, bundle);
+                            } else if (err.equals("NoFiles")) {
+                                bundle.putInt("Status", STATUS_FINISHED_NOFILES);
+                                receiver.send(STATUS_FINISHED, bundle);
+                            } else {
+                                bundle.putInt("Status", STATUS_FINISHED_ERROR);
+                                receiver.send(STATUS_FINISHED, bundle);
+                            }
                         } else {
                             bundle.putInt("Status", STATUS_FINISHED_SUCCESS);
                             receiver.send(STATUS_FINISHED, bundle);
-                            //TODO All files were uploaded sucessfully
                         }
                         Log.d(TAG, "Upload Service executed successfully for type" + String.valueOf(t));
                         this.stopSelf();
@@ -181,7 +182,7 @@ public class ClientServerService extends IntentService {
         this.stopSelf();
     }
 
-    private ArrayList<String> uploadDataDir(String type) throws IOException {
+    private HashMap<String, String> uploadDataDir(String type) throws IOException {
         String tempOutput = "";
         StringBuilder sb = new StringBuilder();
         HttpURLConnection postUrlConnection = null;
@@ -189,7 +190,7 @@ public class ClientServerService extends IntentService {
         String Dir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/";
         File f = new File(Dir);
         File files[] = f.listFiles();
-        ArrayList<String> output = new ArrayList<>();
+        HashMap<String, String> output = new HashMap<>();
         if (files.length != 0) {
             if (type.equals(CommonVariables.filetypeCPC)) {
                 try {
@@ -208,9 +209,9 @@ public class ClientServerService extends IntentService {
                             ) {
                         if (fi.getName().startsWith("delete")) {
                             if (fi.delete())
-                                output.add("delete");
+                                output.put(fi.getName(), "delete");
                             else {
-                                output.add("Can't delete");
+                                output.put(fi.getName(), "deleteFailed");
                             }
                         } else if (!fi.getName().equals(CommonVariables.CPCBkup)) {
                             tempOutput = "";
@@ -226,29 +227,42 @@ public class ClientServerService extends IntentService {
                             while ((tempOutput = br.readLine()) != null) {
                                 sb.append(tempOutput);
                             }
-                            if (sb.toString().equals(HttpURLConnection.HTTP_ACCEPTED) ||
+                            if (sb.toString().equals("")) {
+                                output.put(fi.getName(), "Unconfirmed");
+                                fi.renameTo(new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/unconfirmed" + System.currentTimeMillis()));
+                            } else if (sb.toString().equals(HttpURLConnection.HTTP_ACCEPTED) ||
                                     sb.toString().equals(HttpURLConnection.HTTP_CREATED) ||
                                     sb.toString().equals(HttpURLConnection.HTTP_OK)
                                     ) {
-                                if(!sb.toString().equals(""))
-                                    output.add(sb.toString());
-                                else{
-                                    //TODO rename the file to unconfirmed
+                                output.put(fi.getName(), sb.toString());
+                                boolean delcpc = fi.delete();
+                                if (!delcpc) {
+                                    File delFR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/delete" + System.currentTimeMillis());
+                                    fi.renameTo(delFR);
                                 }
+                            } else if (sb.toString().equals(HttpURLConnection.HTTP_FORBIDDEN) ||
+                                    sb.toString().equals(HttpURLConnection.HTTP_UNAUTHORIZED)) {
+                                output.put("Forbidden", fi.getName());
+                                break;
+                            } else if (sb.toString().startsWith("5")) {
+                                // the server is down
+                                output.put("500", fi.getName());
+                                break;
                             } else {
-                                output.add("Error");
+                                output.put("Error", sb.toString());
+                                break;
                             }
                         } else {
-                            output.add("Current File");
+                            output.put(fi.getName(), "CurrentFile");
                         }
                     }
                 } catch (java.net.SocketTimeoutException e) {
                     //TODO the server is not responding
-                    output.add(String.valueOf(HttpURLConnection.HTTP_UNAVAILABLE));
+                    output.put("Error", String.valueOf(HttpURLConnection.HTTP_UNAVAILABLE));
                     return output;
                     // e.printStackTrace();
                 } catch (MalformedURLException e) {
-                    output.add(String.valueOf(HttpURLConnection.HTTP_NOT_FOUND));
+                    output.put("Error", String.valueOf(HttpURLConnection.HTTP_NOT_FOUND));
                 } catch (IOException e) {
                     // TODO files can't be read
                     e.printStackTrace();
@@ -256,8 +270,8 @@ public class ClientServerService extends IntentService {
                 } finally {
                     if (postUrlConnection != null)
                         postUrlConnection.disconnect();
-                }
 
+                }
             } else if (type.equals(CommonVariables.filetypeCx)) {
                 try {
                     URL useURL = new URL(CommonVariables.CxUploadURL);
@@ -275,9 +289,9 @@ public class ClientServerService extends IntentService {
                             ) {
                         if (fi.getName().startsWith("delete")) {
                             if (fi.delete())
-                                output.add("delete");
+                                output.put(fi.getName(), "delete");
                             else {
-                                output.add("Can't delete");
+                                output.put(fi.getName(), "deleteFailed");
                             }
                         } else if (!fi.getName().equals(CommonVariables.CxBkup)) {
                             tempOutput = "";
@@ -293,29 +307,42 @@ public class ClientServerService extends IntentService {
                             while ((tempOutput = br.readLine()) != null) {
                                 sb.append(tempOutput);
                             }
-                            if (sb.toString().equals(HttpURLConnection.HTTP_ACCEPTED) ||
+                            if (sb.toString().equals("")) {
+                                output.put(fi.getName(), "Unconfirmed");
+                                fi.renameTo(new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/unconfirmed" + System.currentTimeMillis()));
+                            } else if (sb.toString().equals(HttpURLConnection.HTTP_ACCEPTED) ||
                                     sb.toString().equals(HttpURLConnection.HTTP_CREATED) ||
                                     sb.toString().equals(HttpURLConnection.HTTP_OK)
                                     ) {
-                                if(!sb.toString().equals(""))
-                                    output.add(sb.toString());
-                                else{
-                                    //TODO there are unconfirmed files
+                                output.put(fi.getName(), sb.toString());
+                                boolean delcx = fi.delete();
+                                if (!delcx) {
+                                    File delFR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/delete" + System.currentTimeMillis());
+                                    fi.renameTo(delFR);
                                 }
+                            } else if (sb.toString().equals(HttpURLConnection.HTTP_FORBIDDEN) ||
+                                    sb.toString().equals(HttpURLConnection.HTTP_UNAUTHORIZED)) {
+                                output.put("Forbidden", fi.getName());
+                                break;
+                            } else if (sb.toString().startsWith("5")) {
+                                // the server is down
+                                output.put("500", fi.getName());
+                                break;
                             } else {
-                                output.add("Error");
+                                output.put("Error", sb.toString());
+                                break;
                             }
                         } else {
-                            output.add("Current File");
+                            output.put(fi.getName(), "CurrentFile");
                         }
                     }
                 } catch (java.net.SocketTimeoutException e) {
                     //TODO the server is not responding
-                    output.add(String.valueOf(HttpURLConnection.HTTP_UNAVAILABLE));
+                    output.put("Error", String.valueOf(HttpURLConnection.HTTP_UNAVAILABLE));
                     return output;
                     // e.printStackTrace();
                 } catch (MalformedURLException e) {
-                    output.add(String.valueOf(HttpURLConnection.HTTP_NOT_FOUND));
+                    output.put("Error", String.valueOf(HttpURLConnection.HTTP_NOT_FOUND));
                 } catch (IOException e) {
                     // TODO files can't be read
                     e.printStackTrace();
@@ -342,9 +369,9 @@ public class ClientServerService extends IntentService {
                             ) {
                         if (fi.getName().startsWith("delete")) {
                             if (fi.delete())
-                                output.add("delete");
+                                output.put(fi.getName(), "delete");
                             else {
-                                output.add("Can't delete");
+                                output.put(fi.getName(), "deleteFailed");
                             }
                         } else if (!fi.getName().equals(CommonVariables.TFBkup)) {
                             tempOutput = "";
@@ -360,29 +387,41 @@ public class ClientServerService extends IntentService {
                             while ((tempOutput = br.readLine()) != null) {
                                 sb.append(tempOutput);
                             }
-                            if (sb.toString().equals(HttpURLConnection.HTTP_ACCEPTED) ||
+                            if (sb.toString().equals("")) {
+                                output.put(fi.getName(), "Unconfirmed");
+                                fi.renameTo(new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/unconfirmed" + System.currentTimeMillis()));
+                            } else if (sb.toString().equals(HttpURLConnection.HTTP_ACCEPTED) ||
                                     sb.toString().equals(HttpURLConnection.HTTP_CREATED) ||
                                     sb.toString().equals(HttpURLConnection.HTTP_OK)
                                     ) {
-                                if(!sb.toString().equals(""))
-                                    output.add(sb.toString());
-                                else{
-                                    //TODO there are unconfirmed files
+                                output.put(fi.getName(), sb.toString());
+                                boolean deltf = fi.delete();
+                                if (!deltf) {
+                                    File delFR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/delete" + System.currentTimeMillis());
+                                    fi.renameTo(delFR);
                                 }
+                            } else if (sb.toString().equals(HttpURLConnection.HTTP_FORBIDDEN) ||
+                                    sb.toString().equals(HttpURLConnection.HTTP_UNAUTHORIZED)) {
+                                output.put("Forbidden", fi.getName());
+                                break;
+                            } else if (sb.toString().startsWith("5")) {
+                                // the server is down
+                                output.put("500", fi.getName());
+                                break;
                             } else {
-                                output.add("Error");
+                                output.put("Error", sb.toString());
                             }
                         } else {
-                            output.add("Current File");
+                            output.put(fi.getName(), "CurrentFile");
                         }
                     }
                 } catch (java.net.SocketTimeoutException e) {
                     //TODO the server is not responding
-                    output.add(String.valueOf(HttpURLConnection.HTTP_UNAVAILABLE));
+                    output.put("Error", String.valueOf(HttpURLConnection.HTTP_UNAVAILABLE));
                     return output;
-                    //  e.printStackTrace();
+                    // e.printStackTrace();
                 } catch (MalformedURLException e) {
-                    output.add(String.valueOf(HttpURLConnection.HTTP_NOT_FOUND));
+                    output.put("Error", String.valueOf(HttpURLConnection.HTTP_NOT_FOUND));
                 } catch (IOException e) {
                     // TODO files can't be read
                     e.printStackTrace();
@@ -394,7 +433,7 @@ public class ClientServerService extends IntentService {
                 }
             }
         } else {
-            output.add("No Files");
+            output.put("Error", "NoFiles");
         }
         return output;
     }
@@ -415,7 +454,7 @@ public class ClientServerService extends IntentService {
             postUrlConnection.setDoOutput(true);
             postUrlConnection.setUseCaches(false);
             postUrlConnection.setRequestProperty("Content-Type", "application/json");
-            postUrlConnection.setRequestProperty("Host", "192.168.137.234");
+            postUrlConnection.setRequestProperty("Host", CommonVariables.UploadHost);
             postUrlConnection.connect();
 
             // create JSON OBJECT
@@ -439,7 +478,32 @@ public class ClientServerService extends IntentService {
             while ((output = br.readLine()) != null) {
                 sb.append(output);
             }
+            File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/");
+            File myFile = new File(dir, filename);
+            if (sb.toString().equals("")) {
+                myFile.renameTo(new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/unconfirmed" + System.currentTimeMillis()));
+                return "Unconfirmed";
 
+            } else if (sb.toString().equals(HttpURLConnection.HTTP_ACCEPTED) ||
+                    sb.toString().equals(HttpURLConnection.HTTP_CREATED) ||
+                    sb.toString().equals(HttpURLConnection.HTTP_OK)
+                    ) {
+                //   output.put(fi.getName(), sb.toString());
+                boolean del = myFile.delete();
+                if (!del) {
+                    File delFR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/delete" + System.currentTimeMillis());
+                    myFile.renameTo(delFR);
+                }
+            } else if (sb.toString().equals(HttpURLConnection.HTTP_FORBIDDEN) ||
+                    sb.toString().equals(HttpURLConnection.HTTP_UNAUTHORIZED)) {
+                return "Forbidden";
+
+            } else if (sb.toString().startsWith("5")) {
+                return "500";
+                // the server is down
+            } else {
+                return (sb.toString());
+            }
         } catch (MalformedURLException e) {
             return String.valueOf(HttpURLConnection.HTTP_NOT_FOUND);
         } catch (java.net.SocketTimeoutException e) {
