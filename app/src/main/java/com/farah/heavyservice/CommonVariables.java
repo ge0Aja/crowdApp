@@ -12,15 +12,21 @@ import java.util.Calendar;
  * Created by Georgi on 8/23/2016.
  */
 public class CommonVariables {
+
+    public static final String filetypeTf = "TF";
+    public static final String filetypeCx = "CX";
+    public static final String filetypeCPC = "CP";
+    public static final String filetypeAll = "All";
+
     public static int waitInterval = 0;
     public static int retryIntervalLog = 0;
     public static int retryIntervalEvent = 0;
     public static int collectInterval = 0;
-    public static int uploadIntervalNormal = 0;
+    public static int uploadIntervalNormal = 10 * 1000;
     public static int uploadIntervalRetry = 0;
     public static int thresholdInterval = 0;
     public static int[] thresholds = new int[10];
-
+    public static int maxFileSize = 1024;
 
     public static boolean screenOn = false;
     public static boolean isWiFi = false;
@@ -28,8 +34,8 @@ public class CommonVariables {
 
     public static boolean startUploadDir = false;
 
-    public static String TAG = "Collect Service";
-    public static String TAG_U = "Upload Service";
+    public static String TAG = "CollectService";
+    public static String TAG_U = "UploadService";
     public static String fileToUpload = "";
     public static String fileUploadType = "";
 
@@ -60,29 +66,41 @@ public class CommonVariables {
                     break;
                 case ClientServerService.STATUS_FINISHED:
                     //TODO get the results and see what is happening
-                    int status = resultData.getInt("status");
+                    int status = resultData.getInt("Status");
+                    //  startUpload = false;
+                    Log.i(ClientServerService.TAG, "Status is " + String.valueOf(status));
                     String type = "";
                     switch (status) {
                         case ClientServerService.STATUS_FINISHED_SUCCESS:
                             type = resultData.getString("type");
-                            Log.i(TAG_U, "Files from " + type + " directory is uploaded !");
+                            Log.i(ClientServerService.TAG, "Files from " + type + " directory are uploaded !");
                             alarm.cancel(pintent);
+                           // startUpload = false;
                             break;
                         case ClientServerService.STATUS_FINISHED_NOFILES:
                             type = resultData.getString("type");
-                            Log.i(TAG_U, "No Files found in " + type + " directory !");
+                            Log.i(ClientServerService.TAG, "No Files found in " + type + " directory !");
                             alarm.cancel(pintent);
+                            startUpload = false;
                             break;
                         case ClientServerService.STATUS_FINISHED_NOWIFI:
-                            Log.i(TAG_U, "No Wifi Schedule upload for later");
-                            //TODO reschedule inerval
-                            alarm.setRepeating(AlarmManager.RTC_WAKEUP, CommonVariables.cal.getTimeInMillis(), 30 * 1000, CommonVariables.pintent);
+                            Log.i(ClientServerService.TAG, "No Wifi Schedule upload for later");
+                            //TODO I think better not to reschedule just leave it for the regular upload service
+                           // alarm.setRepeating(AlarmManager.RTC_WAKEUP, CommonVariables.cal.getTimeInMillis(), 30 * 1000, CommonVariables.pintent);
+                            alarm.cancel(pintent);
+                            startUpload = false;
                             break;
                         case ClientServerService.STATUS_FINISHED_ERROR:
-                            //TODO Errors
+                            Log.i(ClientServerService.TAG, "FINISHED WITH ERRORS" + String.valueOf(status));
+                            break;
+                        case ClientServerService.STATUS_FINISHED_SERVER_UNAVAILABLE:
+                            // TODO the server is not responding right now cancel for the rest
+                            Log.i(ClientServerService.TAG," The response was found to be server not found the alaram should turn off");
+                            alarm.cancel(pintent);
+                            startUploadDir = false;
                             break;
                     }
-                  //  alarm.cancel(pintent);
+                    //  alarm.cancel(pintent);
                     break;
                 case ClientServerService.STATUS_ERROR:
                     //TODO something

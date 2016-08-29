@@ -8,8 +8,10 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.BatteryManager;
+import android.os.Environment;
 import android.util.Log;
 
+import java.io.File;
 import java.util.Date;
 
 /**
@@ -24,6 +26,16 @@ public class BootReceiver extends BroadcastReceiver {
 
         switch (action) {
             case "android.intent.action.BOOT_COMPLETED":
+                File dirtf = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeTf + "/");
+                File myFiletf = new File(dirtf, "CumulativeTrafficStatsBkup");
+                if(myFiletf.exists())
+                    myFiletf.delete();
+
+                File dircx = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCx + "/");
+                File myFilecx = new File(dircx, "CumulativeCxStatsBkup");
+                if(myFilecx.exists())
+                    myFilecx.delete();
+
                 Intent startServiceIntent = new Intent(context, MyService.class);
                 context.startService(startServiceIntent);
                 break;
@@ -34,13 +46,19 @@ public class BootReceiver extends BroadcastReceiver {
                     Intent intentStartUpload = new Intent(context, ClientServerService.class);
                     intentStartUpload.putExtra("uploadtype", CommonVariables.UploadTypeDir);
                     intentStartUpload.putExtra("receiver", CommonVariables.uploadResultDir);
-                    intentStartUpload.putExtra("type", R.string.filetypeAll);
+                    intentStartUpload.putExtra("type", CommonVariables.filetypeAll);
                     CommonVariables.pintent = PendingIntent.getService(context, 0, intentStartUpload, 0);
                     CommonVariables.alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+                    CommonVariables.startUploadDir = true;
                     //TODO reschedule inerval
-                    CommonVariables.alarm.setRepeating(AlarmManager.RTC_WAKEUP, CommonVariables.cal.getTimeInMillis(), 30 * 1000, CommonVariables.pintent);
+                    CommonVariables.alarm.setRepeating(AlarmManager.RTC_WAKEUP, CommonVariables.cal.getTimeInMillis() + CommonVariables.uploadIntervalNormal, 3600 * 1000, CommonVariables.pintent);
+                    Log.i(CommonVariables.TAG_U,"Upload Scheduled after"+CommonVariables.uploadIntervalNormal+"Seconds");
                 } else {
                     CommonVariables.setWiFi(false);
+                    CommonVariables.startUploadDir = false;
+                    if(CommonVariables.alarm != null && CommonVariables.pintent != null){
+                        CommonVariables.alarm.cancel(CommonVariables.pintent);
+                    }
                     Log.i("ConnectivityChange", "The WIFI status should change");
                 }
                 break;
@@ -86,6 +104,5 @@ public class BootReceiver extends BroadcastReceiver {
                 }
                 break;
         }
-        //TODO add on reboot clear cumulative stats files Cxn Traffic
     }
 }

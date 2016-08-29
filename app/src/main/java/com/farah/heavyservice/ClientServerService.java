@@ -40,7 +40,7 @@ public class ClientServerService extends IntentService {
     public static final int STATUS_FINISHED_NO_RESPONSE_FROM_SERVER = 7;
     //  public static final int IOException = -15;
 
-    private static final String TAG = "UploadService";
+    public static final String TAG = "UploadService";
 
     public ClientServerService() {
         super("ClientServerService");
@@ -48,16 +48,16 @@ public class ClientServerService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        Log.d(TAG, "Post Service Started!");
+        Log.d(TAG, "Upload Service Started!");
         final ResultReceiver receiver = intent.getParcelableExtra("receiver");
         String uploadType = intent.getStringExtra("uploadtype");
         Bundle bundle = new Bundle();
-        if (uploadType.equals(CommonVariables.UploadTypeFile) && CommonVariables.isWiFi) {
+        if (uploadType.equals(CommonVariables.UploadTypeFile) && CommonVariables.isWiFi && CommonVariables.startUpload) {
+            Log.i(TAG,"The upload type is file and should start uploading");
             String url = intent.getStringExtra("url");
             String filename = intent.getStringExtra("filename");
             String type = intent.getStringExtra("type");
             if (!TextUtils.isEmpty(url)) {
-            /* Update UI: Upload Service is Running */
                 bundle.putString("type", type);
                 receiver.send(STATUS_RUNNING, bundle);
                 try {
@@ -83,6 +83,7 @@ public class ClientServerService extends IntentService {
                         receiver.send(STATUS_FINISHED, bundle);
                     }
                     Log.d(TAG, "Upload Service executed successfully!");
+                    this.stopSelf();
                     //  }
                 } catch (Exception e) {
                 /* Sending error message back to activity */
@@ -90,11 +91,14 @@ public class ClientServerService extends IntentService {
                     bundle.putString("result", e.toString());
                     receiver.send(STATUS_ERROR, bundle);
                     Log.d(TAG, "Upload Service executed with errors!");
+                    this.stopSelf();
                 }
             }
-        } else if (uploadType.equals(CommonVariables.UploadTypeDir) && CommonVariables.isWiFi) {
+        } else if (uploadType.equals(CommonVariables.UploadTypeDir) && CommonVariables.isWiFi && CommonVariables.startUploadDir) {
+
             String type = intent.getStringExtra("type");
-            if (!type.equals(R.string.filetypeAll)) {
+            if (!type.equals(CommonVariables.filetypeAll)) {
+                Log.i(TAG,"The upload type is one Dir and should start uploading");
                 try {
                     ArrayList<String> results = uploadDataDir(type);
                     bundle.putString("type", type);
@@ -119,15 +123,18 @@ public class ClientServerService extends IntentService {
                         //TODO All files were uploaded sucessfully
                     }
                     Log.d(TAG, "Upload Service executed successfully!");
+                    this.stopSelf();
                 } catch (java.io.IOException e) {
                     e.printStackTrace();
                     bundle.putString("result", e.toString());
                     receiver.send(STATUS_ERROR, bundle);
                     Log.d(TAG, "Upload Service executed with errors!");
+                    this.stopSelf();
                 }
             } else {
-                int[] fileTypes = {R.string.filetypeCPC, R.string.filetypeCx, R.string.filetypeTf};
-                for (int t : fileTypes
+                Log.i(TAG,"The upload type is multiple Dir and should start uploading");
+                String[] fileTypes = {CommonVariables.filetypeCPC, CommonVariables.filetypeCx, CommonVariables.filetypeTf};
+                for (String t : fileTypes
                         ) {
                     try {
                         ArrayList<String> results = uploadDataDir(String.valueOf(t));
@@ -156,11 +163,13 @@ public class ClientServerService extends IntentService {
                             //TODO All files were uploaded sucessfully
                         }
                         Log.d(TAG, "Upload Service executed successfully for type" + String.valueOf(t));
+                        this.stopSelf();
                     } catch (java.io.IOException e) {
                         e.printStackTrace();
                         bundle.putString("result", e.toString());
                         receiver.send(STATUS_ERROR, bundle);
                         Log.d(TAG, "Upload Service executed with errors for type: " + String.valueOf(t));
+                        this.stopSelf();
                     }
                 }
             }
@@ -177,12 +186,12 @@ public class ClientServerService extends IntentService {
         StringBuilder sb = new StringBuilder();
         HttpURLConnection postUrlConnection = null;
         JSONArray newJsonArray = null;
-        String Dir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp" + type + "/";
+        String Dir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/";
         File f = new File(Dir);
         File files[] = f.listFiles();
         ArrayList<String> output = new ArrayList<>();
         if (files.length != 0) {
-            if (type.equals(R.string.filetypeCPC)) {
+            if (type.equals(CommonVariables.filetypeCPC)) {
                 try {
                     URL useURL = new URL(CommonVariables.CPCUploadURL);
                     postUrlConnection = (HttpURLConnection) useURL.openConnection();
@@ -249,7 +258,7 @@ public class ClientServerService extends IntentService {
                         postUrlConnection.disconnect();
                 }
 
-            } else if (type.equals(R.string.filetypeCx)) {
+            } else if (type.equals(CommonVariables.filetypeCx)) {
                 try {
                     URL useURL = new URL(CommonVariables.CxUploadURL);
                     postUrlConnection = (HttpURLConnection) useURL.openConnection();
@@ -316,7 +325,7 @@ public class ClientServerService extends IntentService {
                         postUrlConnection.disconnect();
 
                 }
-            } else if (type.equals(R.string.filetypeTf)) {
+            } else if (type.equals(CommonVariables.filetypeTf)) {
                 try {
                     URL useURL = new URL(CommonVariables.TFUploadURL);
                     postUrlConnection = (HttpURLConnection) useURL.openConnection();
@@ -411,9 +420,9 @@ public class ClientServerService extends IntentService {
 
             // create JSON OBJECT
             JSONArray newJsonArray = null;
-            if (type.equals(R.string.filetypeCPC)) {
+            if (type.equals(CommonVariables.filetypeCPC)) {
                 newJsonArray = Common.makeJsonArraycpc(filename);
-            } else if (type.equals(R.string.filetypeTf)) {
+            } else if (type.equals(CommonVariables.filetypeTf)) {
                 newJsonArray = Common.makeJsonArraytf(filename);
             } else {
                 newJsonArray = Common.makeJsonArraycxn(filename);

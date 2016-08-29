@@ -46,6 +46,7 @@ public class MyService extends Service {
     ResultsReceiver uploadResult = new ResultsReceiver(new Handler()) {
         @Override
         protected void onReceiveResult(int resultCode, Bundle resultData) {
+            Log.i(ClientServerService.TAG, "Results are received in the MyServiceReceiver");
             switch (resultCode) {
                 case ClientServerService.STATUS_RUNNING:
                     String filenametype = (String) resultData.get("type");
@@ -365,23 +366,43 @@ public class MyService extends Service {
                     Common.writeListToFilecxn(catOuterHash, CommonVariables.CxBkup, true);
                     Common.writeListToFile(cumulativeOuterHash, "CumulativeTrafficStatsBkup", false);
                     Common.writeListToFilecxn(cumulativeOuterHashCx, "CumulativeCxStatsBkup", false);
-
                     //End Write Lists to storage
+
+
+                    //check storage size
 
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 // this schedules the upload service to run at user click
-
                 if (CommonVariables.isWiFi) {
+                    if (Common.checkFileSize(CommonVariables.filetypeTf, CommonVariables.TFBkup, CommonVariables.maxFileSize)) {
+                        CommonVariables.setUploadSettings(CommonVariables.TFBkup, true, CommonVariables.filetypeTf);
+                    }
+                    if (Common.checkFileSize(CommonVariables.filetypeCPC, CommonVariables.CPCBkup, CommonVariables.maxFileSize)) {
+                        CommonVariables.setUploadSettings(CommonVariables.CPCBkup, true, CommonVariables.filetypeCPC);
+                    }
+                    if (Common.checkFileSize(CommonVariables.filetypeCx, CommonVariables.CxBkup, CommonVariables.maxFileSize)) {
+                        CommonVariables.setUploadSettings(CommonVariables.CxBkup, true, CommonVariables.filetypeCx);
+                    }
                     //TODO Upload inteval as a fucntion of the collect interval
                     Log.i("WiFi", "The phone is connected to wifi");
                     if (CommonVariables.startUpload) {
                         Intent intent = new Intent(Intent.ACTION_SYNC, null, getApplicationContext(), ClientServerService.class);
                         intent.putExtra("uploadtype", CommonVariables.UploadTypeFile);
-                        intent.putExtra("url", "http://192.168.137.234/CrowdApp/InsertUser.php");
                         intent.putExtra("filename", CommonVariables.fileToUpload);
                         intent.putExtra("type", CommonVariables.fileUploadType);
+                        switch (CommonVariables.fileUploadType) {
+                            case CommonVariables.filetypeCPC:
+                                intent.putExtra("url", CommonVariables.CPCUploadURL);
+                                break;
+                            case CommonVariables.filetypeCx:
+                                intent.putExtra("url", CommonVariables.CxUploadURL);
+                                break;
+                            case CommonVariables.filetypeTf:
+                                intent.putExtra("url", CommonVariables.TFUploadURL);
+                                break;
+                        }
                         intent.putExtra("receiver", uploadResult);
                         startService(intent);
                     }

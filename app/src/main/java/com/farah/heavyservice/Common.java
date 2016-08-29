@@ -72,7 +72,7 @@ public class Common {
 
     public static boolean writeListToFilecpc(HashMap<String, HashMap<String, String>> captures, String fileName, Boolean append) {
         ObjectOutputStream fileOut = null;
-        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + R.string.filetypeCPC + "/");
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCPC + "/");
         if (!dir.exists()) {
             dir.mkdirs();
         }
@@ -103,7 +103,7 @@ public class Common {
 
     public static boolean writeListToFilecxn(HashMap<String, HashMap<String, HashMap<String, String>>> captures, String fileName, Boolean append) {
         ObjectOutputStream fileOut = null;
-        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp" + R.string.filetypeCx + "/");
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCx + "/");
         if (!dir.exists()) {
             dir.mkdirs();
         }
@@ -134,7 +134,7 @@ public class Common {
     public static boolean writeListToFile(HashMap<String, HashMap<String, Long>> captures, String fileName, Boolean append) {
         //  AppendToFileNoHeader fileOut = null;
         ObjectOutputStream fileOut = null;
-        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp" + R.string.filetypeTf + "/");
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeTf + "/");
         if (!dir.exists()) {
             dir.mkdirs();
         }
@@ -191,7 +191,7 @@ public class Common {
     }
 
     public static List<HashMap<String, HashMap<String, Long>>> readListFromFiletf(String filename) {
-        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp" + R.string.filetypeTf + "/");
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeTf + "/");
         File myFile = new File(dir, filename);
         List<HashMap<String, HashMap<String, Long>>> rtrnList = new ArrayList<>();
         if (myFile.exists()) {
@@ -245,7 +245,7 @@ public class Common {
     }
 
     public static List<HashMap<String, HashMap<String, String>>> readListFromFilecpc(String filename) {
-        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp" + R.string.filetypeCPC + "/");
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCPC + "/");
         File myFile = new File(dir, filename);
         List<HashMap<String, HashMap<String, String>>> rtrnList = new ArrayList<>();
         ;
@@ -303,7 +303,7 @@ public class Common {
 
 
     public static List<HashMap<String, HashMap<String, HashMap<String, String>>>> readListFromFilecxn(String filename) {
-        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp" + R.string.filetypeCx + "/");
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCx + "/");
         File myFile = new File(dir, filename);
         List<HashMap<String, HashMap<String, HashMap<String, String>>>> rtrnList = new ArrayList<>();
         if (myFile.exists()) {
@@ -385,6 +385,17 @@ public class Common {
             e.printStackTrace();
         }
         return jsonArray;
+    }
+
+    public static boolean checkFileSize(String type, String filename, int size) {
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/");
+        File myFile = new File(dir, filename);
+
+        int file_size = Integer.parseInt(String.valueOf(myFile.length() / 1024));
+        if(file_size >= size)
+            return true;
+        else
+            return false;
     }
 
     public static boolean isConnectedToWifi(Context context) {
