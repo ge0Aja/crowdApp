@@ -16,6 +16,10 @@ public class CommonVariables {
     public static final String filetypeTf = "TF";
     public static final String filetypeCx = "CX";
     public static final String filetypeCPC = "CP";
+    //S_Farah
+    public static final String filetypeOF = "OF";
+    public static final String filetypeUT = "UT";
+    //E_Farah
     public static final String filetypeAll = "All";
 
     public static int waitInterval = 0;
@@ -42,10 +46,18 @@ public class CommonVariables {
     public static String TFBkup = "TrafficStatsBkup";
     public static String CPCBkup = "CPUMEMStatsBkup";
     public static String CxBkup = "CxStatsBkup";
+    //S_Farah
+    public static String OFBkup = "OpeningFrequencyBkup";
+    public static String UTBkup = "UsageTimeBkup";
+    //E_Farah
 
     public static String TFUploadURL = "url";
     public static String CPCUploadURL = "url";
     public static String CxUploadURL = "url";
+    //S_Farah
+    public static String OFUploadURL = "url";
+    public static String UTUploadURL = "url";
+    //E_Farah
     public static String UploadHost = "IP";
 
     public static String UploadTypeFile = "File";
@@ -140,4 +152,13 @@ public class CommonVariables {
     public static void changeTFBkupName(String Name) {
         TFBkup = Name;
     }
+
+    //S_Farah
+    public static void changeOFBkupName(String Name) {
+        OFBkup = Name;
+    }
+    public static void changeUTBkupName(String Name) {
+        UTBkup = Name;
+    }
+    //E_Farah
 }

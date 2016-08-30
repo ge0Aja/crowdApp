@@ -37,6 +37,10 @@ public class MyService extends Service {
     HashMap<String, HashMap<String, HashMap<String, String>>> catOuterHash = new HashMap<>();
     HashMap<String, HashMap<String, Long>> outerHash = new HashMap<String, HashMap<String, Long>>();
     HashMap<String, HashMap<String, String>> outerHashCPUMEM = new HashMap<String, HashMap<String, String>>();
+    //S_Farah
+    HashMap<String, String> outerHashOF = new HashMap<String, String>();
+    HashMap<String, String> outerHashUT = new HashMap<String, String>();
+    //E_Farah
 
 
     //TODO read from files if they exist if not create new Cumulative outerHashses
@@ -60,6 +64,14 @@ public class MyService extends Service {
                         case "TF":
                             CommonVariables.changeTFBkupName(CommonVariables.TFBkup + System.currentTimeMillis());
                             break;
+                        //S_Farah
+                        case "OF":
+                            CommonVariables.changeOFBkupName(CommonVariables.OFBkup + System.currentTimeMillis());
+                            break;
+                        case "UT":
+                            CommonVariables.changeUTBkupName(CommonVariables.UTBkup + System.currentTimeMillis());
+                            break;
+                        //E_Faarah
                     }
                     Log.i("FileName", "Backup File Name are changed");
                     break;
@@ -161,6 +173,10 @@ public class MyService extends Service {
         timer.schedule(new TimerTask() {
             public void run() {
                 try {
+                    //S_Farah
+                    outerHashOF.clear();
+                    outerHashUT.clear();
+                    //E_Farah
 
                     // for conenctions info
                     String nLine = null;
@@ -311,11 +327,23 @@ public class MyService extends Service {
                                 messageLogged = aName + " on top";
                                 Common.appendLog(messageLogged);
                                 Log.i("Reduced", messageLogged);
+                                //S_Farah
+                                outerHashUT.put("appName", aName);
+                                outerHashUT.put("type", "UT");
+                                //TODO add interval_ID
+                                outerHashUT.put("interval_ID", "addIntervalID");
+                                outerHashUT.put("timestamp", String.valueOf(System.currentTimeMillis()));
+                                //E_Farah
                                 if (!aName.equals(previousOnTop)) {
                                     messageLogged = aName + " opened";
                                     Common.appendLog(messageLogged);
                                     Log.i("Reduced", messageLogged);
                                     previousOnTop.equals(aName);
+                                    //S_Farah
+                                    outerHashOF.put("appName", aName);
+                                    outerHashOF.put("type", "OF");
+                                    outerHashOF.put("timestamp", String.valueOf(System.currentTimeMillis()));
+                                    //E_Farah
                                 }
                             }
                         }
@@ -388,6 +416,10 @@ public class MyService extends Service {
                     Common.writeListToFilecxn(catOuterHash, CommonVariables.CxBkup, true);
                     Common.writeListToFile(cumulativeOuterHash, "CumulativeTrafficStatsBkup", false);
                     Common.writeListToFilecxn(cumulativeOuterHashCx, "CumulativeCxStatsBkup", false);
+                    //S_Farah
+                    Common.writeListToFileOF(outerHashOF, CommonVariables.OFBkup, true);
+                    Common.writeListToFileUT(outerHashUT, CommonVariables.UTBkup, true);
+                    //E_Farah
                     //End Write Lists to storage
 
 
@@ -407,6 +439,15 @@ public class MyService extends Service {
                     if (Common.checkFileSize(CommonVariables.filetypeCx, CommonVariables.CxBkup, CommonVariables.maxFileSize)) {
                         CommonVariables.setUploadSettings(CommonVariables.CxBkup, true, CommonVariables.filetypeCx);
                     }
+                    //S_Farah
+                    if (Common.checkFileSize(CommonVariables.filetypeOF, CommonVariables.OFBkup, CommonVariables.maxFileSize)) {
+                        CommonVariables.setUploadSettings(CommonVariables.OFBkup, true, CommonVariables.filetypeOF);
+                    }
+                    if (Common.checkFileSize(CommonVariables.filetypeUT, CommonVariables.UTBkup, CommonVariables.maxFileSize)) {
+                        CommonVariables.setUploadSettings(CommonVariables.UTBkup, true, CommonVariables.filetypeOF);
+                    }
+                    //E_Farah
+
                     //TODO Upload inteval as a fucntion of the collect interval
                     Log.i("WiFi", "The phone is connected to wifi");
                     if (CommonVariables.startUpload && !CommonVariables.startUploadDir) {
@@ -424,6 +465,14 @@ public class MyService extends Service {
                             case CommonVariables.filetypeTf:
                                 intent.putExtra("url", CommonVariables.TFUploadURL);
                                 break;
+                            //S_Farah
+                            case CommonVariables.filetypeOF:
+                                intent.putExtra("url", CommonVariables.OFUploadURL);
+                                break;
+                            case CommonVariables.filetypeUT:
+                                intent.putExtra("url", CommonVariables.UTUploadURL);
+                                break;
+                            //E_Farah
                         }
                         intent.putExtra("receiver", uploadResult);
                         startService(intent);

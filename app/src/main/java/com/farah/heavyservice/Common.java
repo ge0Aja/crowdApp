@@ -69,7 +69,6 @@ public class Common {
         }
     }
 
-
     public static boolean writeListToFilecpc(HashMap<String, HashMap<String, String>> captures, String fileName, Boolean append) {
         ObjectOutputStream fileOut = null;
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCPC + "/");
@@ -99,7 +98,6 @@ public class Common {
         }
         return true;
     }
-
 
     public static boolean writeListToFilecxn(HashMap<String, HashMap<String, HashMap<String, String>>> captures, String fileName, Boolean append) {
         ObjectOutputStream fileOut = null;
@@ -162,6 +160,67 @@ public class Common {
         }
         return true;
     }
+
+    //S_Farah
+    public static boolean writeListToFileOF(HashMap<String, String> captures, String fileName, Boolean append) {
+        ObjectOutputStream fileOut = null;
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeOF + "/");
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        File myFile = new File(dir, fileName); //"CPUMEMStats"
+        //// TODO: 8/17/2016 we have to replace the hardcoded file name
+        try {
+            if (!myFile.exists() || !append) {
+                //Log.i("ReadList", "The file " + fileName + " Doesn't exist and should be created");
+                fileOut = new ObjectOutputStream(new FileOutputStream(myFile));
+            } else
+                fileOut = new AppendableObjectOutputStream(new FileOutputStream(myFile, append));
+            fileOut.writeObject(captures);
+            fileOut.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (fileOut != null) fileOut.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return true;
+    }
+    public static boolean writeListToFileUT(HashMap<String, String> captures, String fileName, Boolean append) {
+        ObjectOutputStream fileOut = null;
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeUT + "/");
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        File myFile = new File(dir, fileName); //"CPUMEMStats"
+        //// TODO: 8/17/2016 we have to replace the hardcoded file name
+        try {
+            if (!myFile.exists() || !append) {
+                //Log.i("ReadList", "The file " + fileName + " Doesn't exist and should be created");
+                fileOut = new ObjectOutputStream(new FileOutputStream(myFile));
+            } else
+                fileOut = new AppendableObjectOutputStream(new FileOutputStream(myFile, append));
+            fileOut.writeObject(captures);
+            fileOut.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (fileOut != null) fileOut.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return true;
+    }
+    //E_Farah
 
     public static List<HashMap<String, HashMap<String, Long>>> readListFromFiletf(File file) {
         List<HashMap<String, HashMap<String, Long>>> rtrnList = new ArrayList<>();
@@ -301,7 +360,6 @@ public class Common {
         return rtrnList;
     }
 
-
     public static List<HashMap<String, HashMap<String, HashMap<String, String>>>> readListFromFilecxn(String filename) {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCx + "/");
         File myFile = new File(dir, filename);
@@ -330,6 +388,115 @@ public class Common {
         return rtrnList;
     }
 
+    //S_Farah
+    public static List<HashMap<String, String>> readListFromFileOF(File file) {
+        List<HashMap<String, String>> rtrnList = new ArrayList<>();
+
+        if (file.exists()) {
+            ObjectInputStream ois = null;
+            try {
+                ois = new ObjectInputStream(new FileInputStream(file));
+                while (true) {
+                    rtrnList.add((HashMap<String, String>) ois.readObject());
+                }
+            } catch (EOFException e) {
+                // e.printStackTrace();
+                return rtrnList;
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (ois != null) ois.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return rtrnList;
+    }
+    public static List<HashMap<String, String>> readListFromFileOF(String filename) {
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeOF + "/");
+        File myFile = new File(dir, filename);
+        List<HashMap<String, String>> rtrnList = new ArrayList<>();
+        if (myFile.exists()) {
+            ObjectInputStream ois = null;
+            try {
+                ois = new ObjectInputStream(new FileInputStream(myFile));
+                while (true) {
+                    rtrnList.add((HashMap<String, String>) ois.readObject());
+                }
+            } catch (EOFException e) {
+                // e.printStackTrace();
+                return rtrnList;
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (ois != null) ois.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return rtrnList;
+    }
+    public static List<HashMap<String, String>> readListFromFileUT(File file) {
+        List<HashMap<String, String>> rtrnList = new ArrayList<>();
+
+        if (file.exists()) {
+            ObjectInputStream ois = null;
+            try {
+                ois = new ObjectInputStream(new FileInputStream(file));
+                while (true) {
+                    rtrnList.add((HashMap<String, String>) ois.readObject());
+                }
+            } catch (EOFException e) {
+                // e.printStackTrace();
+                return rtrnList;
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (ois != null) ois.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return rtrnList;
+    }
+    public static List<HashMap<String, String>> readListFromFileUT(String filename) {
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeUT + "/");
+        File myFile = new File(dir, filename);
+        List<HashMap<String, String>> rtrnList = new ArrayList<>();
+        if (myFile.exists()) {
+            ObjectInputStream ois = null;
+            try {
+                ois = new ObjectInputStream(new FileInputStream(myFile));
+                while (true) {
+                    rtrnList.add((HashMap<String, String>) ois.readObject());
+                }
+            } catch (EOFException e) {
+                // e.printStackTrace();
+                return rtrnList;
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (ois != null) ois.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return rtrnList;
+    }
+    //E_Farah
+
     // This function is called every time the app name is required given the package name
     public static String getAppName(String packageName, Context context) {
         final PackageManager PM = context.getPackageManager();
@@ -342,7 +509,6 @@ public class Common {
         final String appName = (String) (AI != null ? PM.getApplicationLabel(AI) : "(unknown)");
         return appName;
     }
-
 
     public static JSONArray makeJsonArraytf(String filename) {
         List<HashMap<String, HashMap<String, Long>>> tfArray;
@@ -357,7 +523,6 @@ public class Common {
         }
         return jsonArray;
     }
-
 
     public static JSONArray makeJsonArraycpc(String filename) {
         List<HashMap<String, HashMap<String, String>>> cpcArray;
@@ -386,6 +551,35 @@ public class Common {
         }
         return jsonArray;
     }
+
+    //S_Farah
+    public static JSONArray makeJsonArrayOF(String filename) {
+        List<HashMap<String, String>> OFArray;
+        JSONArray jsonArray = null;
+        try {
+            OFArray = readListFromFileOF(filename);
+            if (!OFArray.isEmpty()) {
+                jsonArray = new JSONArray(OFArray);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return jsonArray;
+    }
+    public static JSONArray makeJsonArrayUT(String filename) {
+        List<HashMap<String, String>> UTArray;
+        JSONArray jsonArray = null;
+        try {
+            UTArray = readListFromFileUT(filename);
+            if (!UTArray.isEmpty()) {
+                jsonArray = new JSONArray(UTArray);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return jsonArray;
+    }
+    //E_Farah
 
     public static boolean checkFileSize(String type, String filename, int size) {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/");
