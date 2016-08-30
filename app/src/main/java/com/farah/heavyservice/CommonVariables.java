@@ -2,11 +2,13 @@ package com.farah.heavyservice;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 
 import java.util.Calendar;
+import java.util.HashMap;
 
 /**
  * Created by Georgi on 8/23/2016.
@@ -29,13 +31,13 @@ public class CommonVariables {
     public static int uploadIntervalNormal = 10 * 1000;
     public static int uploadIntervalRetry = 7200 * 1000;
     public static int thresholdInterval = 0;
-    public static int[] thresholds = new int[10];
+    public static HashMap<String,Float> thresholds = new HashMap<>();
     public static int maxFileSize = 1024;
 
     public static boolean screenOn = false;
     public static boolean isWiFi = false;
     public static boolean startUpload = false;
-
+    public static boolean startDownloadingThresholds = false;
     public static boolean startUploadDir = false;
 
     public static String TAG = "CollectService";
@@ -54,6 +56,7 @@ public class CommonVariables {
     public static String TFUploadURL = "url";
     public static String CPCUploadURL = "url";
     public static String CxUploadURL = "url";
+    public static String DownloadThresholdsURL = "url";
     //S_Farah
     public static String OFUploadURL = "url";
     public static String UTUploadURL = "url";
@@ -62,11 +65,30 @@ public class CommonVariables {
 
     public static String UploadTypeFile = "File";
     public static String UploadTypeDir = "Dir";
+    public static String TypeDownloadThresholds = "DownloadTh";
 
 
     public static Calendar cal = Calendar.getInstance();
     public static AlarmManager alarm;
     public static PendingIntent pintent;
+
+    public static ResultsReceiver downloadResult = new ResultsReceiver(new Handler()){
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+            switch (resultCode){
+                case ClientServerService.STATUS_FINISHED:
+                    Log.i("DownloadThresholds","Thresholds are downloaded !");
+                    startDownloadingThresholds = false;
+                    break;
+                case ClientServerService.STATUS_ERROR:
+                    Log.i("DownloadThresholds","Thresholds are not downloaded !");
+                    startDownloadingThresholds = false;
+                    //TODO insert default threshold values
+                    break;
+
+            }
+        }
+    };
 
     public static ResultsReceiver uploadResultDir = new ResultsReceiver(new Handler()) {
         @Override
@@ -88,6 +110,7 @@ public class CommonVariables {
                             Log.i(ClientServerService.TAG, "Files from " + type + " directory are uploaded !");
                             // alarm.cancel(pintent);
                             startUploadDir = false;
+                            startDownloadingThresholds = true;
                             break;
                         case ClientServerService.STATUS_FINISHED_NOFILES:
                             type = resultData.getString("type");

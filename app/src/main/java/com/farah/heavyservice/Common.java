@@ -8,6 +8,8 @@ import android.net.NetworkInfo;
 import android.os.Environment;
 
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedWriter;
 import java.io.EOFException;
@@ -23,6 +25,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -607,6 +610,24 @@ public class Common {
         }
 
         return isWiFi;
+    }
+
+    public static boolean saveThresholds(String thresholds){
+
+        try {
+            JSONObject json = new JSONObject(thresholds);
+            Iterator<?> keys = json.keys();
+            while( keys.hasNext() ) {
+                String key = (String)keys.next();
+                if (json.get(key) instanceof JSONObject ) {
+                    CommonVariables.thresholds.put(key,(Float) json.get(key));
+                }
+            }
+            return true;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
 }

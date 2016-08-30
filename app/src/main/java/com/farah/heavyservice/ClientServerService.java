@@ -18,6 +18,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.util.HashMap;
 
@@ -174,7 +175,22 @@ public class ClientServerService extends IntentService {
                     }
                 }
             }
-        } else {
+        } else if (uploadType.equals(CommonVariables.TypeDownloadThresholds) && CommonVariables.isWiFi) {
+            // TODO call the get method
+            String downloadURL = intent.getStringExtra("url");
+            String Threshs = getThresholds(downloadURL);
+            if(Threshs !=null){
+                bundle.putString("type", CommonVariables.TypeDownloadThresholds);
+                try {
+                    Common.saveThresholds(Threshs);
+                    receiver.send(STATUS_FINISHED, bundle);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    bundle.putString("result", e.toString());
+                    receiver.send(STATUS_ERROR, bundle);
+                }
+            }
+        } else if (!CommonVariables.isWiFi) {
             bundle.putInt("Status", STATUS_FINISHED_NOWIFI);
             receiver.send(STATUS_FINISHED, bundle);
         }
@@ -269,7 +285,11 @@ public class ClientServerService extends IntentService {
                     // return IOException;
                 } finally {
                     if (postUrlConnection != null)
-                        postUrlConnection.disconnect();
+                        try {
+                            postUrlConnection.disconnect();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
 
                 }
             } else if (type.equals(CommonVariables.filetypeCx)) {
@@ -349,7 +369,11 @@ public class ClientServerService extends IntentService {
                     // return IOException;
                 } finally {
                     if (postUrlConnection != null)
-                        postUrlConnection.disconnect();
+                        try {
+                            postUrlConnection.disconnect();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
 
                 }
             } else if (type.equals(CommonVariables.filetypeTf)) {
@@ -428,7 +452,11 @@ public class ClientServerService extends IntentService {
                     // return IOException;
                 } finally {
                     if (postUrlConnection != null)
-                        postUrlConnection.disconnect();
+                        try {
+                            postUrlConnection.disconnect();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
 
                 }
             }
@@ -513,11 +541,117 @@ public class ClientServerService extends IntentService {
             // return IOException;
         } finally {
             if (postUrlConnection != null)
-                postUrlConnection.disconnect();
+                try {
+                    postUrlConnection.disconnect();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
         }
         return sb.toString();
     }
 
+    private String getThresholds(String url) {
+        StringBuilder sb = new StringBuilder();
+        String line = "";
+        HttpURLConnection getUrlConnection = null;
+        try {
+            URL useUrl = new URL(url);
+            getUrlConnection = (HttpURLConnection) useUrl.openConnection();
+            getUrlConnection.setReadTimeout(10000);
+            getUrlConnection.setConnectTimeout(10000);
+            getUrlConnection.setRequestMethod("GET");
+            getUrlConnection.setDoInput(true);
+            getUrlConnection.setDoOutput(true);
+            getUrlConnection.setUseCaches(false);
+            getUrlConnection.setRequestProperty("Content-Type", "application/json");
+            getUrlConnection.setRequestProperty("Host", CommonVariables.UploadHost);
+            getUrlConnection.connect();
+            int status = getUrlConnection.getResponseCode();
+            switch (status) {
+                case 200:
+                case 201:
+                    BufferedReader br = new BufferedReader(new InputStreamReader(getUrlConnection.getInputStream()));
+
+                    while ((line = br.readLine()) != null) {
+                        sb.append(line);
+                    }
+                    br.close();
+                    return sb.toString();
+            }
+
+        } catch (MalformedURLException ex) {
+            return String.valueOf(HttpURLConnection.HTTP_NOT_FOUND);
+        } catch (java.net.SocketTimeoutException e) {
+            return String.valueOf(HttpURLConnection.HTTP_UNAVAILABLE);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            //  Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            if (getUrlConnection != null) {
+                try {
+                    getUrlConnection.disconnect();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+
+                    //  Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+        return null;
+
+    }
+
+    private String sendErrorLog(String url, String ErrorLog) {
+        StringBuilder sb = new StringBuilder();
+        String output = "";
+        HttpURLConnection postUrlConnection = null;
+
+        try {
+            URL useUrl = new URL(url);
+            postUrlConnection = (HttpURLConnection) useUrl.openConnection();
+//    TODO we have to replace the hard coded intervals and IP
+            postUrlConnection.setReadTimeout(10000);
+            postUrlConnection.setConnectTimeout(10000);
+            postUrlConnection.setRequestMethod("POST");
+            postUrlConnection.setDoInput(true);
+            postUrlConnection.setDoOutput(true);
+            postUrlConnection.setUseCaches(false);
+            postUrlConnection.setRequestProperty("Content-Type", "application/json");
+            postUrlConnection.setRequestProperty("Host", CommonVariables.UploadHost);
+            postUrlConnection.connect();
+
+            OutputStream os = postUrlConnection.getOutputStream();
+            OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
+            osw.write(ErrorLog);
+            osw.flush();
+            osw.close();
+            BufferedReader br = new BufferedReader(new InputStreamReader(
+                    (postUrlConnection.getInputStream())));
+            while ((output = br.readLine()) != null) {
+                sb.append(output);
+            }
+
+            return sb.toString();
+        } catch (MalformedURLException e) {
+            return String.valueOf(HttpURLConnection.HTTP_NOT_FOUND);
+            //  e.printStackTrace();
+        } catch (ProtocolException e) {
+            return String.valueOf(HttpURLConnection.HTTP_UNAVAILABLE);
+            // e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (postUrlConnection != null) {
+                try {
+                    postUrlConnection.disconnect();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    //  Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+        return null;
+    }
 
     //TODO create a post method for errors and a get method for the thresholds and intervals
 }

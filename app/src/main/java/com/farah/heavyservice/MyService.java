@@ -476,6 +476,12 @@ public class MyService extends Service {
                         }
                         intent.putExtra("receiver", uploadResult);
                         startService(intent);
+                    }else if(CommonVariables.startDownloadingThresholds){
+                        Intent intent = new Intent(Intent.ACTION_SYNC, null, getApplicationContext(), ClientServerService.class);
+                        intent.putExtra("uploadtype", CommonVariables.TypeDownloadThresholds);
+                        intent.putExtra("url",CommonVariables.DownloadThresholdsURL);
+                        intent.putExtra("receiver", CommonVariables.downloadResult);
+                        startService(intent);
                     }
                     // check upload service interval
                     // call upload service
