@@ -40,6 +40,7 @@ public class MyService extends Service {
     //S_Farah
     HashMap<String, String> outerHashOF = new HashMap<String, String>();
     HashMap<String, String> outerHashUT = new HashMap<String, String>();
+    HashMap<String, String> alarmHash = new HashMap<String, String>();
     //E_Farah
 
 
@@ -176,6 +177,7 @@ public class MyService extends Service {
                     //S_Farah
                     outerHashOF.clear();
                     outerHashUT.clear();
+                    alarmHash.clear();
                     //E_Farah
 
                     // for conenctions info
@@ -347,6 +349,26 @@ public class MyService extends Service {
                                 }
                             }
                         }
+                        //S_Farah
+                        //TODO 666 will change to threshold ID
+                        //TODO upload alarmHASH
+                        //TODO create alarmID
+                        if (Integer.valueOf(innerHashCPUMEM.get("CPU")) > 666) {
+                            alarmHash.put("appName", aName);
+                            alarmHash.put("alarmID", "CPU");
+                            alarmHash.put("timestamp", String.valueOf(System.currentTimeMillis()));
+                        }
+                        if (Integer.valueOf(innerHashCPUMEM.get("RSS")) > 666) {
+                            alarmHash.put("appName", aName);
+                            alarmHash.put("alarmID", "RSS");
+                            alarmHash.put("timestamp", String.valueOf(System.currentTimeMillis()));
+                        }
+                        if (Integer.valueOf(innerHashCPUMEM.get("VSS")) > 666) {
+                            alarmHash.put("appName", aName);
+                            alarmHash.put("alarmID", "VSS");
+                            alarmHash.put("timestamp", String.valueOf(System.currentTimeMillis()));
+                        }
+                        //E_Farah
                     }
                     // add the results of the while to the cumulative list
                     //CPUMEMStats.add(outerHashCPUMEM);
@@ -399,6 +421,29 @@ public class MyService extends Service {
                             cumulativeOuterHash.get(appName).put("rxPackets", rxPackets);
                             cumulativeOuterHash.get(appName).put("Timestamp", System.currentTimeMillis());
                         }
+                        //S_Farah
+                        //TODO same here 666 becomes threshold ID and add alarm IDs and upload
+                        if (outerHash.get(appName).get("rxBytes") > 666) {
+                            alarmHash.put("appName", appName);
+                            alarmHash.put("alarmID", "RXB");
+                            alarmHash.put("timestamp", String.valueOf(System.currentTimeMillis()));
+                        }
+                        if (outerHash.get(appName).get("txBytes") > 666) {
+                            alarmHash.put("appName", appName);
+                            alarmHash.put("alarmID", "TXB");
+                            alarmHash.put("timestamp", String.valueOf(System.currentTimeMillis()));
+                        }
+                        if (outerHash.get(appName).get("rxPackets") > 666) {
+                            alarmHash.put("appName", appName);
+                            alarmHash.put("alarmID", "RXP");
+                            alarmHash.put("timestamp", String.valueOf(System.currentTimeMillis()));
+                        }
+                        if (outerHash.get(appName).get("txPackets") > 666) {
+                            alarmHash.put("appName", appName);
+                            alarmHash.put("alarmID", "TXP");
+                            alarmHash.put("timestamp", String.valueOf(System.currentTimeMillis()));
+                        }
+                        //E_Farah
                         messageLogged = appName + " TxBytes " + outerHash.get(appName).get("txBytes") + " RxBytes " + outerHash.get(appName).get("rxBytes") + " TxPackets " + outerHash.get(appName).get("txPackets") + " RxPackets " + outerHash.get(appName).get("rxPackets");
                         Common.appendLog(messageLogged);
                         Log.i("Traffic", messageLogged);
