@@ -460,12 +460,183 @@ public class ClientServerService extends IntentService {
 
                 }
             }
+
+            //S_Farah
+            else if (type.equals(CommonVariables.filetypeOF)) {
+                try {
+                    URL useURL = new URL(CommonVariables.OFUploadURL);
+                    postUrlConnection = (HttpURLConnection) useURL.openConnection();
+                    postUrlConnection.setReadTimeout(10000);
+                    postUrlConnection.setConnectTimeout(10000);
+                    postUrlConnection.setRequestMethod("POST");
+                    postUrlConnection.setDoInput(true);
+                    postUrlConnection.setDoOutput(true);
+                    postUrlConnection.setUseCaches(false);
+                    postUrlConnection.setRequestProperty("Content-Type", "application/json");
+                    postUrlConnection.setRequestProperty("Host", CommonVariables.UploadHost);
+                    postUrlConnection.connect();
+                    for (File fi : files
+                            ) {
+                        if (fi.getName().startsWith("delete")) {
+                            if (fi.delete())
+                                output.put(fi.getName(), "delete");
+                            else {
+                                output.put(fi.getName(), "deleteFailed");
+                            }
+                        } else if (!fi.getName().equals(CommonVariables.OFBkup)) {
+                            tempOutput = "";
+                            sb.setLength(0);
+                            newJsonArray = Common.makeJsonArraytf(fi.getName());
+                            OutputStream os = postUrlConnection.getOutputStream();
+                            OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
+                            osw.write(newJsonArray.toString());
+                            osw.flush();
+                            osw.close();
+                            BufferedReader br = new BufferedReader(new InputStreamReader(
+                                    (postUrlConnection.getInputStream())));
+                            while ((tempOutput = br.readLine()) != null) {
+                                sb.append(tempOutput);
+                            }
+                            if (sb.toString().equals("")) {
+                                output.put(fi.getName(), "Unconfirmed");
+                                fi.renameTo(new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/unconfirmed" + System.currentTimeMillis()));
+                            } else if (sb.toString().equals(HttpURLConnection.HTTP_ACCEPTED) ||
+                                    sb.toString().equals(HttpURLConnection.HTTP_CREATED) ||
+                                    sb.toString().equals(HttpURLConnection.HTTP_OK)
+                                    ) {
+                                output.put(fi.getName(), sb.toString());
+                                boolean deltf = fi.delete();
+                                if (!deltf) {
+                                    File delFR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/delete" + System.currentTimeMillis());
+                                    fi.renameTo(delFR);
+                                }
+                            } else if (sb.toString().equals(HttpURLConnection.HTTP_FORBIDDEN) ||
+                                    sb.toString().equals(HttpURLConnection.HTTP_UNAUTHORIZED)) {
+                                output.put("Forbidden", fi.getName());
+                                break;
+                            } else if (sb.toString().startsWith("5")) {
+                                // the server is down
+                                output.put("500", fi.getName());
+                                break;
+                            } else {
+                                output.put("Error", sb.toString());
+                            }
+                        } else {
+                            output.put(fi.getName(), "CurrentFile");
+                        }
+                    }
+                } catch (java.net.SocketTimeoutException e) {
+                    //TODO the server is not responding
+                    output.put("Error", String.valueOf(HttpURLConnection.HTTP_UNAVAILABLE));
+                    return output;
+                    // e.printStackTrace();
+                } catch (MalformedURLException e) {
+                    output.put("Error", String.valueOf(HttpURLConnection.HTTP_NOT_FOUND));
+                } catch (IOException e) {
+                    // TODO files can't be read
+                    e.printStackTrace();
+                    // return IOException;
+                } finally {
+                    if (postUrlConnection != null)
+                        try {
+                            postUrlConnection.disconnect();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                }
+            }
+            else if (type.equals(CommonVariables.filetypeUT)) {
+                try {
+                    URL useURL = new URL(CommonVariables.UTUploadURL);
+                    postUrlConnection = (HttpURLConnection) useURL.openConnection();
+                    postUrlConnection.setReadTimeout(10000);
+                    postUrlConnection.setConnectTimeout(10000);
+                    postUrlConnection.setRequestMethod("POST");
+                    postUrlConnection.setDoInput(true);
+                    postUrlConnection.setDoOutput(true);
+                    postUrlConnection.setUseCaches(false);
+                    postUrlConnection.setRequestProperty("Content-Type", "application/json");
+                    postUrlConnection.setRequestProperty("Host", CommonVariables.UploadHost);
+                    postUrlConnection.connect();
+                    for (File fi : files
+                            ) {
+                        if (fi.getName().startsWith("delete")) {
+                            if (fi.delete())
+                                output.put(fi.getName(), "delete");
+                            else {
+                                output.put(fi.getName(), "deleteFailed");
+                            }
+                        } else if (!fi.getName().equals(CommonVariables.UTBkup)) {
+                            tempOutput = "";
+                            sb.setLength(0);
+                            newJsonArray = Common.makeJsonArraytf(fi.getName());
+                            OutputStream os = postUrlConnection.getOutputStream();
+                            OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
+                            osw.write(newJsonArray.toString());
+                            osw.flush();
+                            osw.close();
+                            BufferedReader br = new BufferedReader(new InputStreamReader(
+                                    (postUrlConnection.getInputStream())));
+                            while ((tempOutput = br.readLine()) != null) {
+                                sb.append(tempOutput);
+                            }
+                            if (sb.toString().equals("")) {
+                                output.put(fi.getName(), "Unconfirmed");
+                                fi.renameTo(new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/unconfirmed" + System.currentTimeMillis()));
+                            } else if (sb.toString().equals(HttpURLConnection.HTTP_ACCEPTED) ||
+                                    sb.toString().equals(HttpURLConnection.HTTP_CREATED) ||
+                                    sb.toString().equals(HttpURLConnection.HTTP_OK)
+                                    ) {
+                                output.put(fi.getName(), sb.toString());
+                                boolean deltf = fi.delete();
+                                if (!deltf) {
+                                    File delFR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/delete" + System.currentTimeMillis());
+                                    fi.renameTo(delFR);
+                                }
+                            } else if (sb.toString().equals(HttpURLConnection.HTTP_FORBIDDEN) ||
+                                    sb.toString().equals(HttpURLConnection.HTTP_UNAUTHORIZED)) {
+                                output.put("Forbidden", fi.getName());
+                                break;
+                            } else if (sb.toString().startsWith("5")) {
+                                // the server is down
+                                output.put("500", fi.getName());
+                                break;
+                            } else {
+                                output.put("Error", sb.toString());
+                            }
+                        } else {
+                            output.put(fi.getName(), "CurrentFile");
+                        }
+                    }
+                } catch (java.net.SocketTimeoutException e) {
+                    //TODO the server is not responding
+                    output.put("Error", String.valueOf(HttpURLConnection.HTTP_UNAVAILABLE));
+                    return output;
+                    // e.printStackTrace();
+                } catch (MalformedURLException e) {
+                    output.put("Error", String.valueOf(HttpURLConnection.HTTP_NOT_FOUND));
+                } catch (IOException e) {
+                    // TODO files can't be read
+                    e.printStackTrace();
+                    // return IOException;
+                } finally {
+                    if (postUrlConnection != null)
+                        try {
+                            postUrlConnection.disconnect();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                }
+            }
+            //E_Farah
+
         } else {
             output.put("Error", "NoFiles");
         }
         return output;
     }
-
 
     private String uploadData(String url, String type, String filename) throws IOException {
         String output = "";
