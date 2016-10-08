@@ -58,9 +58,8 @@ public class MainActivity extends AppCompatActivity {
         stopService(intent);
     }
 
-    public void uploadtrf(View view) {
-        CommonVariables.setUploadSettings(CommonVariables.TFBkup, true, CommonVariables.filetypeTf);
-
+    public void screenstats (View view){
+        CommonVariables.setUploadSettings(CommonVariables.ScreenBkup, true, CommonVariables.filetypeScreen);
     }
 
     @Override

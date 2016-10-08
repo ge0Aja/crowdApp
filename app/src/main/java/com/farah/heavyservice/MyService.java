@@ -185,7 +185,6 @@ public class MyService extends Service {
         Common.regBroadcastRec(CommonVariables.mContext);
         if (CommonVariables.isWiFi) {
             Common.regUser(CommonVariables.mContext);
-
         }
         if (CommonVariables.isWiFi && CommonVariables.userRegistered) {
             Common.getThresholds(CommonVariables.mContext);
@@ -478,8 +477,10 @@ public class MyService extends Service {
                     Common.writeListToFile(cumulativeOuterHash, "CumulativeTrafficStatsBkup", false);
                     Common.writeListToFilecxn(cumulativeOuterHashCx, "CumulativeCxStatsBkup", false);
                     //S_Farah
-                    Common.writeListToFileOF(outerHashOF, CommonVariables.OFBkup, true);
-                    Common.writeListToFileUT(outerHashUT, CommonVariables.UTBkup, true);
+                    if(outerHashOF.size() != 0)
+                        Common.writeListToFileOF(outerHashOF, CommonVariables.OFBkup, true);
+                    if(outerHashUT.size() != 0)
+                        Common.writeListToFileUT(outerHashUT, CommonVariables.UTBkup, true);
                     //E_Farah
                     //End Write Lists to storage
 

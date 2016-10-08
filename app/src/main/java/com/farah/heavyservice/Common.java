@@ -312,7 +312,7 @@ public class Common {
     }
 
     //E_Farah
-    public static List<HashMap<String, String>> readListFromFilepackage(String filename) {
+    public synchronized static List<HashMap<String, String>> readListFromFilepackage(String filename) {
 
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypePackage + "/");
         File myFile = new File(dir, filename);
@@ -341,7 +341,7 @@ public class Common {
 
     }
 
-    public static List<HashMap<String, HashMap<String, Long>>> readListFromFiletf(File file) {
+    public synchronized static List<HashMap<String, HashMap<String, Long>>> readListFromFiletf(File file) {
         List<HashMap<String, HashMap<String, Long>>> rtrnList = new ArrayList<>();
 
         if (file.exists()) {
@@ -368,7 +368,7 @@ public class Common {
         return rtrnList;
     }
 
-    public static List<HashMap<String, HashMap<String, Long>>> readListFromFiletf(String filename) {
+    public synchronized static List<HashMap<String, HashMap<String, Long>>> readListFromFiletf(String filename) {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeTf + "/");
         File myFile = new File(dir, filename);
         List<HashMap<String, HashMap<String, Long>>> rtrnList = new ArrayList<>();
@@ -395,7 +395,7 @@ public class Common {
         return rtrnList;
     }
 
-    public static List<HashMap<String, HashMap<String, String>>> readListFromFilecpc(File file) {
+    public synchronized static List<HashMap<String, HashMap<String, String>>> readListFromFilecpc(File file) {
         List<HashMap<String, HashMap<String, String>>> rtrnList = new ArrayList<>();
         if (file.exists()) {
             ObjectInputStream ois = null;
@@ -421,7 +421,7 @@ public class Common {
 
     }
 
-    public static List<HashMap<String, HashMap<String, String>>> readListFromFilecpc(String filename) {
+    public synchronized static List<HashMap<String, HashMap<String, String>>> readListFromFilecpc(String filename) {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCPC + "/");
         File myFile = new File(dir, filename);
         List<HashMap<String, HashMap<String, String>>> rtrnList = new ArrayList<>();
@@ -450,7 +450,7 @@ public class Common {
         return rtrnList;
     }
 
-    public static List<HashMap<String, HashMap<String, HashMap<String, String>>>> readListFromFilecxn(File file) {
+    public synchronized static List<HashMap<String, HashMap<String, HashMap<String, String>>>> readListFromFilecxn(File file) {
 
         List<HashMap<String, HashMap<String, HashMap<String, String>>>> rtrnList = new ArrayList<>();
 
@@ -478,7 +478,7 @@ public class Common {
         return rtrnList;
     }
 
-    public static List<HashMap<String, HashMap<String, HashMap<String, String>>>> readListFromFilecxn(String filename) {
+    public synchronized static List<HashMap<String, HashMap<String, HashMap<String, String>>>> readListFromFilecxn(String filename) {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCx + "/");
         File myFile = new File(dir, filename);
         List<HashMap<String, HashMap<String, HashMap<String, String>>>> rtrnList = new ArrayList<>();
@@ -507,7 +507,7 @@ public class Common {
     }
 
     //S_Farah
-    public static List<HashMap<String, String>> readListFromFileOF(File file) {
+    public synchronized static List<HashMap<String, String>> readListFromFileOF(File file) {
         List<HashMap<String, String>> rtrnList = new ArrayList<>();
 
         if (file.exists()) {
@@ -534,7 +534,7 @@ public class Common {
         return rtrnList;
     }
 
-    public static List<HashMap<String, String>> readListFromFileOF(String filename) {
+    public synchronized static List<HashMap<String, String>> readListFromFileOF(String filename) {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeOF + "/");
         File myFile = new File(dir, filename);
         List<HashMap<String, String>> rtrnList = new ArrayList<>();
@@ -562,7 +562,7 @@ public class Common {
         return rtrnList;
     }
 
-    public static List<HashMap<String, String>> readListFromFileUT(File file) {
+    public synchronized static List<HashMap<String, String>> readListFromFileUT(File file) {
         List<HashMap<String, String>> rtrnList = new ArrayList<>();
 
         if (file.exists()) {
@@ -589,7 +589,7 @@ public class Common {
         return rtrnList;
     }
 
-    public static List<HashMap<String, String>> readListFromFileUT(String filename) {
+    public synchronized static List<HashMap<String, String>> readListFromFileUT(String filename) {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeUT + "/");
         File myFile = new File(dir, filename);
         List<HashMap<String, String>> rtrnList = new ArrayList<>();
@@ -618,7 +618,7 @@ public class Common {
     }
     //E_Farah
 
-    public static List<HashMap<String, String>> readListFromFileScreen(String filename) {
+    public synchronized static List<HashMap<String, String>> readListFromFileScreen(String filename) {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeScreen + "/");
         File myFile = new File(dir, filename);
         List<HashMap<String, String>> rtrnList = new ArrayList<>();
@@ -996,11 +996,20 @@ public class Common {
         context.getPackageManager().setComponentEnabledSetting(restartcomponent, PackageManager. COMPONENT_ENABLED_STATE_ENABLED , PackageManager.DONT_KILL_APP);
     }
 
+    public static void deleteRecursive(File fileOrDirectory) {
+        if (fileOrDirectory.isDirectory()) {
+            for (File child : fileOrDirectory.listFiles()) {
+                deleteRecursive(child);
+            }
+        }
+        fileOrDirectory.delete();
+    }
+
     public static boolean deleteAppDirectory() {
 
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/");
         if (dir.exists()) {
-            dir.delete();
+            deleteRecursive(dir);
             Log.d(CommonVariables.TAG, "deleteAppDirectory: CrowdApp");
         }
         return true;
@@ -1069,6 +1078,25 @@ public class Common {
             }
         }
         return true;
+    }
+
+    public static void deleteFilesFromDirectory(String type,String currentfile){
+        String Dir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/";
+        File f = new File(Dir);
+        if (f != null) {
+            File files[] = f.listFiles();
+            if (files != null) {
+                if (files.length != 0) {
+                    for (File fi : files
+                            ) {
+                        if (!currentfile.equals("") && !fi.getName().equals(currentfile)) {
+                            if (fi.delete())
+                                Log.d(CommonVariables.TAG, "file " + fi.getName() + " was deleted successfully");
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public static void showNotificationRunning(Context context) {

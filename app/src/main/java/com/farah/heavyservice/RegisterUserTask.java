@@ -69,6 +69,11 @@ public class RegisterUserTask extends AsyncTask<String, Void, Void> {
     }
 
     private boolean registerUser(String urlString, Context context) {
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         StringBuilder sb = new StringBuilder();
         String tempOutput = "";
         HttpsURLConnection reg_con = Common.setUpHttpsConnection(urlString, context, "POST");

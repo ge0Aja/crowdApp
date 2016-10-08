@@ -5,11 +5,13 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 import android.Manifest;
 import com.google.firebase.crash.FirebaseCrash;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -157,13 +159,15 @@ public class CommonVariables {
                 case ClientServerService.STATUS_FINISHED:
                     int status = resultData.getInt("Status");
                     String type = "";
+                    String currentFile = "";
                     String error = "";
                     switch (status) {
                         case ClientServerService.STATUS_FINISHED_SUCCESS:
                             type = resultData.getString("type");
                             Log.i(ClientServerService.TAG, "Files from " + type + " directory are uploaded !");
+                            currentFile = resultData.getString("currentfile");
+                            Common.deleteFilesFromDirectory(type,currentFile);
 
-                            //TODO update the interval or Threshold According to the response
                             if(CommonVariables.startUpdateThresholds){
                                 Common.getThresholds(mContext);
                             }

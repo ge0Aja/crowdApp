@@ -57,6 +57,11 @@ public class DownloadIntervalsTask extends AsyncTask<String,Void,Void> {
     }
 
     private boolean DownloadIntervals(String urlString, Context context){
+        try {
+            Thread.sleep(20000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         StringBuilder sb = new StringBuilder();
         String tempOutput = "";
         // SharedPreferences.Editor editor = context.getSharedPreferences(context.getString(R.string.trsh_preference), 0).edit();
