@@ -1,19 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.farah.heavyservice" >
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
-    <uses-permission android:name="android.permission.BATTERY_STATS"></uses-permission>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"></uses-permission>
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"></uses-permission>
+    package="com.farah.heavyservice">
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.BATTERY_STATS" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/mario"
         android:label="CrowdApp Monitor"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme" >
-        <activity android:name=".MainActivity" >
+        android:theme="@style/AppTheme">
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -24,23 +26,70 @@
         <service
             android:name=".MyService"
             android:enabled="true"
-            android:exported="true" >
-        </service>
-
+            android:exported="true" />
         <service
             android:name=".ClientServerService"
             android:enabled="true"
             android:exported="true" />
+        <service android:name=".FcmInstanceIdService">
+            <intent-filter>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
+            </intent-filter>
+        </service>
+        <service android:name=".FcmMessagingService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
 
         <receiver android:name=".BootReceiver">
             <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
-                <action android:name="android.intent.action.ACTION_BATTERY_LOW"/>
-                <action android:name="android.intent.action.ACTION_BATTERY_OKAY"/>
+                <action android:name="android.intent.action.PACKAGE_ADDED"/>
+                <action android:name="android.intent.action.PACKAGE_REMOVED"/>
+                <action android:name="android.intent.action.PACKAGE_INSTALL"/>
+                <data android:scheme="package"/>
             </intent-filter>
         </receiver>
 
+        <receiver android:name=".ScreenReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.SCREEN_OFF"/>
+                <action android:name="android.intent.action.SCREEN_ON"/>
+                <action android:name="android.intent.action.ACTION_BATTERY_LOW" />
+                <action android:name="android.intent.action.ACTION_BATTERY_OKAY" />
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".EventReceiver"
+            >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name=".RestartServiceReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:label="RestartServiceOnStop"
+            >
+            <intent-filter>
+                <action android:name="com.farah.heavyservice.RestartSensor"></action>
+            </intent-filter>
+        </receiver>
+
+        <activity
+            android:name=".AlertActivity"
+            android:screenOrientation="nosensor"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:enabled="true"
+            android:exported="true"></activity>
+
+        <activity android:name=".TransferActivity"
+            android:enabled="true"
+            android:screenOrientation="nosensor"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:exported="true"></activity>
     </application>
 
 </manifest>

@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "717913280692",
+    "firebase_url": "https://vernal-vine-708.firebaseio.com",
+    "project_id": "vernal-vine-708",
+    "storage_bucket": "vernal-vine-708.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:717913280692:android:6014024a8df6cf0e",
+        "android_client_info": {
+          "package_name": "com.farah.heavyservice"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "717913280692-0bbp8vkgltknckun858uhd047ktvhr64.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQM0QPZbUzmr0P4OUDiHXG3RgHOX9dCj4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

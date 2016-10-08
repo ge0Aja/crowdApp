@@ -2,23 +2,55 @@ package com.farah.heavyservice;
 
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.EditText;
+import android.widget.Toast;
+
+import com.google.firebase.crash.FirebaseCrash;
 
 
 public class MainActivity extends AppCompatActivity {
+
+    //Button tokenBtn = null;
+    //String appServerUrl = "http://192.168.137.76/fcm/fcm_insert.php";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+        if (!Common.hasPermissions(this, CommonVariables.Permissions)) {
+            ActivityCompat.requestPermissions(this, CommonVariables.Permissions, CommonVariables.PERMISSION_ALL);
+        } else {
+            CommonVariables.startService = true;
+        }
+
+        if (CommonVariables.startService) {
+            Intent intent = new Intent(this, MyService.class);
+            startService(intent);
+        } else {
+            Toast.makeText(this, "The Service Cannot Start Due to Missing Permissions", Toast.LENGTH_LONG);
+            FirebaseCrash.report(new Exception("The Service Cannot Start Due to Missing Permissions"));
+        }
     }
 
     public void startCollecting(View view) {
-        Intent intent = new Intent(this, MyService.class);
-        startService(intent);
+
+        if (!Common.hasPermissions(this, CommonVariables.Permissions)) {
+            ActivityCompat.requestPermissions(this, CommonVariables.Permissions, CommonVariables.PERMISSION_ALL);
+        } else {
+            CommonVariables.startService = true;
+        }
+        if (CommonVariables.startService) {
+            Intent intent = new Intent(this, MyService.class);
+            startService(intent);
+        }
     }
 
     public void stopCollecting(View view) {
@@ -26,23 +58,27 @@ public class MainActivity extends AppCompatActivity {
         stopService(intent);
     }
 
-    public void getarray(View view) {
-        EditText txtType = (EditText) findViewById(R.id.editText);
+    public void uploadtrf(View view) {
+        CommonVariables.setUploadSettings(CommonVariables.TFBkup, true, CommonVariables.filetypeTf);
 
-      //  Log.i("TFARRAY", Common.makeJsonArraytf(MyService.TFBkup).toString());
-      //  Log.i("CPCARRAY", Common.makeJsonArraycpc(MyService.CPCBkup).toString());
-      //  Log.i("CxARRAY", Common.makeJsonArraycxn(MyService.CxBkup).toString());
+    }
 
-        String type = txtType.getText().toString();
-        switch (type) {
-            case "CPC":
-                CommonVariables.setUploadSettings(CommonVariables.CPCBkup, true, CommonVariables.filetypeCPC);
-                break;
-            case "TF":
-                CommonVariables.setUploadSettings(CommonVariables.TFBkup, true, CommonVariables.filetypeTf);
-                break;
-            case "Cx":
-                CommonVariables.setUploadSettings(CommonVariables.CxBkup, true, CommonVariables.filetypeCx);
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case CommonVariables.PERMISSION_ALL: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    CommonVariables.startService = true;
+                    if (CommonVariables.startService) {
+                        Intent intent = new Intent(this, MyService.class);
+                        startService(intent);
+                    }
+                }
+                return;
+            }
+
         }
     }
 }

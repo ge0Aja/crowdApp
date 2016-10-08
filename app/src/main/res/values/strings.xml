@@ -1,4 +1,52 @@
 <resources>
     <string name="app_name">HeavyService</string>
     <string name="upload_service_name">UploadService</string>
+    <string name="firstrun">com.farah.heavyservice.firstrun</string>
+
+    <string name="fcm_preference">com.farah.heavyservice.fcm_preference</string>
+    <string name="fcm_token">com.farah.heavyservice.fcm_token</string>
+
+    <string name="app_preference">com.farah.heavyservice.app_preference</string>
+    <string name="user_name">com.farah.heavyservice.user_name</string>
+
+
+
+    <string name="trsh_preference">com.farah.heavyservice.trsh_preference</string>
+    <string name="txBytes">com.farah.heavyservice.txBytes</string>
+    <string name="rxBytes">com.farah.heavyservice.rxBytes</string>
+    <string name="txPackets">com.farah.heavyservice.txPackets</string>
+    <string name="rxPackets">com.farah.heavyservice.rxPackets</string>
+
+    <string name="cxAge">com.farah.heavyservice.cxAge</string>
+    <string name="prCPU">com.farah.heavyservice.prCPU</string>
+    <string name="prVSS">com.farah.heavyservice.prVSS</string>
+    <string name="prRSS">com.farah.heavyservice.prRSS</string>
+    <string name="prOF">com.farah.heavyservice.prOF</string>
+    <string name="prUT">com.farah.heavyservice.prUT</string>
+
+    <string name="timestamp">com.farah.heavyservice.timestamp</string>
+
+    <string name="interval_preference">com.farah.heavyservice.interval_preference</string>
+
+    <string name="collectInterval">10000</string>
+    <string name="uploadIntervalNormal">120000</string>
+    <string name="uploadIntervalRetry">7200000</string>
+    <string name="maxFileSize">512</string>
+    <string name="maxFileSizeScreen">1</string>
+    <string name="maxFileSizeOFUT">10</string>
+    
+    <string name="bandwidthMessageout">The App is sending a suspiciously large number of packets over the Internet. This means that data is being uploaded from your device. By data, we mean images, videos, music files, etc. This may result in draining your data plan. If you believe this is a normal behavior for this App, click on ‘Yes’. Otherwise, click on ‘No’. If you still don’t understand the question or you’re simply not sure of the answer, click on ‘I don’t know’.
+    </string>
+
+    <string name="bandwidthMessagein">The App is receiving a suspiciously large number of packets. This means that data is being downloaded to your device. By data, we mean images, videos, music files, programs, etc. This may result in draining your data plan. If you believe this is a normal behavior for this App, click on ‘Yes’. Otherwise, click on ‘No’. If you still don’t understand the question or you’re simply not sure of the answer, click on ‘I don’t know’.
+    </string>
+
+    <string name="cpuMessage">The CPU (Core Processing Unit) is the brain of your device. CPU usage refers to your device’s processor and how much work it is doing. Every App on your device will use a percentage of your CPU for a period of time. Some Apps can use up a large amount of CPU without you even knowing it. This usually results in slow performance, freezing, and sudden shutdowns of your device. CrowdApp detected that this App is consuming a relatively large amount of your device’s CPU. If you believe this is a normal behavior, click on ‘Yes’. Otherwise, click on ‘No’. If you still don’t understand the question or you’re simply not sure of the answer, click on ‘I don’t know’.
+    </string>
+
+    <string name="ramMessage">When your device runs any application, it stores temporary files in RAM (Random Access Memory). All running applications on your device consume varying quantities of RAM. Clearing the RAM on a device improves performance by freeing up space so that the device can run faster. This App has a relatively high memory usage meaning that it is taking up a large portion of your device’s RAM. This means that this App might be responsible in part for degrading the performance of your device and causing it to run slower. If you believe this is a normal behavior, click on ‘Yes’. Otherwise, click on ‘No’. If you still don’t understand the question or you’re simply not sure of the answer, click on ‘I don’t know’.
+    </string>
+
+    <string name="connectionMessage">Apps running on your device can open connections with several IP addresses at a time. CrowdApp is constantly monitoring these opened network connections for every app. This is useful to detect when hidden apps are connecting to remote servers or when an app has a suspiciously large number of opened connections. We have detected that this App is one of those apps with a large number of opened connections. If you believe this is a normal behavior, click on ‘Yes’. Otherwise, click on ‘No’. If you still don’t understand the question or you’re simply not sure of the answer, click on ‘I don’t know’.
+    </string>
 </resources>
