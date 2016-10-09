@@ -39,8 +39,10 @@ public class EventReceiver extends BroadcastReceiver {
                     CommonVariables.startService = true;
                 }
                 if (CommonVariables.startService) {
-                    Intent startServiceIntent = new Intent(context, MyService.class);
-                    context.startService(startServiceIntent);
+                    if (!Common.isMyServiceRunning(MyService.class, context)) {
+                        Intent startServiceIntent = new Intent(context, MyService.class);
+                        context.startService(startServiceIntent);
+                    }
                 } else {
                     Toast.makeText(context, "The Service Cannot Start Due to Missing Permissions", Toast.LENGTH_LONG);
                     FirebaseCrash.report(new Exception("The Service Cannot Start Due to Missing Permissions"));
@@ -49,7 +51,7 @@ public class EventReceiver extends BroadcastReceiver {
             case "android.net.conn.CONNECTIVITY_CHANGE":
                 if (Common.isConnectedToWifi(context)) {
                     CommonVariables.setWiFi(true);
-                    if(!CommonVariables.userRegistered){
+                    if (!CommonVariables.userRegistered) {
                         Common.regUser(context);
                     }
                     Log.i(CommonVariables.TAG, "ConnectivityChange: The WIFI status should change");
@@ -61,7 +63,7 @@ public class EventReceiver extends BroadcastReceiver {
                     CommonVariables.alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
                     CommonVariables.startUploadDir = true;
                     CommonVariables.alarm.setRepeating(AlarmManager.RTC_WAKEUP, CommonVariables.cal.getTimeInMillis() + CommonVariables.uploadIntervalNormal, CommonVariables.uploadIntervalRetry, CommonVariables.pintent);
-                    Log.i(CommonVariables.TAG, "Upload Scheduled after" + CommonVariables.uploadIntervalNormal/1000 + " Seconds");
+                    Log.i(CommonVariables.TAG, "Upload Scheduled after" + CommonVariables.uploadIntervalNormal / 1000 + " Seconds");
                 } else {
                     CommonVariables.setWiFi(false);
                     CommonVariables.startUploadDir = false;

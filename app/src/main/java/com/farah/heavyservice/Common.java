@@ -1,7 +1,7 @@
 package com.farah.heavyservice;
 
+import android.app.ActivityManager;
 import android.app.NotificationManager;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -384,6 +384,8 @@ public class Common {
                 return rtrnList;
             } catch (Exception e) {
                 e.printStackTrace();
+                myFile.delete();
+                Log.d(CommonVariables.TAG,"file "+myFile.getName()+" is deleted due to erros");
             } finally {
                 try {
                     if (ois != null) ois.close();
@@ -409,6 +411,8 @@ public class Common {
                 return rtrnList;
             } catch (Exception e) {
                 e.printStackTrace();
+                file.delete();
+                Log.d(CommonVariables.TAG,"file "+file.getName()+" is deleted due to erros");
             } finally {
                 try {
                     if (ois != null) ois.close();
@@ -438,6 +442,8 @@ public class Common {
                 return rtrnList;
             } catch (Exception e) {
                 e.printStackTrace();
+                myFile.delete();
+                Log.d(CommonVariables.TAG,"file "+myFile.getName()+" is deleted due to erros");
             } finally {
                 try {
                     if (ois != null) ois.close();
@@ -466,6 +472,8 @@ public class Common {
                 return rtrnList;
             } catch (Exception e) {
                 e.printStackTrace();
+                file.delete();
+                Log.d(CommonVariables.TAG,"file "+file.getName()+" is deleted due to erros");
             } finally {
                 try {
                     if (ois != null) ois.close();
@@ -494,6 +502,8 @@ public class Common {
                 return rtrnList;
             } catch (Exception e) {
                 e.printStackTrace();
+                myFile.delete();
+                Log.d(CommonVariables.TAG,"file "+myFile.getName()+" is deleted due to erros");
             } finally {
                 try {
                     if (ois != null) ois.close();
@@ -522,6 +532,8 @@ public class Common {
                 return rtrnList;
             } catch (Exception e) {
                 e.printStackTrace();
+                file.delete();
+                Log.d(CommonVariables.TAG,"file "+file.getName()+" is deleted due to erros");
             } finally {
                 try {
                     if (ois != null) ois.close();
@@ -550,6 +562,8 @@ public class Common {
                 return rtrnList;
             } catch (Exception e) {
                 e.printStackTrace();
+                myFile.delete();
+                Log.d(CommonVariables.TAG,"file "+myFile.getName()+" is deleted due to erros");
             } finally {
                 try {
                     if (ois != null) ois.close();
@@ -577,6 +591,8 @@ public class Common {
                 return rtrnList;
             } catch (Exception e) {
                 e.printStackTrace();
+                file.delete();
+                Log.d(CommonVariables.TAG,"file "+file.getName()+" is deleted due to erros");
             } finally {
                 try {
                     if (ois != null) ois.close();
@@ -605,6 +621,8 @@ public class Common {
                 return rtrnList;
             } catch (Exception e) {
                 e.printStackTrace();
+                myFile.delete();
+                Log.d(CommonVariables.TAG,"file "+myFile.getName()+" is deleted due to erros");
             } finally {
                 try {
                     if (ois != null) ois.close();
@@ -634,6 +652,8 @@ public class Common {
                 return rtrnList;
             } catch (Exception e) {
                 e.printStackTrace();
+                myFile.delete();
+                Log.d(CommonVariables.TAG,"file "+myFile.getName()+" is deleted due to erros");
             } finally {
                 try {
                     if (ois != null) ois.close();
@@ -921,7 +941,7 @@ public class Common {
             ApplicationInfo appInfo = pm.getApplicationInfo(Package, 0);
             String appFile = appInfo.sourceDir;
             long installed = new File(appFile).lastModified(); //Epoch Time
-            return String.valueOf(installed);
+            return String.valueOf(installed / 1000);
         } catch (PackageManager.NameNotFoundException e) {
             // e.printStackTrace();
             Log.d(CommonVariables.TAG, "Package install date not found");
@@ -980,20 +1000,20 @@ public class Common {
         return false;
     }
 
-    public static void  regBroadcastRec(Context context) {
-        IntentFilter intentFilter= new IntentFilter();
+    public static void regBroadcastRec(Context context) {
+        IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
         intentFilter.addAction(Intent.ACTION_SCREEN_ON);
         intentFilter.addAction(Intent.ACTION_BATTERY_OKAY);
         intentFilter.addAction(Intent.ACTION_BATTERY_LOW);
-        ScreenReceiver sBroadcast = new ScreenReceiver() ;
-        context.registerReceiver(sBroadcast,intentFilter);
+        ScreenReceiver sBroadcast = new ScreenReceiver();
+        context.registerReceiver(sBroadcast, intentFilter);
         ComponentName eventcomponent = new ComponentName(context, EventReceiver.class);
         ComponentName bootcomponent = new ComponentName(context, BootReceiver.class);
         ComponentName restartcomponent = new ComponentName(context, RestartServiceReceiver.class);
-        context.getPackageManager().setComponentEnabledSetting(bootcomponent, PackageManager. COMPONENT_ENABLED_STATE_ENABLED , PackageManager.DONT_KILL_APP);
-        context.getPackageManager().setComponentEnabledSetting(eventcomponent, PackageManager. COMPONENT_ENABLED_STATE_ENABLED , PackageManager.DONT_KILL_APP);
-        context.getPackageManager().setComponentEnabledSetting(restartcomponent, PackageManager. COMPONENT_ENABLED_STATE_ENABLED , PackageManager.DONT_KILL_APP);
+        context.getPackageManager().setComponentEnabledSetting(bootcomponent, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
+        context.getPackageManager().setComponentEnabledSetting(eventcomponent, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
+        context.getPackageManager().setComponentEnabledSetting(restartcomponent, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
     }
 
     public static void deleteRecursive(File fileOrDirectory) {
@@ -1046,18 +1066,19 @@ public class Common {
                 deleteAppDirectory();
                 editor.edit().putString(context.getString(R.string.firstrun), version).apply();
             }
-            }else {
+        } else {
             deleteAppDirectory();
             editor.edit().putString(context.getString(R.string.firstrun), version).apply();
         }
     }
+
     public static boolean getIntervals(Context context) {
 
         SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.interval_preference), Context.MODE_PRIVATE);
         final String state = sharedPreferences.getString(context.getString(R.string.interval_preference), "");
 
         try {
-            if (state.equals("")) {
+            if (state.equals("") || !state.equals(String.valueOf(System.currentTimeMillis()))) {
                 new DownloadIntervalsTask(context).execute(CommonVariables.DownloadIntervalsURL);
                 CommonVariables.startUpdateIntervals = false;
                 return true;
@@ -1080,23 +1101,40 @@ public class Common {
         return true;
     }
 
-    public static void deleteFilesFromDirectory(String type,String currentfile){
+    public static void deleteFilesFromDirectory(String type, String currentfile) {
         String Dir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/";
         File f = new File(Dir);
-        if (f != null) {
-            File files[] = f.listFiles();
-            if (files != null) {
-                if (files.length != 0) {
-                    for (File fi : files
-                            ) {
-                        if (!currentfile.equals("") && !fi.getName().equals(currentfile)) {
-                            if (fi.delete())
-                                Log.d(CommonVariables.TAG, "file " + fi.getName() + " was deleted successfully");
+        try {
+            if (f != null) {
+                File files[] = f.listFiles();
+                if (files != null) {
+                    if (files.length != 0) {
+                        for (File fi : files
+                                ) {
+
+                            if (fi != null) {
+                                if (!currentfile.equals("") && !fi.getName().equals(currentfile)) {
+                                    if (fi.delete())
+                                        Log.d(CommonVariables.TAG, "file " + fi.getName() + " was deleted successfully");
+                                }
+                            }
                         }
                     }
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+    }
+
+    public static boolean isMyServiceRunning(Class<?> serviceClass, Context context) {
+        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static void showNotificationRunning(Context context) {

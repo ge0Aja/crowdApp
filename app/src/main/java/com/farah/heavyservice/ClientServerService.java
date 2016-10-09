@@ -119,7 +119,7 @@ public class ClientServerService extends IntentService {
                         receiver.send(STATUS_FINISHED, bundle);
                     } else {
                         bundle.putInt("Status", STATUS_FINISHED_SUCCESS);
-                        bundle.putString("currentfile",results.get("currentfile"));
+                        bundle.putString("currentfile", results.get("currentfile"));
                         receiver.send(STATUS_FINISHED, bundle);
                     }
                     Log.d(TAG, "Upload Service executed successfully!");
@@ -153,7 +153,7 @@ public class ClientServerService extends IntentService {
                             receiver.send(STATUS_FINISHED, bundle);
                         } else {
                             bundle.putInt("Status", STATUS_FINISHED_SUCCESS);
-                            bundle.putString("currentfile",results.get("currentfile"));
+                            bundle.putString("currentfile", results.get("currentfile"));
                             receiver.send(STATUS_FINISHED, bundle);
                         }
                         Log.d(TAG, "Upload Service executed successfully for type" + String.valueOf(t));
@@ -217,7 +217,7 @@ public class ClientServerService extends IntentService {
                             currentFileName = CommonVariables.OFBkup;
                         } else if (type.equals(CommonVariables.filetypeScreen)) {
                             postUrlConnection = Common.setUpHttpsConnection(CommonVariables.ScreenUploadURL, this.getApplicationContext(), "POST");
-                            currentFileName = CommonVariables.filetypeScreen;
+                            currentFileName = CommonVariables.ScreenBkup;
                         }
                         if (postUrlConnection != null) {
 
@@ -247,9 +247,9 @@ public class ClientServerService extends IntentService {
                                         newJsonArray = Common.makeJsonArrayScreen(fi.getName());
                                     }
 
-                                   // for (int i = 0; i < newJsonArray.length(); i++) {
-                                        AllFileJsonArray.put(newJsonArray);
-                                   // }
+                                    // for (int i = 0; i < newJsonArray.length(); i++) {
+                                    AllFileJsonArray.put(newJsonArray);
+                                    // }
                                 } else {
                                     output.put(fi.getName(), "CurrentFile");
                                 }
@@ -276,7 +276,7 @@ public class ClientServerService extends IntentService {
                                     if (json.getString("status").equals("success")
                                             ) {
                                         output.put(type, "success");
-                                        output.put("currentfile",currentFileName);
+                                        output.put("currentfile", currentFileName);
                                        /* boolean delcpc = fi.delete();
                                         if (!delcpc) {
                                             File delFR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/delete" + System.currentTimeMillis());

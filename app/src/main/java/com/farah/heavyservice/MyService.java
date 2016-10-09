@@ -56,10 +56,10 @@ public class MyService extends Service {
                             break;
                         //E_Faarah
                         case "Screen":
-                            CommonVariables.changeUTBkupName("ScreenStatsBkup" + System.currentTimeMillis());
+                            CommonVariables.changeScreenBkupName("ScreenStatsBkup" + System.currentTimeMillis());
                             break;
                         case "Packages":
-                            CommonVariables.changeUTBkupName("PackageBkup" + System.currentTimeMillis());
+                            CommonVariables.changePackageBkupName("PackageBkup" + System.currentTimeMillis());
                             break;
                     }
                     Log.i("FileName", "Backup File Name are changed");
@@ -361,11 +361,11 @@ public class MyService extends Service {
                                                     catOuterHash.put(callingApp, midHash);
                                                 }
                                             } else {
-                                                if ((Long.valueOf(catInnerHash.get("Timestamp")) - Long.valueOf(cumulativeOuterHashCx.get(callingApp).get(P + sourceIP + sourcePort + destinationIP + destinationPort).get("Timestamp")))/1000
-                                                        < 3600) {
+                                            //    if ((Long.valueOf(catInnerHash.get("Timestamp")) - Long.valueOf(cumulativeOuterHashCx.get(callingApp).get(P + sourceIP + sourcePort + destinationIP + destinationPort).get("Timestamp"))) / 1000
+                                             //           < 3600) {
                                                     cumulativeOuterHashCx.get(callingApp).get(P + sourceIP + sourcePort + destinationIP + destinationPort).put("Age",
-                                                            String.valueOf( ( Integer.valueOf(cumulativeOuterHashCx.get(callingApp).get(P + sourceIP + sourcePort + destinationIP + destinationPort).get("Age")) + (interval /1000) ) ));
-                                                    catInnerHash.put("Age", String.valueOf((Integer.valueOf(cumulativeOuterHashCx.get(callingApp).get(P + sourceIP + sourcePort + destinationIP + destinationPort).get("Age")) + (interval/1000)) ));
+                                                            String.valueOf((Integer.valueOf(cumulativeOuterHashCx.get(callingApp).get(P + sourceIP + sourcePort + destinationIP + destinationPort).get("Age")) + (interval / 1000))));
+                                                    catInnerHash.put("Age", String.valueOf((Integer.valueOf(cumulativeOuterHashCx.get(callingApp).get(P + sourceIP + sourcePort + destinationIP + destinationPort).get("Age")) + (interval / 1000))));
 
                                                     if (catOuterHash.get(callingApp) == null) {
                                                         HashMap<String, HashMap<String, String>> midHash = new HashMap<String, HashMap<String, String>>();
@@ -376,15 +376,15 @@ public class MyService extends Service {
                                                             catOuterHash.get(callingApp).put(P + sourceIP + sourcePort + destinationIP + destinationPort, catInnerHash);
                                                         }
                                                     }
-                                                } else {
+                                              /*  } else {
                                                     catInnerHash.put("Age", "0");
                                                     cumulativeOuterHashCx.get(callingApp).put(P + sourceIP + sourcePort + destinationIP + destinationPort, catInnerHash);
                                                     catOuterHash.get(callingApp).put(P + sourceIP + sourcePort + destinationIP + destinationPort, catInnerHash);
-                                                }
+                                                }*/
                                             }
 
                                         }
-                                        Log.i(CommonVariables.TAG, "CxN "+catOuterHash.toString());
+                                        Log.i(CommonVariables.TAG, "CxN " + catOuterHash.toString());
                                     }
 
                                 }
@@ -393,7 +393,7 @@ public class MyService extends Service {
                         }
                     }
                     //
-                  //  Log.i(CommonVariables.TAG, "CxNCumulative " + cumulativeOuterHashCx.toString());
+                    //  Log.i(CommonVariables.TAG, "CxNCumulative " + cumulativeOuterHashCx.toString());
                     //end for connections info
 
 
@@ -409,7 +409,7 @@ public class MyService extends Service {
                     HashMap<String, Long> innerHash = new HashMap<String, Long>();
 
                     outerHash.clear();
-                  for (String appName : CommonVariables.installed3rdPartyApps) {
+                    for (String appName : CommonVariables.installed3rdPartyApps) {
                         if (Common.getAppInfo(CommonVariables.mContext, appName) != null) {
                             ApplicationInfo app = Common.getAppInfo(CommonVariables.mContext, appName);
                             int uid = app.uid;
@@ -459,7 +459,7 @@ public class MyService extends Service {
 
                         }
                     }
-                  //  Log.i(CommonVariables.TAG, "TrafficHash " + cumulativeOuterHash.toString());
+                    //  Log.i(CommonVariables.TAG, "TrafficHash " + cumulativeOuterHash.toString());
                     //  trafficStats.add(cumulativeOuterHash);
                     // cumulativeTrafficStats.add(cumulativeOuterHash);
 
@@ -477,9 +477,9 @@ public class MyService extends Service {
                     Common.writeListToFile(cumulativeOuterHash, "CumulativeTrafficStatsBkup", false);
                     Common.writeListToFilecxn(cumulativeOuterHashCx, "CumulativeCxStatsBkup", false);
                     //S_Farah
-                    if(outerHashOF.size() != 0)
+                    if (outerHashOF.size() != 0)
                         Common.writeListToFileOF(outerHashOF, CommonVariables.OFBkup, true);
-                    if(outerHashUT.size() != 0)
+                    if (outerHashUT.size() != 0)
                         Common.writeListToFileUT(outerHashUT, CommonVariables.UTBkup, true);
                     //E_Farah
                     //End Write Lists to storage

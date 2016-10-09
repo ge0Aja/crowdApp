@@ -168,11 +168,13 @@ public class CommonVariables {
                             currentFile = resultData.getString("currentfile");
                             Common.deleteFilesFromDirectory(type,currentFile);
 
-                            if(CommonVariables.startUpdateThresholds){
-                                Common.getThresholds(mContext);
-                            }
-                            if(CommonVariables.startUpdateIntervals){
-                                Common.getIntervals(mContext);
+                            if (type.equals(filetypeScreen)) {
+                                if(CommonVariables.startUpdateThresholds){
+                                    Common.getThresholds(mContext);
+                                }
+                                if(CommonVariables.startUpdateIntervals){
+                                    Common.getIntervals(mContext);
+                                }
                             }
                             break;
                         case ClientServerService.STATUS_FINISHED_NOFILES:
@@ -239,4 +241,12 @@ public class CommonVariables {
         UTBkup = Name;
     }
     //E_Farah
+
+    public static void changeScreenBkupName(String Name){
+        ScreenBkup = Name;
+    }
+
+    public static void changePackageBkupName(String Name) {
+        PackagesBkup = Name;
+    }
 }

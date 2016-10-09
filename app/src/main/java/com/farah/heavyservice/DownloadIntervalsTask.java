@@ -44,7 +44,7 @@ public class DownloadIntervalsTask extends AsyncTask<String,Void,Void> {
     protected void onPostExecute(Void aVoid) {
         if(b){
             Log.d(CommonVariables.TAG,"Intervals are updated");
-            editor.edit().putString(mContext.getString(R.string.interval_preference),"updated").apply();
+            editor.edit().putString(mContext.getString(R.string.interval_preference),String.valueOf(System.currentTimeMillis())).apply();
         }else {
             Log.d(CommonVariables.TAG, "Intervals are NOT updated and set to local values");
         }
@@ -54,11 +54,12 @@ public class DownloadIntervalsTask extends AsyncTask<String,Void,Void> {
         CommonVariables.maxFileSize = Integer.valueOf((editor.getString(mContext.getString(R.string.maxFileSize), "").equals("")) ? Integer.valueOf(1024) : Integer.valueOf(editor.getString(mContext.getString(R.string.maxFileSize), "")));
         CommonVariables.maxFileSizeScreen = Integer.valueOf((editor.getString(mContext.getString(R.string.maxFileSizeScreen), "").equals("")) ? Integer.valueOf(256) : Integer.valueOf(editor.getString(mContext.getString(R.string.maxFileSizeScreen), "")));
         CommonVariables.maxFileSizeOFUT = Integer.valueOf((editor.getString(mContext.getString(R.string.maxFileSizeOFUT), "").equals("")) ? Integer.valueOf(512) : Integer.valueOf(editor.getString(mContext.getString(R.string.maxFileSizeOFUT), "")));
+
     }
 
     private boolean DownloadIntervals(String urlString, Context context){
         try {
-            Thread.sleep(20000);
+            Thread.sleep(10000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -75,7 +76,7 @@ public class DownloadIntervalsTask extends AsyncTask<String,Void,Void> {
                     sb.append(tempOutput);
                 }
                 br.close();
-                Log.d("Intervals","Server Response is "+sb.toString());
+               // Log.d("Intervals","Server Response is "+sb.toString());
                 JSONObject json = new JSONObject(sb.toString());
                 JSONObject rejson = new JSONObject();
 
