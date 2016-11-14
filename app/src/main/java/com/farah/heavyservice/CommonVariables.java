@@ -1,19 +1,19 @@
 package com.farah.heavyservice;
 
+import android.Manifest;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
-import android.Manifest;
+
 import com.google.firebase.crash.FirebaseCrash;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -21,15 +21,7 @@ import java.util.List;
  */
 public class CommonVariables {
 
-    public static String TAG = "HeavyService";
-
-    public static boolean startService =false;
-
     public static final int PERMISSION_ALL =1;
-    public static String[] Permissions = {Manifest.permission.INTERNET, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECEIVE_BOOT_COMPLETED, Manifest.permission.BATTERY_STATS,Manifest.permission.ACCESS_NETWORK_STATE,
-            Manifest.permission.ACCESS_WIFI_STATE};
-
-    public static Context mContext;
     public static final String filetypeTf = "TF";
     public static final String filetypeCx = "CX";
     public static final String filetypeCPC = "CP";
@@ -38,63 +30,58 @@ public class CommonVariables {
     public static final String filetypeUT = "UT";
     //E_Farah
     public static final String filetypeScreen = "Screen";
-    public static final String filetypePackage = "Packages";
+    public static final String filetypePackage = "Package";
+    public static final String filetypeAnswers = "Answers";
     public static final String filetypeAll = "All";
+    public static final String th_cxAge = "cxAge";
+    public static final String th_cxCount = "cxCount";
+    public static final String th_prCPU = "prCPU";
+    public static final String th_prRSS = "prRSS";
+    public static final String th_prVSS = "prVSS";
+    public static final String th_prOF = "prOF";
+    public static final String th_prUT = "prUT";
+    public static final String th_txBytes = "txBytes";
+    public static final String th_rxBytes = "rxBytes";
 
+    // check threshold interval
+    public static final String th_txPackets = "txPackets";
+    public static final String th_rxPackets = "rxPackets";
+    public static String TAG = "HeavyService";
+    public static boolean startService = false;
+    public static String[] Permissions = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
+    public static Context mContext;
     public static String username;
     public static String password = "P@ssw0rd!";
-
     //stats collection interval
     public static int collectInterval = 10000;
-
     // start_upload interval for Dir after connecting to wifi
     public static int uploadIntervalNormal = 120000;
-
     // repeat_upload interval for Dir after connecting to wifi
     public static int uploadIntervalRetry = 7200000;
-
-    //collect interval fast
-    public static int collectIntervalFast;
-
-    //collect interval miid
-    public static int collectIntervalMid;
-
-    //collect interval slow
-    public static int collectIntervalSlow;
-
-    //collect interval
-
+    public static int checkCPCThresholdInterval = 30 * 1000;
+    public static int checkCxnThresholdInterval = 30 * 1000;
+    public static int checkTfThresholdInterval = 30 * 1000;
+    public static boolean checkCPCT = false;
+    public static boolean checkTfT = false;
+    public static boolean checkCxT = false;
+    public static boolean RequestedThresholds = false;
     //set max file size to upload
-    public static int maxFileSize = 1024;
-
+    public static int maxFileSize = 50;
     //set max file size for screen log
-    public static int maxFileSizeScreen = 256;
-
+    public static int maxFileSizeScreen = 5;
     //set max file size for OF UT log
-    public static int maxFileSizeOFUT = 256;
-
-    public static float txPacketsThreshold;
-    public static float rxPacketsThreshold;
-    public static float txBytesThreshold;
-    public static float rxBytesThreshold;
-    public static float cxAgeThreshold;
-    public static float prCPUThreshold;
-    public static float prVSSThreshold;
-    public static float prRSSThreshold;
-
-    public static boolean PermissionsGranted = false;
+    public static int maxFileSizeOFUT = 5;
     public static boolean screenOn = false;
     public static boolean isWiFi = false;
     public static boolean startUpload = false;
     public static boolean startUploadDir = false;
+    public static boolean thresholdsAvailable = false;
     public static boolean userRegistered = false;
+    //E_Farah
     public static boolean startUpdateIntervals = false;
     public static boolean startUpdateThresholds = false;
-
-    public static String TAG_U = "UploadService";
     public static String fileToUpload;
     public static String fileUploadType;
-
     public static String TFBkup;
     public static String CPCBkup;
     public static String CxBkup;
@@ -103,40 +90,48 @@ public class CommonVariables {
     //S_Farah
     public static String OFBkup;
     public static String UTBkup;
-    //E_Farah
+    public static String AnswersBkup = "Answers";
+    public static HashMap<String, HashMap<String, HashMap<String, Float>>> thresholdsMap;
+    public static String thresholdsFile = "Thresholds";
 
-    public static String TFUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertTF.php";
-    public static String CPCUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertCPC.php";
-    public static String CxUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertCx.php";
-    public static String registrationUrl = "https://72.14.183.152:4433/CrowdApp/fcm_insert.php";
-    public static String DownloadThresholdsURL = "https://72.14.183.152:4433/CrowdApp/getThresholds.php";
-    public static String DownloadIntervalsURL = "https://72.14.183.152:4433/CrowdApp/getIntervals.php";
-    public static String SubmitAnswerURL = "https://72.14.183.152:4433/CrowdApp/submitAnswer.php";
-    public static String SubmitIntervalUpdate = "https://72.14.183.152:4433/CrowdApp/userIntervalUpdate.php";
-    //S_Farah
-    public static String OFUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertOF.php";
-    public static String UTUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertUT.php";
-    //E_Farah
-    public static String ScreenUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertScreen.php";
-    public static String PackagesUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertPackages.php";
-    public static String UploadHost = "72.14.183.152";
-
-
-   /* public static String TFUploadURL = "https://192.168.137.79/CrowdApp/InsertTF.php";
+    /*
+        public static String TFUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertTF.php";
+        public static String CPCUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertCPC.php";
+        public static String CxUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertCx.php";
+        public static String registrationUrl = "https://72.14.183.152:4433/CrowdApp/fcm_insert.php";
+        public static String DownloadThresholdsURL = "https://72.14.183.152:4433/CrowdApp/getThresholds.php";
+        public static String DownloadIntervalsURL = "https://72.14.183.152:4433/CrowdApp/getIntervals.php";
+        public static String SubmitAnswerURL = "https://72.14.183.152:4433/CrowdApp/submitAnswer.php";
+        public static String SubmitIntervalUpdate = "https://72.14.183.152:4433/CrowdApp/userIntervalUpdate.php";
+        public static String SubmitAlarm = "https://72.14.183.152:4433/CrowdApp/submitAlarm.php";
+            public static String SubmitMultiAlarm = "https://72.14.183.152:4433/CrowdApp/submitAnswerMulti.php";
+        //S_Farah
+        public static String OFUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertOF.php";
+        public static String UTUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertUT.php";
+        //E_Farah
+        public static String ScreenUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertScreen.php";
+        public static String PackagesUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertPackages.php";
+        public static String UploadHost = "72.14.183.152";
+    */
+    public static String TFUploadURL = "https://192.168.137.79/CrowdApp/InsertTF.php";
     public static String CPCUploadURL = "https://192.168.137.79/CrowdApp/InsertCPC.php";
     public static String CxUploadURL = "https://192.168.137.79/CrowdApp/InsertCx.php";
+
+    // public static String CxUploadURL = "https://192.168.137.79/CrowdApp/InsertCxSpecial.php";
     public static String registrationUrl = "https://192.168.137.79/CrowdApp/fcm_insert.php";
     public static String DownloadThresholdsURL = "https://192.168.137.79/CrowdApp/getThresholds.php";
     public static String DownloadIntervalsURL = "https://192.168.137.79/CrowdApp/getIntervals.php";
     public static String SubmitAnswerURL = "https://192.168.137.79/submitAnswer.php";
     public static String SubmitIntervalUpdate = "https://192.168.137.79/CrowdApp/userIntervalUpdate.php";
+    public static String SubmitAlarm = "https://192.168.137.79/CrowdApp/submitAlarm.php";
+    public static String SubmitMultiAnswer = "https://192.168.137.79/CrowdApp/submitAnswerMulti.php";
     //S_Farah
     public static String OFUploadURL = "https://192.168.137.79/CrowdApp/InsertOF.php";
     public static String UTUploadURL = "https://192.168.137.79/CrowdApp/InsertUT.php";
     //E_Farah
     public static String ScreenUploadURL = "https://192.168.137.79/CrowdApp/InsertScreen.php";
     public static String PackagesUploadURL = "https://192.168.137.79/CrowdApp/InsertPackages.php";
-    public static String UploadHost = "192.168.137.79";*/
+    public static String UploadHost = "192.168.137.79";
 
 
     public static String UploadTypeFile = "File";
@@ -194,6 +189,10 @@ public class CommonVariables {
                             break;
                         case ClientServerService.STATUS_FINISHED_FORBIDDEN:
                             FirebaseCrash.report(new Exception("Unauthorized Access"));
+                            break;
+                        case ClientServerService.STATUS_FINISHED_NO_RESPONSE_FROM_SERVER:
+                            Log.i(ClientServerService.TAG, " DirUpload No response from server !");
+                            //file not confirmed
                             break;
                     }
                     startUploadDir = false;

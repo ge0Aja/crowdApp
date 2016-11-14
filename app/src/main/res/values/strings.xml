@@ -12,19 +12,6 @@
 
 
     <string name="trsh_preference">com.farah.heavyservice.trsh_preference</string>
-    <string name="txBytes">com.farah.heavyservice.txBytes</string>
-    <string name="rxBytes">com.farah.heavyservice.rxBytes</string>
-    <string name="txPackets">com.farah.heavyservice.txPackets</string>
-    <string name="rxPackets">com.farah.heavyservice.rxPackets</string>
-
-    <string name="cxAge">com.farah.heavyservice.cxAge</string>
-    <string name="prCPU">com.farah.heavyservice.prCPU</string>
-    <string name="prVSS">com.farah.heavyservice.prVSS</string>
-    <string name="prRSS">com.farah.heavyservice.prRSS</string>
-    <string name="prOF">com.farah.heavyservice.prOF</string>
-    <string name="prUT">com.farah.heavyservice.prUT</string>
-
-    <string name="timestamp">com.farah.heavyservice.timestamp</string>
 
     <string name="interval_preference">com.farah.heavyservice.interval_preference</string>
 
@@ -34,7 +21,10 @@
     <string name="maxFileSize">512</string>
     <string name="maxFileSizeScreen">1</string>
     <string name="maxFileSizeOFUT">10</string>
-    
+    <string name="checkCPCThresholdInterval">180000</string>
+    <string name="checkCxnThresholdInterval">240000</string>
+    <string name="checkTfThresholdInterval">90000</string>
+
     <string name="bandwidthMessageout">The App is sending a suspiciously large number of packets over the Internet. This means that data is being uploaded from your device. By data, we mean images, videos, music files, etc. This may result in draining your data plan. If you believe this is a normal behavior for this App, click on ‘Yes’. Otherwise, click on ‘No’. If you still don’t understand the question or you’re simply not sure of the answer, click on ‘I don’t know’.
     </string>
 

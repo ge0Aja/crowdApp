@@ -11,6 +11,7 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -22,10 +23,10 @@ public class DownloadThresholdsTask extends AsyncTask<String, Void, Void> {
     private Context mContext;
     private boolean b = false;
     private SharedPreferences editor;
-    public DownloadThresholdsTask(Context context)
-    {
+
+    public DownloadThresholdsTask(Context context) {
         mContext = context;
-        editor = context.getSharedPreferences(context.getString(R.string.trsh_preference),  Context.MODE_PRIVATE);
+        editor = context.getSharedPreferences(context.getString(R.string.trsh_preference), Context.MODE_PRIVATE);
     }
 
     @Override
@@ -40,20 +41,16 @@ public class DownloadThresholdsTask extends AsyncTask<String, Void, Void> {
 
     @Override
     protected void onPostExecute(Void aVoid) {
-        if(b){
-            CommonVariables.cxAgeThreshold = (editor.getString(mContext.getString(R.string.cxAge),"").equals(""))? Float.valueOf(0):Float.valueOf(editor.getString(mContext.getString(R.string.cxAge),""));
-            CommonVariables.prCPUThreshold = (editor.getString(mContext.getString(R.string.prCPU),"").equals(""))? Float.valueOf(0):Float.valueOf(editor.getString(mContext.getString(R.string.prCPU),""));
-            CommonVariables.prRSSThreshold = (editor.getString(mContext.getString(R.string.prRSS),"").equals(""))? Float.valueOf(0):Float.valueOf(editor.getString(mContext.getString(R.string.prRSS),""));
-            CommonVariables.prVSSThreshold = (editor.getString(mContext.getString(R.string.prVSS),"").equals(""))? Float.valueOf(0):Float.valueOf(editor.getString(mContext.getString(R.string.prVSS),""));
-            CommonVariables.txBytesThreshold = (editor.getString(mContext.getString(R.string.txBytes),"").equals(""))? Float.valueOf(0):Float.valueOf(editor.getString(mContext.getString(R.string.txBytes),""));
-            CommonVariables.rxBytesThreshold = (editor.getString(mContext.getString(R.string.rxBytes),"").equals(""))? Float.valueOf(0):Float.valueOf(editor.getString(mContext.getString(R.string.rxBytes),""));
-            CommonVariables.txPacketsThreshold = (editor.getString(mContext.getString(R.string.txPackets),"").equals(""))? Float.valueOf(0):Float.valueOf(editor.getString(mContext.getString(R.string.txPackets),""));
-            CommonVariables.rxPacketsThreshold = (editor.getString(mContext.getString(R.string.rxPackets),"").equals(""))? Float.valueOf(0):Float.valueOf(editor.getString(mContext.getString(R.string.rxPackets),""));
-            editor.edit().putString(mContext.getString(R.string.trsh_preference),"updated"+System.currentTimeMillis()).apply();
-            Log.d(CommonVariables.TAG,"Thresholds are updated");
-        }else{
-            Log.d(CommonVariables.TAG,"Thresholds are Not Downloaded");
+        if (b) {
+            editor.edit().putString(mContext.getString(R.string.trsh_preference), String.valueOf(System.currentTimeMillis())).apply();
+            CommonVariables.thresholdsMap = Common.readThreshListFromFile(CommonVariables.thresholdsFile);
+            CommonVariables.thresholdsAvailable = true;
+            Log.d(CommonVariables.TAG, "Thresholds are updated");
+        } else {
+            CommonVariables.thresholdsAvailable = false;
+            Log.d(CommonVariables.TAG, "Thresholds are Not Downloaded");
         }
+        CommonVariables.RequestedThresholds = false;
     }
 
     private boolean DownloadThresholds(String urlString, Context context) {
@@ -64,7 +61,7 @@ public class DownloadThresholdsTask extends AsyncTask<String, Void, Void> {
         }
         StringBuilder sb = new StringBuilder();
         String tempOutput = "";
-       // SharedPreferences.Editor editor = context.getSharedPreferences(context.getString(R.string.trsh_preference), 0).edit();
+        // SharedPreferences.Editor editor = context.getSharedPreferences(context.getString(R.string.trsh_preference), 0).edit();
         HttpsURLConnection thre_con = Common.setUpHttpsConnection(urlString, context, "GET");
 
         if (thre_con != null) {
@@ -75,26 +72,39 @@ public class DownloadThresholdsTask extends AsyncTask<String, Void, Void> {
                     sb.append(tempOutput);
                 }
                 br.close();
-               // Log.d("Thresholds","Server Response is "+sb.toString());
-                JSONObject json = new JSONObject(sb.toString());
-                if (json.getString("status").equals("success")) {
-                    JSONObject th = (JSONObject) json.get("thresholds");
-                    Iterator<?> keys = th.keys();
-                    while (keys.hasNext()) {
-                        String key = (String) keys.next();
-                        if (th.get(key) instanceof JSONObject) {
-                            editor.edit().putString(key, (String) th.get(key)).apply();
+                // Log.d("Thresholds","Server Response is "+sb.toString());
+                HashMap<String, HashMap<String, HashMap<String, Float>>> app_thresholds = new HashMap<>();
+                if (sb.length() != 0) {
+                    JSONObject json = new JSONObject(sb.toString());
+                    if (json.getString("status").equals("success")) {
+                        JSONObject th = (JSONObject) json.get("thresholds");
+                        Iterator<?> keys = th.keys();
+                        while (keys.hasNext()) {
+                            String key = (String) keys.next();
+                            if (th.get(key) instanceof JSONObject) {
+                                HashMap<String, HashMap<String, Float>> ind_thresholds = new HashMap<>();
+                                Iterator<?> inner_keys = ((JSONObject) th.get(key)).keys();
+                                while (inner_keys.hasNext()) {
+                                    String inner_key = (String) inner_keys.next();
+                                    JSONObject th2 = (JSONObject) ((JSONObject) th.get(key)).get(inner_key);
+                                    HashMap<String, Float> ind_thresholdsinner = new HashMap<>();
+                                    ind_thresholdsinner.put("mean", Float.valueOf((String) th2.get("mean")));
+                                    ind_thresholdsinner.put("std", Float.valueOf((String) th2.get("std")));
+                                    ind_thresholds.put(inner_key, ind_thresholdsinner);
+                                }
+                                app_thresholds.put(key, ind_thresholds);
+                            }
                         }
+                        Common.writeThreshListToFile(app_thresholds, CommonVariables.thresholdsFile, false);
+                        return true;
                     }
-
-                    return true;
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (JSONException e) {
                 e.printStackTrace();
-            }finally {
-                if(thre_con !=null){
+            } finally {
+                if (thre_con != null) {
                     thre_con.disconnect();
                 }
             }

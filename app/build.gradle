@@ -4,6 +4,7 @@ android {
     compileSdkVersion 23
     buildToolsVersion "23.0.3"
     useLibrary 'org.apache.http.legacy'
+
     defaultConfig {
         applicationId "com.farah.heavyservice"
         minSdkVersion 19
@@ -29,5 +30,6 @@ dependencies {
     compile 'com.google.firebase:firebase-messaging:9.4.0'
     compile 'com.android.volley:volley:1.0.0'
     compile 'com.google.firebase:firebase-crash:9.4.0'
+    compile 'org.apache.commons:commons-math3:3.6'
 }
 apply plugin: 'com.google.gms.google-services'

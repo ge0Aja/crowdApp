@@ -22,6 +22,7 @@ import com.google.firebase.crash.FirebaseCrash;
 
 import org.apache.commons.codec.binary.Base64;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -45,13 +46,14 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -189,8 +191,8 @@ public class Common {
         }
         return true;
     }
-
-    public static boolean writeListToFilecxn(HashMap<String, HashMap<String, HashMap<String, String>>> captures, String fileName, Boolean append) {
+    /// commneted for testing the ability to add
+    /*public static boolean writeListToFilecxn(HashMap<String, HashMap<String, HashMap<String, String>>> captures, String fileName, Boolean append) {
         ObjectOutputStream fileOut = null;
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCx + "/");
         if (!dir.exists()) {
@@ -219,6 +221,119 @@ public class Common {
         }
         return true;
     }
+    */
+
+    public static boolean writeListToFilecxn(HashMap<String, HashMap<String, HashMap<String, String>>> captures, String fileName, Boolean append) {
+        ObjectOutputStream fileOut = null;
+        HashMap<String, HashMap<String, HashMap<String, String>>> existing_captures = new HashMap<>();
+
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCx + "/");
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        File myFile = new File(dir, fileName); //"CPUMEMStats"
+        try {
+            if (myFile.exists()) {
+                existing_captures = readListFromFilecxn(myFile);
+                Iterator iterator_app = captures.entrySet().iterator();
+                while (iterator_app.hasNext()) {
+                    Map.Entry app_cxn = (Map.Entry) iterator_app.next();
+                    HashMap<String, HashMap<String, String>> new_cxns = (HashMap<String, HashMap<String, String>>) app_cxn.getValue();
+                    Iterator iterator_cxn = new_cxns.entrySet().iterator();
+                    while (iterator_cxn.hasNext()) {
+                        Map.Entry cxn_cxn = (Map.Entry) iterator_cxn.next();
+                        if (existing_captures.get(app_cxn.getKey()) != null) {
+                            if (existing_captures.get(app_cxn.getKey()).get(cxn_cxn.getKey()) != null) {
+                                existing_captures.get(app_cxn.getKey()).get(cxn_cxn.getKey()).put("Age", captures.get(app_cxn.getKey()).get(cxn_cxn.getKey()).get("Age"));
+                            } else {
+                                existing_captures.get(app_cxn.getKey()).put((String) cxn_cxn.getKey(), (HashMap<String, String>) cxn_cxn.getValue());
+                            }
+                        } else {
+                            existing_captures.put((String) app_cxn.getKey(), (HashMap<String, HashMap<String, String>>) app_cxn.getValue());
+                        }
+                    }
+                }
+                fileOut = new ObjectOutputStream(new FileOutputStream(myFile));
+                fileOut.writeObject(existing_captures);
+            } else {
+                fileOut = new ObjectOutputStream(new FileOutputStream(myFile));
+                fileOut.writeObject(captures);
+            }
+            fileOut.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (fileOut != null) fileOut.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static JSONArray readAnswersFromFile(String filename) {
+
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeAnswers + "/");
+        File myFile = new File(dir, filename);
+        JSONArray jsonArray = new JSONArray();
+        if (myFile.exists()) {
+            ObjectInputStream ois = null;
+            try {
+                ois = new ObjectInputStream(new FileInputStream(myFile));
+                while (true) {
+                    jsonArray.put(ois.readObject());
+                }
+            } catch (EOFException e) {
+                //e.printStackTrace();
+                return jsonArray;
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (ois != null) ois.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return jsonArray;
+
+
+    }
+
+    public static boolean writeAnswertoFile(JSONObject jsonObject, String filename, Boolean append) {
+        ObjectOutputStream fileOut = null;
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeAnswers + "/");
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        File myFile = new File(dir, filename); //  "Answers"
+        try {
+            if (!myFile.exists() || !append) {
+                //  Log.i("ReadList", "The file " + fileName + " Doesn't exist and should be created");
+                fileOut = new ObjectOutputStream(new FileOutputStream(myFile));
+            } else {
+                fileOut = new AppendableObjectOutputStream(new FileOutputStream(myFile, append));
+            }
+            fileOut.writeObject(jsonObject);
+            fileOut.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (fileOut != null) fileOut.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     public static boolean writeListToFile(HashMap<String, HashMap<String, Long>> captures, String fileName, Boolean append) {
         //  AppendToFileNoHeader fileOut = null;
@@ -237,6 +352,73 @@ public class Common {
                 fileOut = new AppendableObjectOutputStream(new FileOutputStream(myFile, append));
             }
             fileOut.writeObject(captures);
+            fileOut.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (fileOut != null) fileOut.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public synchronized static HashMap<String, HashMap<String, HashMap<String, Float>>> readThreshListFromFile(String filename) {
+
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/");
+        File myFile = new File(dir, filename);
+        HashMap<String, HashMap<String, HashMap<String, Float>>> rtrnList = new HashMap<>();
+        if (myFile.exists()) {
+            ObjectInputStream ois = null;
+            try {
+                ois = new ObjectInputStream(new FileInputStream(myFile));
+                while (true) {
+                    rtrnList = ((HashMap<String, HashMap<String, HashMap<String, Float>>>) ois.readObject());
+                }
+            } catch (EOFException e) {
+                //e.printStackTrace();
+                return rtrnList;
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (ois != null) ois.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return rtrnList;
+    }
+
+    public static String convertHexToString(String hexValue) {
+        String IP = "";
+        String hex = hexValue.substring(hexValue.length() - 8);
+        IP = String.valueOf(Integer.parseInt(hex.substring(6, 8), 16)) + "." + String.valueOf(Integer.parseInt(hex.substring(4, 6), 16)) + "." + String.valueOf(Integer.parseInt(hex.substring(2, 4), 16)) + "." + String.valueOf(Integer.parseInt(hex.substring(0, 2), 16));
+        return IP;
+    }
+
+
+    public synchronized static boolean writeThreshListToFile(HashMap<String, HashMap<String, HashMap<String, Float>>> thresholds, String fileName, Boolean append) {
+        //  AppendToFileNoHeader fileOut = null;
+        ObjectOutputStream fileOut = null;
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/");
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        File myFile = new File(dir, fileName); //  "TrafficStats"
+        try {
+            if (!myFile.exists() || !append) {
+                //  Log.i("ReadList", "The file " + fileName + " Doesn't exist and should be created");
+                fileOut = new ObjectOutputStream(new FileOutputStream(myFile));
+            } else {
+                fileOut = new AppendableObjectOutputStream(new FileOutputStream(myFile, append));
+            }
+            fileOut.writeObject(thresholds);
             fileOut.flush();
         } catch (Exception e) {
             e.printStackTrace();
@@ -385,7 +567,7 @@ public class Common {
             } catch (Exception e) {
                 e.printStackTrace();
                 myFile.delete();
-                Log.d(CommonVariables.TAG,"file "+myFile.getName()+" is deleted due to erros");
+                Log.d(CommonVariables.TAG, "file " + myFile.getName() + " is deleted due to erros");
             } finally {
                 try {
                     if (ois != null) ois.close();
@@ -412,7 +594,7 @@ public class Common {
             } catch (Exception e) {
                 e.printStackTrace();
                 file.delete();
-                Log.d(CommonVariables.TAG,"file "+file.getName()+" is deleted due to erros");
+                Log.d(CommonVariables.TAG, "file " + file.getName() + " is deleted due to erros");
             } finally {
                 try {
                     if (ois != null) ois.close();
@@ -429,7 +611,6 @@ public class Common {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCPC + "/");
         File myFile = new File(dir, filename);
         List<HashMap<String, HashMap<String, String>>> rtrnList = new ArrayList<>();
-        ;
         if (myFile.exists()) {
             ObjectInputStream ois = null;
             try {
@@ -443,7 +624,7 @@ public class Common {
             } catch (Exception e) {
                 e.printStackTrace();
                 myFile.delete();
-                Log.d(CommonVariables.TAG,"file "+myFile.getName()+" is deleted due to erros");
+                Log.d(CommonVariables.TAG, "file " + myFile.getName() + " is deleted due to erros");
             } finally {
                 try {
                     if (ois != null) ois.close();
@@ -455,8 +636,8 @@ public class Common {
 
         return rtrnList;
     }
-
-    public synchronized static List<HashMap<String, HashMap<String, HashMap<String, String>>>> readListFromFilecxn(File file) {
+///// commneted for testing the add
+   /* public synchronized static List<HashMap<String, HashMap<String, HashMap<String, String>>>> readListFromFilecxn(File file) {
 
         List<HashMap<String, HashMap<String, HashMap<String, String>>>> rtrnList = new ArrayList<>();
 
@@ -473,7 +654,7 @@ public class Common {
             } catch (Exception e) {
                 e.printStackTrace();
                 file.delete();
-                Log.d(CommonVariables.TAG,"file "+file.getName()+" is deleted due to erros");
+                Log.d(CommonVariables.TAG, "file " + file.getName() + " is deleted due to erros");
             } finally {
                 try {
                     if (ois != null) ois.close();
@@ -503,7 +684,38 @@ public class Common {
             } catch (Exception e) {
                 e.printStackTrace();
                 myFile.delete();
-                Log.d(CommonVariables.TAG,"file "+myFile.getName()+" is deleted due to erros");
+                Log.d(CommonVariables.TAG, "file " + myFile.getName() + " is deleted due to erros");
+            } finally {
+                try {
+                    if (ois != null) ois.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return rtrnList;
+    }*/
+
+
+    public synchronized static HashMap<String, HashMap<String, HashMap<String, String>>> readListFromFilecxn(File file) {
+
+        HashMap<String, HashMap<String, HashMap<String, String>>> rtrnList = new HashMap<>();
+
+        if (file.exists()) {
+            ObjectInputStream ois = null;
+            try {
+                ois = new ObjectInputStream(new FileInputStream(file));
+                while (true) {
+                    rtrnList = ((HashMap<String, HashMap<String, HashMap<String, String>>>) ois.readObject());
+                }
+            } catch (EOFException e) {
+                //e.printStackTrace();
+                return rtrnList;
+            } catch (Exception e) {
+                e.printStackTrace();
+                file.delete();
+                Log.d(CommonVariables.TAG, "file " + file.getName() + " is deleted due to erros");
             } finally {
                 try {
                     if (ois != null) ois.close();
@@ -515,6 +727,37 @@ public class Common {
 
         return rtrnList;
     }
+
+    public synchronized static HashMap<String, HashMap<String, HashMap<String, String>>> readListFromFilecxn(String filename) {
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCx + "/");
+        File myFile = new File(dir, filename);
+        HashMap<String, HashMap<String, HashMap<String, String>>> rtrnList = new HashMap<>();
+        if (myFile.exists()) {
+            ObjectInputStream ois = null;
+            try {
+                ois = new ObjectInputStream(new FileInputStream(myFile));
+                while (true) {
+                    rtrnList = ((HashMap<String, HashMap<String, HashMap<String, String>>>) ois.readObject());
+                }
+            } catch (EOFException e) {
+                //e.printStackTrace();
+                return rtrnList;
+            } catch (Exception e) {
+                e.printStackTrace();
+                myFile.delete();
+                Log.d(CommonVariables.TAG, "file " + myFile.getName() + " is deleted due to erros");
+            } finally {
+                try {
+                    if (ois != null) ois.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return rtrnList;
+    }
+
 
     //S_Farah
     public synchronized static List<HashMap<String, String>> readListFromFileOF(File file) {
@@ -533,7 +776,7 @@ public class Common {
             } catch (Exception e) {
                 e.printStackTrace();
                 file.delete();
-                Log.d(CommonVariables.TAG,"file "+file.getName()+" is deleted due to erros");
+                Log.d(CommonVariables.TAG, "file " + file.getName() + " is deleted due to erros");
             } finally {
                 try {
                     if (ois != null) ois.close();
@@ -563,7 +806,7 @@ public class Common {
             } catch (Exception e) {
                 e.printStackTrace();
                 myFile.delete();
-                Log.d(CommonVariables.TAG,"file "+myFile.getName()+" is deleted due to erros");
+                Log.d(CommonVariables.TAG, "file " + myFile.getName() + " is deleted due to erros");
             } finally {
                 try {
                     if (ois != null) ois.close();
@@ -592,7 +835,7 @@ public class Common {
             } catch (Exception e) {
                 e.printStackTrace();
                 file.delete();
-                Log.d(CommonVariables.TAG,"file "+file.getName()+" is deleted due to erros");
+                Log.d(CommonVariables.TAG, "file " + file.getName() + " is deleted due to erros");
             } finally {
                 try {
                     if (ois != null) ois.close();
@@ -622,7 +865,7 @@ public class Common {
             } catch (Exception e) {
                 e.printStackTrace();
                 myFile.delete();
-                Log.d(CommonVariables.TAG,"file "+myFile.getName()+" is deleted due to erros");
+                Log.d(CommonVariables.TAG, "file " + myFile.getName() + " is deleted due to erros");
             } finally {
                 try {
                     if (ois != null) ois.close();
@@ -653,7 +896,7 @@ public class Common {
             } catch (Exception e) {
                 e.printStackTrace();
                 myFile.delete();
-                Log.d(CommonVariables.TAG,"file "+myFile.getName()+" is deleted due to erros");
+                Log.d(CommonVariables.TAG, "file " + myFile.getName() + " is deleted due to erros");
             } finally {
                 try {
                     if (ois != null) ois.close();
@@ -707,18 +950,25 @@ public class Common {
         return jsonArray;
     }
 
-    public static JSONArray makeJsonArraycxn(String filename) {
-        List<HashMap<String, HashMap<String, HashMap<String, String>>>> cpcArray;
-        JSONArray jsonArray = null;
+    public static JSONObject makeJsonArraycxn(String filename) {
+        HashMap<String, HashMap<String, HashMap<String, String>>> cpcArray;
+        JSONObject jsonObject = null;
         try {
+            //
+            //
+            //
             cpcArray = readListFromFilecxn(filename);
+            //   JSONObject jsonObject = new JSONObject(cpcArray);
             if (!cpcArray.isEmpty()) {
-                jsonArray = new JSONArray(cpcArray);
+                //   jsonArray = new JSONArray(jsonObject.toString());
+
+                jsonObject = new JSONObject(cpcArray);
+                //
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return jsonArray;
+        return jsonObject;
     }
 
     //S_Farah
@@ -785,14 +1035,28 @@ public class Common {
         File myFile = new File(dir, filename);
 
         int file_size = Integer.parseInt(String.valueOf(myFile.length() / 1024));
-        if (file_size >= size)
-            return true;
-        else
-            return false;
+        return file_size >= size;
     }
 
+    /*public static boolean hasConenction(Context context, boolean isWifi){
+        if (isWifi) {
+            try {
+                HttpURLConnection urlc = (HttpURLConnection) (new URL("http://www.google.com").openConnection());
+                urlc.setRequestProperty("User-Agent", "Test");
+                urlc.setRequestProperty("Connection", "close");
+                urlc.setConnectTimeout(10000);
+                     urlc.connect();
+                return (urlc.getResponseCode() == 200);
+            } catch (IOException e) {
+                Log.e(CommonVariables.TAG, "Error checking internet connection", e);
+            }
+        } else {
+            Log.d(CommonVariables.TAG, "No network available!");
+        }
+        return false;
+    }
+*/
     public static boolean isConnectedToWifi(Context context) {
-
         boolean isConnected = false;
         boolean isWiFi = false;
         ConnectivityManager cm =
@@ -804,7 +1068,6 @@ public class Common {
         if (isConnected) {
             isWiFi = activeNetwork.getType() == ConnectivityManager.TYPE_WIFI;
         }
-
         return isWiFi;
     }
 
@@ -815,11 +1078,11 @@ public class Common {
         try {
             //Create certificate from the certificate in Assets
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-            InputStream caInput = new BufferedInputStream(context.getAssets().open("apache.crt"));
+            InputStream caInput = new BufferedInputStream(context.getAssets().open("zeroG.crt"));
             Certificate ca;
             try {
                 ca = certificateFactory.generateCertificate(caInput);
-                Log.i(CommonVariables.TAG, "ca= " + ((X509Certificate) ca).getSubjectDN());
+                //  Log.i(CommonVariables.TAG, "ca= " + ((X509Certificate) ca).getSubjectDN());
             } finally {
                 caInput.close();
             }
@@ -973,24 +1236,21 @@ public class Common {
         }
     }
 
+    public static void checkConnection(Context context) {
+        new checkConnectivity(context).execute();
+    }
+
     public static boolean getThresholds(Context context) {
+        CommonVariables.RequestedThresholds = true;
         SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.trsh_preference), Context.MODE_PRIVATE);
         final String state = sharedPreferences.getString(context.getString(R.string.trsh_preference), "");
 
         try {
-            if (state.equals("")) {
+            if (state.equals("") || !state.equals(String.valueOf(System.currentTimeMillis()))) {
                 new DownloadThresholdsTask(context).execute(CommonVariables.DownloadThresholdsURL);
                 CommonVariables.startUpdateThresholds = false;
                 return true;
             } else {
-                CommonVariables.cxAgeThreshold = (sharedPreferences.getString(context.getString(R.string.cxAge), "").equals("")) ? Float.valueOf(0) : Float.valueOf(sharedPreferences.getString(context.getString(R.string.cxAge), ""));
-                CommonVariables.prCPUThreshold = (sharedPreferences.getString(context.getString(R.string.prCPU), "").equals("")) ? Float.valueOf(0) : Float.valueOf(sharedPreferences.getString(context.getString(R.string.prCPU), ""));
-                CommonVariables.prRSSThreshold = (sharedPreferences.getString(context.getString(R.string.prRSS), "").equals("")) ? Float.valueOf(0) : Float.valueOf(sharedPreferences.getString(context.getString(R.string.prRSS), ""));
-                CommonVariables.prVSSThreshold = (sharedPreferences.getString(context.getString(R.string.prVSS), "").equals("")) ? Float.valueOf(0) : Float.valueOf(sharedPreferences.getString(context.getString(R.string.prVSS), ""));
-                CommonVariables.txBytesThreshold = (sharedPreferences.getString(context.getString(R.string.txBytes), "").equals("")) ? Float.valueOf(0) : Float.valueOf(sharedPreferences.getString(context.getString(R.string.txBytes), ""));
-                CommonVariables.rxBytesThreshold = (sharedPreferences.getString(context.getString(R.string.rxBytes), "").equals("")) ? Float.valueOf(0) : Float.valueOf(sharedPreferences.getString(context.getString(R.string.rxBytes), ""));
-                CommonVariables.txPacketsThreshold = (sharedPreferences.getString(context.getString(R.string.txPackets), "").equals("")) ? Float.valueOf(0) : Float.valueOf(sharedPreferences.getString(context.getString(R.string.txPackets), ""));
-                CommonVariables.rxPacketsThreshold = (sharedPreferences.getString(context.getString(R.string.rxPackets), "").equals("")) ? Float.valueOf(0) : Float.valueOf(sharedPreferences.getString(context.getString(R.string.rxPackets), ""));
                 Log.i(CommonVariables.TAG, " Thresholds are set to local values");
             }
 
@@ -999,6 +1259,49 @@ public class Common {
         }
         return false;
     }
+
+   /* public static boolean compareThProb(double value, double mean1, double mean2, double std1, double std2){
+        double percentile = 0;
+        double percentile1 = 0;
+        double percentile2 = 0;
+        double rand = Math.random();
+
+       NormalDistribution dist = new NormalDistribution();
+        percentile1 = dist.cumulativeProbability((value-mean1)/std1) ;
+        percentile2 = dist.cumulativeProbability((value-mean2)/std2) ;
+
+        percentile = percentile1 * percentile2;
+
+        if(percentile > rand){
+            return true;
+        }else{
+            return false;
+        }
+
+    }
+
+    public static void compareThreshold(Float value, String Threshold, String AppName, Context context) {
+        if (CommonVariables.thresholdsAvailable) {
+            try {
+                if (!AppName.equals("com.farah.heavyservice") && CommonVariables.thresholdsMap.get(AppName) != null && CommonVariables.thresholdsMap.get(AppName).get(Threshold) != null) {
+                    double thresh_value_mean1 = Double.valueOf(CommonVariables.thresholdsMap.get(AppName).get(Threshold).get("mean"));
+                    double thresh_value_std1 = Double.valueOf(CommonVariables.thresholdsMap.get(AppName).get(Threshold).get("std"));
+                    double thresh_value_mean2 = Double.valueOf(CommonVariables.thresholdsMap.get("All").get(Threshold).get("mean"));
+                    double thresh_value_std2 = Double.valueOf(CommonVariables.thresholdsMap.get("All").get(Threshold).get("std"));
+                    if (thresh_value_mean1 != 0 && thresh_value_mean2 != 0 && thresh_value_std1 != 0 && thresh_value_std2 != 0) {
+                        if(compareThProb(value,thresh_value_mean1,thresh_value_mean2,thresh_value_std1,thresh_value_std2)) {
+                            new SendAlarmTask(context).execute(AppName, Threshold);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                // e.printStackTrace();
+            }
+        }else{
+            if(!CommonVariables.RequestedThresholds)
+                Common.getThresholds(CommonVariables.mContext);
+        }
+    }*/
 
     public static void regBroadcastRec(Context context) {
         IntentFilter intentFilter = new IntentFilter();
@@ -1113,7 +1416,7 @@ public class Common {
                                 ) {
 
                             if (fi != null) {
-                                if (!currentfile.equals("") && !fi.getName().equals(currentfile)) {
+                                if (!currentfile.equals("") && !fi.getName().equals(currentfile) && !fi.getName().equals("CumulativeTrafficStatsBkup") && !fi.getName().equals("CumulativeCxStatsBkup")) {
                                     if (fi.delete())
                                         Log.d(CommonVariables.TAG, "file " + fi.getName() + " was deleted successfully");
                                 }
@@ -1142,8 +1445,8 @@ public class Common {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
         builder.setAutoCancel(false);
         builder.setOngoing(true);
-        builder.setSmallIcon(R.drawable.mushroom);
-        builder.setContentTitle("CrowdApp Monitor is Running");
+        builder.setSmallIcon(R.drawable.mushroom); // pp
+        builder.setContentTitle("CrowdApp Monitor is Running!!");
         //  Uri alarmtone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(71422673, builder.build());

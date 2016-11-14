@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.os.BatteryManager;
 import android.os.Environment;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.firebase.crash.FirebaseCrash;
 
@@ -24,7 +23,6 @@ public class EventReceiver extends BroadcastReceiver {
         String action = intent.getAction();
 
         switch (action) {
-
             case "android.intent.action.BOOT_COMPLETED":
                 File dirtf = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeTf + "/");
                 File myFiletf = new File(dirtf, "CumulativeTrafficStatsBkup");
@@ -44,14 +42,15 @@ public class EventReceiver extends BroadcastReceiver {
                         context.startService(startServiceIntent);
                     }
                 } else {
-                    Toast.makeText(context, "The Service Cannot Start Due to Missing Permissions", Toast.LENGTH_LONG);
+                    Log.d(CommonVariables.TAG, "The Service Cannot Start Due to Missing Permissions");
                     FirebaseCrash.report(new Exception("The Service Cannot Start Due to Missing Permissions"));
                 }
                 break;
             case "android.net.conn.CONNECTIVITY_CHANGE":
+                Common.checkConnection(context);
                 if (Common.isConnectedToWifi(context)) {
-                    CommonVariables.setWiFi(true);
-                    if (!CommonVariables.userRegistered) {
+                    // CommonVariables.setWiFi(true);
+                    if (!CommonVariables.userRegistered && CommonVariables.isWiFi) {
                         Common.regUser(context);
                     }
                     Log.i(CommonVariables.TAG, "ConnectivityChange: The WIFI status should change");

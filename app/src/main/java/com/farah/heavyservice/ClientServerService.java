@@ -70,24 +70,25 @@ public class ClientServerService extends IntentService {
                     String[] results = uploadDataSecure(url, type, filename);
                     Log.i(TAG, String.valueOf(results));
                 /* Sending result back to Service */
-
-                    if (!results[0].equals("Unconfirmed")) {
-                        bundle.putString("filename", filename);
-                        bundle.putString("type", type);
-                        if (results[0].equals("success")
-                                ) {
-                            bundle.putInt("Status", STATUS_FINISHED_SUCCESS);
-                            // bundle.putStringArray("result", results);
-                        } else {
-                            bundle.putInt("Status", STATUS_FINISHED_ERROR);
-                            bundle.putStringArray("result", results);
+                    if (results[0] != null && results.length != 0) {
+                        if (!results[0].equals("Unconfirmed")) {
+                            bundle.putString("filename", filename);
+                            bundle.putString("type", type);
+                            if (results[0].equals("success")
+                                    ) {
+                                bundle.putInt("Status", STATUS_FINISHED_SUCCESS);
+                                // bundle.putStringArray("result", results);
+                            } else {
+                                bundle.putInt("Status", STATUS_FINISHED_ERROR);
+                                bundle.putStringArray("result", results);
+                            }
+                            receiver.send(STATUS_FINISHED, bundle);
+                        } else { // Handled
+                            bundle.putInt("Status", STATUS_FINISHED_NO_RESPONSE_FROM_SERVER);
+                            receiver.send(STATUS_FINISHED, bundle);
                         }
-                        receiver.send(STATUS_FINISHED, bundle);
-                    } else { // Handled
-                        bundle.putInt("Status", STATUS_FINISHED_NO_RESPONSE_FROM_SERVER);
-                        receiver.send(STATUS_FINISHED, bundle);
+                        Log.d(TAG, "Upload Service executed successfully!");
                     }
-                    Log.d(TAG, "Upload Service executed successfully!");
                     this.stopSelf();
                     //    }
                 } catch (Exception e) {
@@ -117,6 +118,9 @@ public class ClientServerService extends IntentService {
                         bundle.putString("Error_message", results.get("Error"));
                         bundle.putInt("Status", STATUS_FINISHED_ERROR);
                         receiver.send(STATUS_FINISHED, bundle);
+                    } else if (results.get("Unconfirmed") != null) {
+                        bundle.putInt("Status", STATUS_FINISHED_NO_RESPONSE_FROM_SERVER);
+                        receiver.send(STATUS_FINISHED, bundle);
                     } else {
                         bundle.putInt("Status", STATUS_FINISHED_SUCCESS);
                         bundle.putString("currentfile", results.get("currentfile"));
@@ -133,7 +137,7 @@ public class ClientServerService extends IntentService {
                 }
             } else {
                 Log.i(TAG, "The upload type is multiple Dir and should start uploading");
-                String[] fileTypes = {CommonVariables.filetypeCPC, CommonVariables.filetypeCx, CommonVariables.filetypeTf, CommonVariables.filetypeOF, CommonVariables.filetypeUT, CommonVariables.filetypeScreen};
+                String[] fileTypes = {CommonVariables.filetypeAnswers, CommonVariables.filetypeCPC, CommonVariables.filetypeCx, CommonVariables.filetypeTf, CommonVariables.filetypeOF, CommonVariables.filetypeUT, CommonVariables.filetypeScreen};
                 for (String t : fileTypes
                         ) {
                     try {
@@ -150,6 +154,9 @@ public class ClientServerService extends IntentService {
                         } else if (results.get("Error") != null) {
                             bundle.putString("Error_message", results.get("Error"));
                             bundle.putInt("Status", STATUS_FINISHED_ERROR);
+                            receiver.send(STATUS_FINISHED, bundle);
+                        } else if (results.get("Unconfirmed") != null) {
+                            bundle.putInt("Status", STATUS_FINISHED_NO_RESPONSE_FROM_SERVER);
                             receiver.send(STATUS_FINISHED, bundle);
                         } else {
                             bundle.putInt("Status", STATUS_FINISHED_SUCCESS);
@@ -187,6 +194,7 @@ public class ClientServerService extends IntentService {
         HttpURLConnection postUrlConnection = null;
         HashMap<String, String> output = new HashMap<>();
         JSONArray newJsonArray = null;
+        JSONObject newJsonObject = null;
         String Dir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/";
         File f = new File(Dir);
         if (f != null) {
@@ -218,6 +226,9 @@ public class ClientServerService extends IntentService {
                         } else if (type.equals(CommonVariables.filetypeScreen)) {
                             postUrlConnection = Common.setUpHttpsConnection(CommonVariables.ScreenUploadURL, this.getApplicationContext(), "POST");
                             currentFileName = CommonVariables.ScreenBkup;
+                        } else if (type.equals(CommonVariables.filetypeAnswers)) {
+                            postUrlConnection = Common.setUpHttpsConnection(CommonVariables.SubmitMultiAnswer, this.getApplicationContext(), "POST");
+                            currentFileName = "Not";
                         }
                         if (postUrlConnection != null) {
 
@@ -238,29 +249,37 @@ public class ClientServerService extends IntentService {
                                     } else if (type.equals(CommonVariables.filetypeTf)) {
                                         newJsonArray = Common.makeJsonArraytf(fi.getName());
                                     } else if (type.equals(CommonVariables.filetypeCx)) {
-                                        newJsonArray = Common.makeJsonArraycxn(fi.getName());
+                                        newJsonObject = Common.makeJsonArraycxn(fi.getName());
                                     } else if (type.equals(CommonVariables.filetypeOF)) {
                                         newJsonArray = Common.makeJsonArrayOF(fi.getName());
                                     } else if (type.equals(CommonVariables.filetypeUT)) {
                                         newJsonArray = Common.makeJsonArrayUT(fi.getName());
                                     } else if (type.equals(CommonVariables.filetypeScreen)) {
                                         newJsonArray = Common.makeJsonArrayScreen(fi.getName());
+                                    } else if (type.equals(CommonVariables.filetypeAnswers)) {
+                                        newJsonArray = Common.readAnswersFromFile(fi.getName());
                                     }
 
                                     // for (int i = 0; i < newJsonArray.length(); i++) {
-                                    AllFileJsonArray.put(newJsonArray);
+                                    if (type.equals(CommonVariables.filetypeCx))
+                                        AllFileJsonArray.put(newJsonObject);
+                                    else
+                                        AllFileJsonArray.put(newJsonArray);
                                     // }
                                 } else {
                                     output.put(fi.getName(), "CurrentFile");
                                 }
                             }
-
                             postUrlConnection.connect();
                             if (AllFileJsonArray != null && AllFileJsonArray.length() != 0) {
                                 OutputStream os = null;
                                 os = postUrlConnection.getOutputStream();
                                 OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
-                                osw.write(newJsonArray.toString());
+                                if (!type.equals(CommonVariables.filetypeCx)) {
+                                    osw.write(newJsonArray.toString());
+                                } else {
+                                    osw.write(newJsonObject.toString());
+                                }
                                 osw.flush();
                                 osw.close();
                                 BufferedReader br = new BufferedReader(new InputStreamReader(
@@ -268,37 +287,42 @@ public class ClientServerService extends IntentService {
                                 while ((tempOutput = br.readLine()) != null) {
                                     sb.append(tempOutput);
                                 }
-                                if (sb.toString().equals("")) {
-                                    output.put(type, "Unconfirmed");
-                                    //fi.renameTo(new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/unconfirmed" + System.currentTimeMillis()));
-                                } else {
-                                    JSONObject json = new JSONObject(sb.toString());
-                                    if (json.getString("status").equals("success")
-                                            ) {
-                                        output.put(type, "success");
-                                        output.put("currentfile", currentFileName);
+                                if (sb.length() != 0) {
+                                    if (sb.toString().equals("")) {
+                                        output.put(type, "Unconfirmed");
+                                        //fi.renameTo(new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/unconfirmed" + System.currentTimeMillis()));
+                                    } else {
+                                        JSONObject json = new JSONObject(sb.toString());
+                                        if (json.getString("status").equals("success")
+                                                ) {
+                                            output.put(type, "success");
+                                            output.put("currentfile", currentFileName);
                                        /* boolean delcpc = fi.delete();
                                         if (!delcpc) {
                                             File delFR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/delete" + System.currentTimeMillis());
                                             fi.renameTo(delFR);
                                         }*/
-                                        if (json.getString("update_interval").equals("1")) {
-                                            CommonVariables.startUpdateIntervals = true;
+                                            if (json.getString("update_interval").equals("1")) {
+                                                CommonVariables.startUpdateIntervals = true;
+                                            }
+                                            if (json.getString("update_threshold").equals("1")) {
+                                                CommonVariables.startUpdateThresholds = true;
+                                            }
+                                        } else if (json.getString("status").equals("Unauthorized")) {
+                                            //  res[0] = "Unauthorized";
+                                            output.put("Unauthorized", "Unauthorized");
+                                            //  break;
+                                        } else if (json.getString("status").equals("finished")) {
+                                            output.put("finished", json.getString("error_message"));
+                                            // break;
+                                        } else if (json.getString("status").equals("fail")) {
+                                            output.put("Error", json.getString("error"));
+                                            //  break;
                                         }
-                                        if (json.getString("update_threshold").equals("1")) {
-                                            CommonVariables.startUpdateThresholds = true;
-                                        }
-                                    } else if (json.getString("status").equals("Unauthorized")) {
-                                        //  res[0] = "Unauthorized";
-                                        output.put("Unauthorized", "Unauthorized");
-                                        //  break;
-                                    } else if (json.getString("status").equals("finished")) {
-                                        output.put("finished", json.getString("error_message"));
-                                        // break;
-                                    } else if (json.getString("status").equals("fail")) {
-                                        output.put("Error", json.getString("error"));
-                                        //  break;
                                     }
+
+                                } else {
+                                    output.put(type, "Unconfirmed");
                                 }
                             } else {
                                 output.put(type, "NoRecords");
@@ -341,32 +365,39 @@ public class ClientServerService extends IntentService {
         StringBuilder sb = new StringBuilder();
         HttpURLConnection postUrlConnection = null;
         String[] res = new String[3];
+        JSONArray newJsonArray = null;
+        JSONObject newJsonObject = null;
+        if (type.equals(CommonVariables.filetypeCPC)) {
+            newJsonArray = Common.makeJsonArraycpc(filename);
+            //  Log.d("CPC uppload",newJsonArray.toString());
+        } else if (type.equals(CommonVariables.filetypeTf)) {
+            newJsonArray = Common.makeJsonArraytf(filename);
+        } else if (type.equals(CommonVariables.filetypeCx)) {
+            newJsonObject = Common.makeJsonArraycxn(filename);
+        } else if (type.equals(CommonVariables.filetypeOF)) {
+            newJsonArray = Common.makeJsonArrayOF(filename);
+        } else if (type.equals(CommonVariables.filetypeUT)) {
+            newJsonArray = Common.makeJsonArrayUT(filename);
+        } else if (type.equals(CommonVariables.filetypeScreen)) {
+            newJsonArray = Common.makeJsonArrayScreen(filename);
+        } else if (type.equals(CommonVariables.filetypePackage)) {
+            newJsonArray = Common.makeJsonArrayPackages(filename);
+        }
         try {
             postUrlConnection = Common.setUpHttpsConnection(url, this.getApplicationContext(), "POST");
             postUrlConnection.connect();
             // create JSON OBJECT
-            JSONArray newJsonArray = null;
-            if (type.equals(CommonVariables.filetypeCPC)) {
-                newJsonArray = Common.makeJsonArraycpc(filename);
-                //  Log.d("CPC uppload",newJsonArray.toString());
-            } else if (type.equals(CommonVariables.filetypeTf)) {
-                newJsonArray = Common.makeJsonArraytf(filename);
-            } else if (type.equals(CommonVariables.filetypeCx)) {
-                newJsonArray = Common.makeJsonArraycxn(filename);
-            } else if (type.equals(CommonVariables.filetypeOF)) {
-                newJsonArray = Common.makeJsonArrayOF(filename);
-            } else if (type.equals(CommonVariables.filetypeUT)) {
-                newJsonArray = Common.makeJsonArrayUT(filename);
-            } else if (type.equals(CommonVariables.filetypeScreen)) {
-                newJsonArray = Common.makeJsonArrayScreen(filename);
-            } else if (type.equals(CommonVariables.filetypePackage)) {
-                newJsonArray = Common.makeJsonArrayPackages(filename);
-            }
-            if (newJsonArray != null && newJsonArray.length() != 0) {
+
+            if ((newJsonArray != null && newJsonArray.length() != 0) || (newJsonObject != null && newJsonObject.length() != 0)) {
                 OutputStream os = postUrlConnection.getOutputStream();
                 OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
                 // Log.d("GGGG",newJsonArray.toString());
-                osw.write(newJsonArray.toString());
+                if (!type.equals(CommonVariables.filetypeCx)) {
+                    osw.write(newJsonArray.toString());
+
+                } else {
+                    osw.write(newJsonObject.toString());
+                }
                 osw.flush();
                 osw.close();
                 BufferedReader br = new BufferedReader(new InputStreamReader(
@@ -377,50 +408,54 @@ public class ClientServerService extends IntentService {
                 File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/");
                 File myFile = new File(dir, filename);
                 //  Log.d(TAG,"Server Response is "+sb.toString());
-                if (sb.toString().equals("")) {
-                    myFile.renameTo(new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/unconfirmed" + System.currentTimeMillis()));
-                    res[0] = "Unconfirmed";
-                } else {
+                if (sb.length() != 0) {
+                    if (sb.toString().equals("")) {
+                        myFile.renameTo(new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/unconfirmed" + System.currentTimeMillis()));
+                        res[0] = "Unconfirmed";
+                    } else {
 
-                    JSONObject json = new JSONObject(sb.toString());
-                    if (json.getString("status").equals("success")
-                            ) {
-                        boolean del = myFile.delete();
-                        if (!del) {
-                            File delFR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/delete" + System.currentTimeMillis());
-                            myFile.renameTo(delFR);
-                        }
-                        res[0] = "success";
-                        if (json.getString("update_interval").equals("1")) {
-                            CommonVariables.startUpdateIntervals = true;
-                        }
-                        if (json.getString("update_threshold").equals("1")) {
-                            CommonVariables.startUpdateThresholds = true;
-                        }
+                        JSONObject json = new JSONObject(sb.toString());
+                        if (json.getString("status").equals("success")
+                                ) {
+                            boolean del = myFile.delete();
+                            if (!del) {
+                                File delFR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/delete" + System.currentTimeMillis());
+                                myFile.renameTo(delFR);
+                            }
+                            res[0] = "success";
+                            if (json.getString("update_interval").equals("1")) {
+                                CommonVariables.startUpdateIntervals = true;
+                            }
+                            if (json.getString("update_threshold").equals("1")) {
+                                CommonVariables.startUpdateThresholds = true;
+                            }
 
-                    } else if (json.getString("status").equals("finished")) {
-                        //    return "finished";
-                        res[0] = "finished";
-                        res[1] = json.getString("errors");
-                        res[2] = json.getString("error_message");
+                        } else if (json.getString("status").equals("finished")) {
+                            //    return "finished";
+                            res[0] = "finished";
+                            res[1] = json.getString("errors");
+                            res[2] = json.getString("error_message");
 
-                    } else if (json.getString("status").equals("Unauthorized")) {
-                        res[0] = "Unauthorized";
-                        // the server is down
-                    } else if (json.getString("status").equals("fail")) {
-                        res[0] = "fail";
-                        res[1] = json.getString("error");
+                        } else if (json.getString("status").equals("Unauthorized")) {
+                            res[0] = "Unauthorized";
+                            // the server is down
+                        } else if (json.getString("status").equals("fail")) {
+                            res[0] = "fail";
+                            res[1] = json.getString("error");
+                        }
                     }
+                } else {
+                    res[0] = "Unconfirmed";
                 }
-            } else {
-                res[0] = "success";
+
             }
         } catch (MalformedURLException e) {
             FirebaseCrash.report(new Exception(e.getMessage()));
         } catch (java.net.SocketTimeoutException e) {
-            FirebaseCrash.report(new Exception(e.getMessage()));
+            // FirebaseCrash.report(new Exception(e.getMessage()));
         } catch (JSONException e) {
-            FirebaseCrash.report(new Exception(e.getMessage()));
+            e.printStackTrace();
+            // FirebaseCrash.report(new Exception(e.getMessage()));
         } finally {
             if (postUrlConnection != null)
                 try {

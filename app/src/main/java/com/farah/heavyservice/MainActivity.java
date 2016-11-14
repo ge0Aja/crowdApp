@@ -56,9 +56,41 @@ public class MainActivity extends AppCompatActivity {
         stopService(intent);
     }
 
-   /* public void screenstats(View view) {
+    public void screenstats(View view) {
         CommonVariables.setUploadSettings(CommonVariables.ScreenBkup, true, CommonVariables.filetypeScreen);
-    }*/
+    }
+
+    public void cpcstats(View view) {
+        CommonVariables.setUploadSettings(CommonVariables.CPCBkup, true, CommonVariables.filetypeCPC);
+    }
+
+    public void cxstats(View view) {
+        CommonVariables.setUploadSettings(CommonVariables.CxBkup, true, CommonVariables.filetypeCx);
+    }
+
+    public void tfstats(View view) {
+        CommonVariables.setUploadSettings(CommonVariables.TFBkup, true, CommonVariables.filetypeTf);
+    }
+
+    public void ofstats(View view) {
+        CommonVariables.setUploadSettings(CommonVariables.OFBkup, true, CommonVariables.filetypeOF);
+    }
+
+    public void utstats(View view) {
+        CommonVariables.setUploadSettings(CommonVariables.UTBkup, true, CommonVariables.filetypeUT);
+    }
+
+    public void userreg(View view) {
+        if (!CommonVariables.userRegistered) {
+            Common.regUser(this);
+        }
+    }
+
+    public void getthresh(View view) {
+        if (!CommonVariables.thresholdsAvailable) {
+            Common.getThresholds(this);
+        }
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -74,8 +106,11 @@ public class MainActivity extends AppCompatActivity {
                             startService(intent);
                         }
                     }
+                    return;
+                } else {
+                    finish();
                 }
-                return;
+                
             }
 
         }

@@ -1,7 +1,6 @@
 package com.farah.heavyservice;
 
 import android.app.Activity;
-import android.app.NotificationManager;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -26,6 +25,7 @@ public class SubmitAnswerTask extends AsyncTask<String, Void, Void> {
     private Context mContext;
     private boolean b = false;
     private Activity activity;
+    private JSONObject jsonObject = new JSONObject();
     private int notid;
 
     public SubmitAnswerTask(Activity calling, Context context,String Notid) {
@@ -36,7 +36,7 @@ public class SubmitAnswerTask extends AsyncTask<String, Void, Void> {
 
     @Override
     protected Void doInBackground(String... params) {
-        JSONObject jsonObject = new JSONObject();
+        jsonObject = new JSONObject();
         try {
             jsonObject.put("Ansid", params[2]);
             jsonObject.put("Qid", params[1]);
@@ -52,10 +52,11 @@ public class SubmitAnswerTask extends AsyncTask<String, Void, Void> {
     protected void onPostExecute(Void aVoid) {
         if (b) {
             Toast.makeText(mContext, "Your Answer is Submitted", Toast.LENGTH_SHORT);
-            activity.finish();
         } else {
-            Toast.makeText(mContext, "Your Answer is not Submitted, are connected ?", Toast.LENGTH_SHORT);
+            Common.writeAnswertoFile(jsonObject, CommonVariables.AnswersBkup, true);
+            Toast.makeText(mContext, "Your Answer is Saved", Toast.LENGTH_SHORT);
         }
+        activity.finish();
     }
 
     private boolean SubmitAnswer(String urlString, JSONObject jsonObject, Context context) {

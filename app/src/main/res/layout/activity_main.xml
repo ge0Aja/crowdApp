@@ -10,23 +10,98 @@
     tools:context="com.farah.heavyservice.MainActivity">
 
     <Button
+        android:id="@+id/startButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Start Service"
-        android:id="@+id/startButton"
-        android:onClick="startCollecting"
-        android:nestedScrollingEnabled="false"
-        android:layout_marginTop="40dp"
+        android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true" />
+        android:layout_marginTop="40dp"
+        android:nestedScrollingEnabled="false"
+        android:onClick="startCollecting"
+        android:text="Start Service" />
 
     <Button
+        android:id="@+id/stopButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Stop Service"
-        android:id="@+id/stopButton"
-        android:onClick="stopCollecting"
+        android:layout_alignParentEnd="true"
         android:layout_alignTop="@+id/startButton"
-        android:layout_alignParentEnd="true" />
+        android:onClick="stopCollecting"
+        android:text="Stop Service" />
+
+    <Button
+        android:id="@+id/btn_screen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/startButton"
+        android:layout_marginTop="54dp"
+        android:onClick="screenstats"
+        android:text="Screen" />
+
+    <Button
+        android:id="@+id/btn_cpc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/btn_screen"
+        android:layout_alignParentEnd="true"
+        android:onClick="cpcstats"
+        android:text="CPC" />
+
+    <Button
+        android:id="@+id/btn_tf"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/btn_screen"
+        android:layout_marginTop="58dp"
+        android:onClick="tfstats"
+        android:text="TF" />
+
+    <Button
+        android:id="@+id/btn_cx"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/btn_tf"
+        android:layout_alignParentEnd="true"
+        android:onClick="cxstats"
+        android:text="Cx" />
+
+    <Button
+        android:id="@+id/btn_of"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/btn_tf"
+        android:layout_marginTop="44dp"
+        android:onClick="ofstats"
+        android:text="OF" />
+
+    <Button
+        android:id="@+id/btn_ut"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignTop="@+id/btn_of"
+        android:onClick="utstats"
+        android:text="UT" />
+
+    <Button
+        android:id="@+id/btn_reg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:onClick="userreg"
+        android:text="Reg User" />
+
+    <Button
+        android:id="@+id/btn_thresh"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:onClick="getthresh"
+        android:text="Thresh" />
 
 </RelativeLayout>
