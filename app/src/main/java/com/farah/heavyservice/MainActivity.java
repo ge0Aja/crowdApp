@@ -92,6 +92,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void getIntervals(View view) {
+        Common.getIntervals(this);
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {

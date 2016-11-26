@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -129,6 +128,8 @@ public class MyService extends Service {
     };
     String messageLogged = "";
     String regex = "[^\\d]";
+    String protocol = "";
+    String previousOnTop = "";
     long stamp, startStamp, ThreshStampCPC, ThreshStampCxn, ThreshStampTF;
     HashMap<String, HashMap<String, HashMap<String, String>>> catOuterHash = new HashMap<>();
     HashMap<String, HashMap<String, Long>> outerHash = new HashMap<String, HashMap<String, Long>>();
@@ -206,8 +207,6 @@ public class MyService extends Service {
         Log.d(CommonVariables.TAG, " Time starting stamp is " + stamp);
         final List<String> installedPackagesRunning = new ArrayList<>();
 
-        final String protocol = "";
-        final String previousOnTop = "";
 
         timer.schedule(new TimerTask() {
             public void run() {
@@ -253,9 +252,9 @@ public class MyService extends Service {
                         innerHashCPUMEM.put("Timestamp", String.valueOf(System.currentTimeMillis()));
                         installedPackagesRunning.add(innerHashCPUMEM.get("pName"));
                         aName = innerHashCPUMEM.get("pName");
-                        if (CommonVariables.installed3rdPartyApps.contains(aName)) {
+                        if (CommonVariables.installed3rdPartyApps.contains(aName) && !aName.equals("com.farah.heavyservice")) {
                             outerHashCPUMEM.put(aName, innerHashCPUMEM);
-                            if (CommonVariables.checkCPCT) {
+                            if (CommonVariables.checkCPCT && CommonVariables.isWiFi && CommonVariables.checkEvents != 0) {
                                 new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(innerHashCPUMEM.get("CPU")), aName, CommonVariables.th_prCPU).execute();
                                 new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(innerHashCPUMEM.get("RSS")), aName, CommonVariables.th_prRSS).execute();
                                 new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(innerHashCPUMEM.get("VSS")), aName, CommonVariables.th_prVSS).execute();
@@ -264,7 +263,7 @@ public class MyService extends Service {
                                 // Common.compareThreshold(Float.valueOf(innerHashCPUMEM.get("VSS")), CommonVariables.th_prVSS, aName, CommonVariables.mContext);
                             }
                         }
-                        if (CommonVariables.installed3rdPartyApps.contains(innerHashCPUMEM.get("pName"))) {
+                        if (CommonVariables.installed3rdPartyApps.contains(innerHashCPUMEM.get("pName")) && !innerHashCPUMEM.get("pName").toString().equals("com.farah.heavyservice")) {
                             if (innerHashCPUMEM.get("PCY").equals("fg") && !aName.equals("top")) {
                                 messageLogged = aName + " on top";
                                 outerHashUT.put("appName", aName);
@@ -276,7 +275,7 @@ public class MyService extends Service {
                                     messageLogged = aName + " opened";
                                     // Common.appendLog(messageLogged);
                                     Log.i(CommonVariables.TAG, "Reduced " + messageLogged);
-                                    previousOnTop.equals(aName);
+                                    previousOnTop = aName;
                                     //S_Farah
                                     outerHashOF.put("appName", aName);
                                     outerHashOF.put("type", "OF");
@@ -347,7 +346,7 @@ public class MyService extends Service {
                                 String callingApp = CommonVariables.mContext.getPackageManager().getNameForUid(Integer.valueOf(tokens[8]));
                                 if (callingApp != null) {
                                     callingApp = callingApp.split(":")[0];
-                                    if (CommonVariables.installed3rdPartyApps.contains(callingApp)) {
+                                    if (CommonVariables.installed3rdPartyApps.contains(callingApp) && !callingApp.equals("com.farah.heavyservice")) {
                                         HashMap<String, String> catInnerHash = new HashMap<>();
                                         //  catInnerHash.put("Protocol", P);
                                         catInnerHash.put("Timestamp", String.valueOf(System.currentTimeMillis()));
@@ -389,7 +388,7 @@ public class MyService extends Service {
                                                         catOuterHash.get(callingApp).put(P + sourceIP + sourcePort + destinationIP + destinationPort, catInnerHash);
                                                     }
                                                 }
-                                                if (CommonVariables.checkCxT) {
+                                                if (CommonVariables.checkCxT && CommonVariables.isWiFi && CommonVariables.checkEvents != 0) {
                                                     new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(catInnerHash.get("Age")), callingApp, CommonVariables.th_cxAge).execute();
                                                     //Common.compareThreshold(Float.valueOf(catInnerHash.get("Age")), CommonVariables.th_cxAge, callingApp, CommonVariables.mContext);
                                                 }
@@ -403,15 +402,15 @@ public class MyService extends Service {
                                 }
 
                             }
-
-                            if (CommonVariables.checkCxT) {
+                            //TODO fix calculating the average count on the server
+                            /*if (CommonVariables.checkCxT) {
                                 Iterator callingAppIter = catOuterHash.entrySet().iterator();
                                 while (callingAppIter.hasNext()) {
                                     Map.Entry callinAppPair = (Map.Entry) callingAppIter.next();
                                     new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(catOuterHash.get(callinAppPair.getKey()).size()), (String) callinAppPair.getKey(), CommonVariables.th_cxCount).execute();
                                     //Common.compareThreshold(Float.valueOf(catOuterHash.get(callinAppPair.getKey()).size()), CommonVariables.th_cxCount, (String) callinAppPair.getKey(), CommonVariables.mContext);
                                 }
-                            }
+                            }*/
 
                         }
                     }
@@ -441,15 +440,16 @@ public class MyService extends Service {
                     }
                     while (iterator3rdParty.hasNext()) {
                         appName = iterator3rdParty.next().toString();
-                        if (Common.getAppInfo(CommonVariables.mContext, appName) != null) {
+                        if (appName.equals("com.farah.heavyservice")) { //Common.getAppInfo(CommonVariables.mContext, appName) != null
                             ApplicationInfo app = Common.getAppInfo(CommonVariables.mContext, appName);
-                            int uid = app.uid;
-                            long txBytes = TrafficStats.getUidTxBytes(uid);
-                            long rxBytes = TrafficStats.getUidRxBytes(uid);
-                            long txPackets = TrafficStats.getUidTxPackets(uid);
-                            long rxPackets = TrafficStats.getUidRxPackets(uid);
+                            if (app != null) {
+                                int uid = app.uid;
+                                long txBytes = TrafficStats.getUidTxBytes(uid);
+                                long rxBytes = TrafficStats.getUidRxBytes(uid);
+                                long txPackets = TrafficStats.getUidTxPackets(uid);
+                                long rxPackets = TrafficStats.getUidRxPackets(uid);
 
-                            if (!cumulativeOuterHash.containsKey(appName)) {
+                                if (!cumulativeOuterHash.containsKey(appName)) {
                                /* innerHash.put("txBytes", Long.valueOf(0));
                                 innerHash.put("rxBytes", Long.valueOf(0));
                                 innerHash.put("txPackets", Long.valueOf(0));
@@ -457,46 +457,47 @@ public class MyService extends Service {
                                 innerHash.put("Timestamp", System.currentTimeMillis());
                                 outerHash.put(appName, innerHash);*/
 
-                                HashMap<String, Long> cumulativeInnerHash = new HashMap<String, Long>();
-                                cumulativeInnerHash.put("txBytes", txBytes);
-                                cumulativeInnerHash.put("rxBytes", rxBytes);
-                                cumulativeInnerHash.put("txPackets", txPackets);
-                                cumulativeInnerHash.put("rxPackets", rxPackets);
-                                cumulativeOuterHash.put(appName, cumulativeInnerHash);
-                            } else {
-                                if ((txBytes - cumulativeOuterHash.get(appName).get("txBytes")) != 0 ||
-                                        (rxBytes - cumulativeOuterHash.get(appName).get("rxBytes")) != 0 ||
-                                        (txPackets - cumulativeOuterHash.get(appName).get("txPackets") != 0) ||
-                                        (rxPackets - cumulativeOuterHash.get(appName).get("rxPackets") != 0)) {
-                                    innerHash.put("txBytes", txBytes - cumulativeOuterHash.get(appName).get("txBytes"));
-                                    innerHash.put("rxBytes", rxBytes - cumulativeOuterHash.get(appName).get("rxBytes"));
-                                    innerHash.put("txPackets", txPackets - cumulativeOuterHash.get(appName).get("txPackets"));
-                                    innerHash.put("rxPackets", rxPackets - cumulativeOuterHash.get(appName).get("rxPackets"));
-                                    innerHash.put("Timestamp", System.currentTimeMillis());
-                                    outerHash.put(appName, innerHash);
-                                    messageLogged = appName + " TxBytes " + outerHash.get(appName).get("txBytes") + " RxBytes " + outerHash.get(appName).get("rxBytes") + " TxPackets " + outerHash.get(appName).get("txPackets") + " RxPackets " + outerHash.get(appName).get("rxPackets");
-                                    // Common.appendLog(messageLogged);
-                                    Log.i(CommonVariables.TAG, "Traffic " + messageLogged);
+                                    HashMap<String, Long> cumulativeInnerHash = new HashMap<String, Long>();
+                                    cumulativeInnerHash.put("txBytes", txBytes);
+                                    cumulativeInnerHash.put("rxBytes", rxBytes);
+                                    cumulativeInnerHash.put("txPackets", txPackets);
+                                    cumulativeInnerHash.put("rxPackets", rxPackets);
+                                    cumulativeOuterHash.put(appName, cumulativeInnerHash);
+                                } else {
+                                    if ((txBytes - cumulativeOuterHash.get(appName).get("txBytes")) != 0 ||
+                                            (rxBytes - cumulativeOuterHash.get(appName).get("rxBytes")) != 0 ||
+                                            (txPackets - cumulativeOuterHash.get(appName).get("txPackets") != 0) ||
+                                            (rxPackets - cumulativeOuterHash.get(appName).get("rxPackets") != 0)) {
+                                        innerHash.put("txBytes", txBytes - cumulativeOuterHash.get(appName).get("txBytes"));
+                                        innerHash.put("rxBytes", rxBytes - cumulativeOuterHash.get(appName).get("rxBytes"));
+                                        innerHash.put("txPackets", txPackets - cumulativeOuterHash.get(appName).get("txPackets"));
+                                        innerHash.put("rxPackets", rxPackets - cumulativeOuterHash.get(appName).get("rxPackets"));
+                                        innerHash.put("Timestamp", System.currentTimeMillis());
+                                        outerHash.put(appName, innerHash);
+                                        messageLogged = appName + " TxBytes " + outerHash.get(appName).get("txBytes") + " RxBytes " + outerHash.get(appName).get("rxBytes") + " TxPackets " + outerHash.get(appName).get("txPackets") + " RxPackets " + outerHash.get(appName).get("rxPackets");
+                                        // Common.appendLog(messageLogged);
+                                        Log.i(CommonVariables.TAG, "Traffic " + messageLogged);
 
 
-                                    if (CommonVariables.checkTfT) {
-                                        new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(innerHash.get("txBytes")), appName, CommonVariables.th_txBytes).execute();
-                                        // Common.compareThreshold(Float.valueOf(innerHash.get("txBytes")), CommonVariables.th_txBytes, appName, CommonVariables.mContext);
-                                        new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(innerHash.get("rxBytes")), appName, CommonVariables.th_rxBytes).execute();
-                                        //Common.compareThreshold(Float.valueOf(innerHash.get("rxBytes")), CommonVariables.th_rxBytes, appName, CommonVariables.mContext);
-                                        new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(innerHash.get("txPackets")), appName, CommonVariables.th_txPackets).execute();
-                                        // Common.compareThreshold(Float.valueOf(innerHash.get("txPackets")), CommonVariables.th_txPackets, appName, CommonVariables.mContext);
-                                        new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(innerHash.get("rxPackets")), appName, CommonVariables.th_rxPackets).execute();
-                                        // Common.compareThreshold(Float.valueOf(innerHash.get("rxPackets")), CommonVariables.th_rxPackets, appName, CommonVariables.mContext);
+                                        if (CommonVariables.checkTfT && CommonVariables.isWiFi && CommonVariables.checkEvents != 0) {
+                                            new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(innerHash.get("txBytes")), appName, CommonVariables.th_txBytes).execute();
+                                            // Common.compareThreshold(Float.valueOf(innerHash.get("txBytes")), CommonVariables.th_txBytes, appName, CommonVariables.mContext);
+                                            new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(innerHash.get("rxBytes")), appName, CommonVariables.th_rxBytes).execute();
+                                            //Common.compareThreshold(Float.valueOf(innerHash.get("rxBytes")), CommonVariables.th_rxBytes, appName, CommonVariables.mContext);
+                                            new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(innerHash.get("txPackets")), appName, CommonVariables.th_txPackets).execute();
+                                            // Common.compareThreshold(Float.valueOf(innerHash.get("txPackets")), CommonVariables.th_txPackets, appName, CommonVariables.mContext);
+                                            new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(innerHash.get("rxPackets")), appName, CommonVariables.th_rxPackets).execute();
+                                            // Common.compareThreshold(Float.valueOf(innerHash.get("rxPackets")), CommonVariables.th_rxPackets, appName, CommonVariables.mContext);
+                                        }
+
                                     }
 
+                                    cumulativeOuterHash.get(appName).put("txBytes", txBytes);
+                                    cumulativeOuterHash.get(appName).put("rxBytes", rxBytes);
+                                    cumulativeOuterHash.get(appName).put("txPackets", txPackets);
+                                    cumulativeOuterHash.get(appName).put("rxPackets", rxPackets);
+                                    cumulativeOuterHash.get(appName).put("Timestamp", System.currentTimeMillis());
                                 }
-
-                                cumulativeOuterHash.get(appName).put("txBytes", txBytes);
-                                cumulativeOuterHash.get(appName).put("rxBytes", rxBytes);
-                                cumulativeOuterHash.get(appName).put("txPackets", txPackets);
-                                cumulativeOuterHash.get(appName).put("rxPackets", rxPackets);
-                                cumulativeOuterHash.get(appName).put("Timestamp", System.currentTimeMillis());
                             }
 
                         }

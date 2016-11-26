@@ -32,7 +32,8 @@ public class DownloadThresholdsTask extends AsyncTask<String, Void, Void> {
     @Override
     protected Void doInBackground(String... params) {
         try {
-            b = DownloadThresholds(params[0], mContext);
+            if (CommonVariables.isWiFi)
+                b = DownloadThresholds(params[0], mContext);
         } catch (Exception e) {
             e.printStackTrace();
         }

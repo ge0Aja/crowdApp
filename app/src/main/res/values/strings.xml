@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">HeavyService</string>
     <string name="upload_service_name">UploadService</string>
+
     <string name="firstrun">com.farah.heavyservice.firstrun</string>
 
     <string name="fcm_preference">com.farah.heavyservice.fcm_preference</string>
@@ -18,9 +19,10 @@
     <string name="collectInterval">10000</string>
     <string name="uploadIntervalNormal">120000</string>
     <string name="uploadIntervalRetry">7200000</string>
-    <string name="maxFileSize">512</string>
-    <string name="maxFileSizeScreen">1</string>
-    <string name="maxFileSizeOFUT">10</string>
+    <string name="maxFileSize">50</string>
+    <string name="maxFileSizeScreen">5</string>
+    <string name="maxFileSizeOFUT">5</string>
+    <string name="checkEvents">0</string>
     <string name="checkCPCThresholdInterval">180000</string>
     <string name="checkCxnThresholdInterval">240000</string>
     <string name="checkTfThresholdInterval">90000</string>

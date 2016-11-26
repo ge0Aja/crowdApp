@@ -22,18 +22,18 @@ public class CompareThresholdsTask extends AsyncTask<Void, Void, Void> {
     }
 
     private static boolean compareThProb(double value, double mean1, double mean2, double std1, double std2) {
-        double percentile = 0;
-        double percentile1 = 0;
+        // double percentile = 0;
+        // double percentile1 = 0;
         double percentile2 = 0;
         double rand = Math.random();
 
         NormalDistribution dist = new NormalDistribution();
-        percentile1 = dist.cumulativeProbability((value - mean1) / std1);
+        //percentile1 = dist.cumulativeProbability((value - mean1) / std1);
         percentile2 = dist.cumulativeProbability((value - mean2) / std2);
 
-        percentile = percentile1 * percentile2;
+        //percentile = percentile1 * percentile2;
 
-        return percentile > rand;
+        return percentile2 > rand;
 
     }
 

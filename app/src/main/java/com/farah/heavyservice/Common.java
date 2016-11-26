@@ -126,7 +126,7 @@ public class Common {
     }
 
 
-    public static boolean writePackageStatusToFile(String fileName, String state, String packageName, String Date, String FirstInstall) {
+    public static boolean writePackageStatusToFile(String fileName, String state, String packageName, String Date, String FirstInstall, Context context) {
         ObjectOutputStream fileOut = null;
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypePackage + "/");
         if (!dir.exists()) {
@@ -135,6 +135,7 @@ public class Common {
         File myFile = new File(dir, fileName);
         HashMap pst = new HashMap<String, String>();
         pst.put("package", packageName);
+        pst.put("dispname", getAppName(packageName, context));
         pst.put("state", state);
         pst.put("timestamp", Date);
         pst.put("installed_on", FirstInstall);
@@ -192,7 +193,7 @@ public class Common {
         return true;
     }
     /// commneted for testing the ability to add
-    /*public static boolean writeListToFilecxn(HashMap<String, HashMap<String, HashMap<String, String>>> captures, String fileName, Boolean append) {
+/*    public static boolean writeListToFilecxn(HashMap<String, HashMap<String, HashMap<String, String>>> captures, String fileName, Boolean append) {
         ObjectOutputStream fileOut = null;
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCx + "/");
         if (!dir.exists()) {
@@ -220,8 +221,7 @@ public class Common {
             }
         }
         return true;
-    }
-    */
+    }*/
 
     public static boolean writeListToFilecxn(HashMap<String, HashMap<String, HashMap<String, String>>> captures, String fileName, Boolean append) {
         ObjectOutputStream fileOut = null;
@@ -637,7 +637,8 @@ public class Common {
         return rtrnList;
     }
 ///// commneted for testing the add
-   /* public synchronized static List<HashMap<String, HashMap<String, HashMap<String, String>>>> readListFromFilecxn(File file) {
+/*
+    public synchronized static List<HashMap<String, HashMap<String, HashMap<String, String>>>> readListFromFilecxn(File file) {
 
         List<HashMap<String, HashMap<String, HashMap<String, String>>>> rtrnList = new ArrayList<>();
 
@@ -695,7 +696,8 @@ public class Common {
         }
 
         return rtrnList;
-    }*/
+    }
+*/
 
 
     public synchronized static HashMap<String, HashMap<String, HashMap<String, String>>> readListFromFilecxn(File file) {
@@ -1187,8 +1189,18 @@ public class Common {
         CommonVariables.installedPackages = PM.getInstalledApplications(0);
     }
 
+   /* public static String getAppNameFromPackage(Context context, String packageName){
+        PackageManager packageManager = context.getPackageManager();
+        ApplicationInfo applicationInfo = null;
+        try {
+            applicationInfo = packageManager.getApplicationInfo(packageName, 0);
+        } catch (final PackageManager.NameNotFoundException e) {}
+        String title = (String)((applicationInfo != null) ? packageManager.getApplicationLabel(applicationInfo) : "");
+        return title;
+    }*/
+
     public static ApplicationInfo getAppInfo(Context context, String Name) {
-        final PackageManager PM = context.getPackageManager();
+        // final PackageManager PM = context.getPackageManager();
         try {
             ApplicationInfo app = context.getPackageManager().getApplicationInfo(Name, 0);
             return app;

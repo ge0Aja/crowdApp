@@ -78,6 +78,7 @@ public class RegisterUserTask extends AsyncTask<String, Void, Void> {
             try {
                 JSONObject app = new JSONObject();
                 app.put("name", appname);
+                app.put("dispname", Common.getAppName(appname, mContext));
                 app.put("timestamp", Common.getPackageInstallTime(mContext, appname));
                 user_apps.put(app);
             } catch (JSONException e) {

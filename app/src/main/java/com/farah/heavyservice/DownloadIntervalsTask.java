@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.Field;
 import java.util.Iterator;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -51,12 +52,13 @@ public class DownloadIntervalsTask extends AsyncTask<String, Void, Void> {
         CommonVariables.collectInterval = Integer.valueOf((editor.getString(mContext.getString(R.string.collectInterval), "").equals("")) ? Integer.valueOf(10000) : Integer.valueOf(editor.getString(mContext.getString(R.string.collectInterval), "")));
         CommonVariables.uploadIntervalNormal = Integer.valueOf((editor.getString(mContext.getString(R.string.uploadIntervalNormal), "").equals("")) ? Integer.valueOf(120000) : Integer.valueOf(editor.getString(mContext.getString(R.string.uploadIntervalNormal), "")));
         CommonVariables.uploadIntervalRetry = Integer.valueOf((editor.getString(mContext.getString(R.string.uploadIntervalRetry), "").equals("")) ? Integer.valueOf(7200000) : Integer.valueOf(editor.getString(mContext.getString(R.string.uploadIntervalRetry), "")));
-        CommonVariables.maxFileSize = Integer.valueOf((editor.getString(mContext.getString(R.string.maxFileSize), "").equals("")) ? Integer.valueOf(1024) : Integer.valueOf(editor.getString(mContext.getString(R.string.maxFileSize), "")));
-        CommonVariables.maxFileSizeScreen = Integer.valueOf((editor.getString(mContext.getString(R.string.maxFileSizeScreen), "").equals("")) ? Integer.valueOf(256) : Integer.valueOf(editor.getString(mContext.getString(R.string.maxFileSizeScreen), "")));
-        CommonVariables.maxFileSizeOFUT = Integer.valueOf((editor.getString(mContext.getString(R.string.maxFileSizeOFUT), "").equals("")) ? Integer.valueOf(512) : Integer.valueOf(editor.getString(mContext.getString(R.string.maxFileSizeOFUT), "")));
+        CommonVariables.maxFileSize = Integer.valueOf((editor.getString(mContext.getString(R.string.maxFileSize), "").equals("")) ? Integer.valueOf(50) : Integer.valueOf(editor.getString(mContext.getString(R.string.maxFileSize), "")));
+        CommonVariables.maxFileSizeScreen = Integer.valueOf((editor.getString(mContext.getString(R.string.maxFileSizeScreen), "").equals("")) ? Integer.valueOf(5) : Integer.valueOf(editor.getString(mContext.getString(R.string.maxFileSizeScreen), "")));
+        CommonVariables.maxFileSizeOFUT = Integer.valueOf((editor.getString(mContext.getString(R.string.maxFileSizeOFUT), "").equals("")) ? Integer.valueOf(5) : Integer.valueOf(editor.getString(mContext.getString(R.string.maxFileSizeOFUT), "")));
         CommonVariables.checkCPCThresholdInterval = Integer.valueOf((editor.getString(mContext.getString(R.string.checkCPCThresholdInterval), "").equals("")) ? Integer.valueOf(180000) : Integer.valueOf(editor.getString(mContext.getString(R.string.checkCPCThresholdInterval), "")));
         CommonVariables.checkCxnThresholdInterval = Integer.valueOf((editor.getString(mContext.getString(R.string.checkCxnThresholdInterval), "").equals("")) ? Integer.valueOf(240000) : Integer.valueOf(editor.getString(mContext.getString(R.string.checkCxnThresholdInterval), "")));
         CommonVariables.checkTfThresholdInterval = Integer.valueOf((editor.getString(mContext.getString(R.string.checkTfThresholdInterval), "").equals("")) ? Integer.valueOf(90000) : Integer.valueOf(editor.getString(mContext.getString(R.string.checkTfThresholdInterval), "")));
+        CommonVariables.checkEvents = Integer.valueOf((editor.getString(mContext.getString(R.string.checkEvents), "").equals("")) ? Integer.valueOf(1) : Integer.valueOf(editor.getString(mContext.getString(R.string.checkEvents), "")));
     }
 
     private boolean DownloadIntervals(String urlString, Context context) {
@@ -88,10 +90,17 @@ public class DownloadIntervalsTask extends AsyncTask<String, Void, Void> {
                         Iterator<?> keys = th.keys();
                         while (keys.hasNext()) {
                             String key = (String) keys.next();
-                            if (th.get(key) instanceof JSONObject) {
-                                editor.edit().putString(key, (String) th.get(key)).apply();
+                            if (th.get(key) instanceof String) {
+                                for (Field x : R.string.class.getFields()
+                                        ) {
+                                    if (x.getName().equals(key)) {
+                                        int id = x.getInt(R.string.class);
+                                        editor.edit().putString(mContext.getString(id), (String) th.get(key)).apply();
+                                    }
+                                }
                             }
                         }
+
                         interv_con.disconnect();
                         if (reinterv_con != null) {
                             OutputStream os = reinterv_con.getOutputStream();
@@ -117,6 +126,8 @@ public class DownloadIntervalsTask extends AsyncTask<String, Void, Void> {
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
                 e.printStackTrace();
             } finally {
                 if (interv_con != null) {

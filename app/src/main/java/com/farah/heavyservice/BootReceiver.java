@@ -25,7 +25,7 @@ public class BootReceiver extends BroadcastReceiver {
                 Uri uriadd = intent.getData();
                 packageName = uriadd != null ? uriadd.getSchemeSpecificPart() : null;
                 if (packageName != null)
-                    Common.writePackageStatusToFile(CommonVariables.PackagesBkup, "ADD", packageName, String.valueOf(System.currentTimeMillis()), "");
+                    Common.writePackageStatusToFile(CommonVariables.PackagesBkup, "ADD", packageName, String.valueOf(System.currentTimeMillis()), "", context);
                 Common.get3rdPartyApps();
                 Common.getInstalledPackages(context);
                 Log.i(CommonVariables.TAG, "Package Logged  Added");
@@ -37,7 +37,7 @@ public class BootReceiver extends BroadcastReceiver {
                 Log.d(CommonVariables.TAG, "Package Date add for " + packageName + " is " + dateAdded);
                 if (packageName.equals("com.farah.heavyservice"))
                     break;
-                Common.writePackageStatusToFile(CommonVariables.PackagesBkup, "REMOVE", packageName, String.valueOf(System.currentTimeMillis()), dateAdded);
+                Common.writePackageStatusToFile(CommonVariables.PackagesBkup, "REMOVE", packageName, String.valueOf(System.currentTimeMillis()), dateAdded, context);
                 Log.i(CommonVariables.TAG, "Package Logged  Removed");
                 Common.get3rdPartyApps();
                 Common.getInstalledPackages(context);

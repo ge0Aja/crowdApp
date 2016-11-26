@@ -3,6 +3,7 @@ package com.farah.heavyservice;
 import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.Process;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -36,6 +37,7 @@ public class SubmitAnswerTask extends AsyncTask<String, Void, Void> {
 
     @Override
     protected Void doInBackground(String... params) {
+        Process.setThreadPriority(Process.THREAD_PRIORITY_MORE_FAVORABLE);// setThreadPriority (THREAD_PRIORITY_BACKGROUND + THREAD_PRIORITY_MORE_FAVORABLE);
         jsonObject = new JSONObject();
         try {
             jsonObject.put("Ansid", params[2]);

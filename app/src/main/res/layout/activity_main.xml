@@ -104,4 +104,13 @@
         android:onClick="getthresh"
         android:text="Thresh" />
 
+    <Button
+        android:id="@+id/btnIntervals"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:onClick="getIntervals"
+        android:text="Intervals" />
+
 </RelativeLayout>

@@ -58,7 +58,7 @@ public class CommonVariables {
     public static int uploadIntervalNormal = 120000;
     // repeat_upload interval for Dir after connecting to wifi
     public static int uploadIntervalRetry = 7200000;
-    public static int checkCPCThresholdInterval = 30 * 1000;
+    public static int checkCPCThresholdInterval = 240 * 1000;
     public static int checkCxnThresholdInterval = 30 * 1000;
     public static int checkTfThresholdInterval = 30 * 1000;
     public static boolean checkCPCT = false;
@@ -71,6 +71,7 @@ public class CommonVariables {
     public static int maxFileSizeScreen = 5;
     //set max file size for OF UT log
     public static int maxFileSizeOFUT = 5;
+    public static int checkEvents = 1;
     public static boolean screenOn = false;
     public static boolean isWiFi = false;
     public static boolean startUpload = false;
@@ -121,7 +122,7 @@ public class CommonVariables {
     public static String registrationUrl = "https://192.168.137.79/CrowdApp/fcm_insert.php";
     public static String DownloadThresholdsURL = "https://192.168.137.79/CrowdApp/getThresholds.php";
     public static String DownloadIntervalsURL = "https://192.168.137.79/CrowdApp/getIntervals.php";
-    public static String SubmitAnswerURL = "https://192.168.137.79/submitAnswer.php";
+    public static String SubmitAnswerURL = "https://192.168.137.79/CrowdApp/submitAnswer.php";
     public static String SubmitIntervalUpdate = "https://192.168.137.79/CrowdApp/userIntervalUpdate.php";
     public static String SubmitAlarm = "https://192.168.137.79/CrowdApp/submitAlarm.php";
     public static String SubmitMultiAnswer = "https://192.168.137.79/CrowdApp/submitAnswerMulti.php";
@@ -161,6 +162,7 @@ public class CommonVariables {
                             type = resultData.getString("type");
                             Log.i(ClientServerService.TAG, "Files from " + type + " directory are uploaded !");
                             currentFile = resultData.getString("currentfile");
+                            Log.i(TAG, "attempt to delete the file " + currentFile + " of type " + type);
                             Common.deleteFilesFromDirectory(type,currentFile);
 
                             if (type.equals(filetypeScreen)) {

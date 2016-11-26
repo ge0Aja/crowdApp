@@ -26,11 +26,15 @@ public class SendAlarmTask extends AsyncTask<String, Void, Void> {
     private String thresh_type = "";
 
     public SendAlarmTask(Context context) {
+
         mContext = context;
     }
 
     @Override
     protected Void doInBackground(String... params) {
+        Appname = params[0];
+        thresh_type = params[1];
+
         b = sendAlaram(params[0], params[1], mContext);
         return null;
     }

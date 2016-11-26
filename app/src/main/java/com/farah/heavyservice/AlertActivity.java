@@ -1,23 +1,16 @@
 package com.farah.heavyservice;
 
-import android.app.Activity;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.animation.Interpolator;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import org.w3c.dom.Text;
 
 public class AlertActivity extends AppCompatActivity {
 
@@ -54,28 +47,29 @@ public class AlertActivity extends AppCompatActivity {
     }
 
     public void understandClick(View view){
-        String dialogMessage;
-        switch (type){
-            case "1":
-                dialogMessage = getString(R.string.bandwidthMessagein);
-                break;
-            case "2":
-                dialogMessage = getString(R.string.bandwidthMessageout);
-                break;
-            case "3":
-                dialogMessage = getString(R.string.cpuMessage);
-                break;
-            case "4":
-                dialogMessage = getString(R.string.ramMessage);
-                break;
-            case "5":
-                dialogMessage = getString(R.string.connectionMessage);
-                break;
-            default:
-                dialogMessage = "Message";
-                break;
+        String dialogMessage = "";
+        if (type != null) {
+            switch (type) {
+                case "1":
+                    dialogMessage = getString(R.string.bandwidthMessagein);
+                    break;
+                case "2":
+                    dialogMessage = getString(R.string.bandwidthMessageout);
+                    break;
+                case "3":
+                    dialogMessage = getString(R.string.cpuMessage);
+                    break;
+                case "4":
+                    dialogMessage = getString(R.string.ramMessage);
+                    break;
+                case "5":
+                    dialogMessage = getString(R.string.connectionMessage);
+                    break;
+                default:
+                    dialogMessage = "Message";
+                    break;
+            }
         }
-
         try {
             final AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setMessage(dialogMessage)
