@@ -24,14 +24,15 @@ public class checkConnectivity extends AsyncTask<Void, Void, Void> {
     private static boolean hasConenction(boolean isWifi) {
         if (isWifi) {
             try {
-                HttpURLConnection urlc = (HttpURLConnection) (new URL("http://192.168.137.79").openConnection());
+                //HttpURLConnection urlc = (HttpURLConnection) (new URL("http://192.168.137.79").openConnection());
+                HttpURLConnection urlc = (HttpURLConnection) (new URL("http://google.com").openConnection());
                 urlc.setRequestProperty("User-Agent", "Test");
                 urlc.setRequestProperty("Connection", "close");
                 urlc.setConnectTimeout(10000);
                 urlc.connect();
                 return (urlc.getResponseCode() == 200);
             } catch (IOException e) {
-                Log.e(CommonVariables.TAG, "Error checking internet connection", e);
+                Log.d(CommonVariables.TAG, "Error checking internet connection", e);
             }
         } else {
             Log.d(CommonVariables.TAG, "No network available!");

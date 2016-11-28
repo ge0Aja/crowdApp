@@ -214,6 +214,9 @@ public class ClientServerService extends IntentService {
                         } else if (type.equals(CommonVariables.filetypeCx)) {
                             postUrlConnection = Common.setUpHttpsConnection(CommonVariables.CxUploadURL, this.getApplicationContext(), "POST");
                             currentFileName = CommonVariables.CxBkup;
+                        } else if (type.equals(CommonVariables.filetypeCxCount)) {
+                            postUrlConnection = Common.setUpHttpsConnection(CommonVariables.CxCountUploadURL, this.getApplicationContext(), "POST");
+                            currentFileName = CommonVariables.CxCountBkup;
                         } else if (type.equals(CommonVariables.filetypeTf)) {
                             postUrlConnection = Common.setUpHttpsConnection(CommonVariables.TFUploadURL, this.getApplicationContext(), "POST");
                             currentFileName = CommonVariables.TFBkup;
@@ -250,6 +253,8 @@ public class ClientServerService extends IntentService {
                                         newJsonArray = Common.makeJsonArraytf(fi.getName());
                                     } else if (type.equals(CommonVariables.filetypeCx)) {
                                         newJsonObject = Common.makeJsonArraycxn(fi.getName());
+                                    } else if (type.equals(CommonVariables.filetypeCxCount)) {
+                                        newJsonArray = Common.makeJsonArrayCxCount(fi.getName());
                                     } else if (type.equals(CommonVariables.filetypeOF)) {
                                         newJsonArray = Common.makeJsonArrayOF(fi.getName());
                                     } else if (type.equals(CommonVariables.filetypeUT)) {
@@ -374,6 +379,8 @@ public class ClientServerService extends IntentService {
             newJsonArray = Common.makeJsonArraytf(filename);
         } else if (type.equals(CommonVariables.filetypeCx)) {
             newJsonObject = Common.makeJsonArraycxn(filename);
+        } else if (type.equals(CommonVariables.filetypeCxCount)) {
+            newJsonArray = Common.makeJsonArrayCxCount(filename);
         } else if (type.equals(CommonVariables.filetypeOF)) {
             newJsonArray = Common.makeJsonArrayOF(filename);
         } else if (type.equals(CommonVariables.filetypeUT)) {

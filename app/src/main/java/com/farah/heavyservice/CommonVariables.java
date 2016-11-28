@@ -29,6 +29,8 @@ public class CommonVariables {
     public static final String filetypeOF = "OF";
     public static final String filetypeUT = "UT";
     //E_Farah
+    public static final String filetypeCxCount = "CxCount";
+
     public static final String filetypeScreen = "Screen";
     public static final String filetypePackage = "Package";
     public static final String filetypeAnswers = "Answers";
@@ -91,6 +93,7 @@ public class CommonVariables {
     //S_Farah
     public static String OFBkup;
     public static String UTBkup;
+    public static String CxCountBkup;
     public static String AnswersBkup = "Answers";
     public static HashMap<String, HashMap<String, HashMap<String, Float>>> thresholdsMap;
     public static String thresholdsFile = "Thresholds";
@@ -110,6 +113,7 @@ public class CommonVariables {
         public static String OFUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertOF.php";
         public static String UTUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertUT.php";
         //E_Farah
+        public static String CxCountUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertCxCount.php";
         public static String ScreenUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertScreen.php";
         public static String PackagesUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertPackages.php";
         public static String UploadHost = "72.14.183.152";
@@ -130,6 +134,7 @@ public class CommonVariables {
     public static String OFUploadURL = "https://192.168.137.79/CrowdApp/InsertOF.php";
     public static String UTUploadURL = "https://192.168.137.79/CrowdApp/InsertUT.php";
     //E_Farah
+    public static String CxCountUploadURL = "https://192.168.137.79/CrowdApp/InsertCxCount.php";
     public static String ScreenUploadURL = "https://192.168.137.79/CrowdApp/InsertScreen.php";
     public static String PackagesUploadURL = "https://192.168.137.79/CrowdApp/InsertPackages.php";
     public static String UploadHost = "192.168.137.79";
@@ -249,5 +254,9 @@ public class CommonVariables {
 
     public static void changePackageBkupName(String Name) {
         PackagesBkup = Name;
+    }
+
+    public static void changeCxCountBkupName(String Name) {
+        CxCountBkup = Name;
     }
 }

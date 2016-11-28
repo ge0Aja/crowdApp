@@ -113,4 +113,13 @@
         android:onClick="getIntervals"
         android:text="Intervals" />
 
+    <Button
+        android:id="@+id/btn_cxcount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/btn_of"
+        android:layout_centerHorizontal="true"
+        android:onClick="cxcountstats"
+        android:text="cx count" />
+
 </RelativeLayout>

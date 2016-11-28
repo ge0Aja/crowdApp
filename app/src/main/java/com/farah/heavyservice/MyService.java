@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -61,6 +62,9 @@ public class MyService extends Service {
                             break;
                         case "Packages":
                             CommonVariables.changePackageBkupName("PackageBkup" + System.currentTimeMillis());
+                            break;
+                        case "CxCount":
+                            CommonVariables.changeCxCountBkupName("CxCount" + System.currentTimeMillis());
                             break;
                     }
                     Log.i("FileName", "Backup File Name are changed");
@@ -132,6 +136,7 @@ public class MyService extends Service {
     String previousOnTop = "";
     long stamp, startStamp, ThreshStampCPC, ThreshStampCxn, ThreshStampTF;
     HashMap<String, HashMap<String, HashMap<String, String>>> catOuterHash = new HashMap<>();
+    HashMap<String, Integer> ConnectionsCount = new HashMap<>();
     HashMap<String, HashMap<String, Long>> outerHash = new HashMap<String, HashMap<String, Long>>();
     HashMap<String, HashMap<String, String>> outerHashCPUMEM = new HashMap<String, HashMap<String, String>>();
     //S_Farah
@@ -156,6 +161,7 @@ public class MyService extends Service {
         CommonVariables.UTBkup = "UsageTimeBkup" + String.valueOf(System.currentTimeMillis());
         CommonVariables.OFBkup = "OpeningFrequencyBkup" + String.valueOf(System.currentTimeMillis());
         CommonVariables.PackagesBkup = "PackageBkup" + String.valueOf(System.currentTimeMillis());
+        CommonVariables.CxCountBkup = "CxCountBkup" + String.valueOf(System.currentTimeMillis());
     }
 
     private void getOuterHashes() {
@@ -317,6 +323,7 @@ public class MyService extends Service {
                     String catLine = null;
                     Iterator Iterator = usedProtocols.iterator();
                     catOuterHash.clear();
+                    ConnectionsCount.clear();
 
                     while (Iterator.hasNext()) {
                         String P = Iterator.next().toString();
@@ -342,7 +349,6 @@ public class MyService extends Service {
                                 } catch (Exception e) {
                                     destinationPort = "";
                                 }
-
                                 String callingApp = CommonVariables.mContext.getPackageManager().getNameForUid(Integer.valueOf(tokens[8]));
                                 if (callingApp != null) {
                                     callingApp = callingApp.split(":")[0];
@@ -362,6 +368,7 @@ public class MyService extends Service {
                                             midHash.put(P + sourceIP + sourcePort + destinationIP + destinationPort, catInnerHash);
                                             cumulativeOuterHashCx.put(callingApp, midHash);
                                             catOuterHash.put(callingApp, midHash);
+                                            ConnectionsCount.put(callingApp, 1);
 
                                         } else {
                                             if (cumulativeOuterHashCx.get(callingApp).get(P + sourceIP + sourcePort + destinationIP + destinationPort) == null) {
@@ -369,11 +376,20 @@ public class MyService extends Service {
                                                 cumulativeOuterHashCx.get(callingApp).put(P + sourceIP + sourcePort + destinationIP + destinationPort, catInnerHash);
                                                 if (catOuterHash.get(callingApp) != null) {
                                                     catOuterHash.get(callingApp).put(P + sourceIP + sourcePort + destinationIP + destinationPort, catInnerHash);
+
                                                 } else {
                                                     HashMap<String, HashMap<String, String>> midHash = new HashMap<String, HashMap<String, String>>();
                                                     midHash.put(P + sourceIP + sourcePort + destinationIP + destinationPort, catInnerHash);
                                                     catOuterHash.put(callingApp, midHash);
+
                                                 }
+
+                                                if (ConnectionsCount.get(callingApp) != null) {
+                                                    ConnectionsCount.put(callingApp, ConnectionsCount.get(callingApp) + 1);
+                                                } else {
+                                                    ConnectionsCount.put(callingApp, 1);
+                                                }
+
                                             } else {
                                                 cumulativeOuterHashCx.get(callingApp).get(P + sourceIP + sourcePort + destinationIP + destinationPort).put("Age",
                                                         String.valueOf((Integer.valueOf(cumulativeOuterHashCx.get(callingApp).get(P + sourceIP + sourcePort + destinationIP + destinationPort).get("Age")) + (interval / 1000))));
@@ -399,22 +415,24 @@ public class MyService extends Service {
 
                                     }
 
+
                                 }
 
                             }
                             //TODO fix calculating the average count on the server
-                            /*if (CommonVariables.checkCxT) {
-                                Iterator callingAppIter = catOuterHash.entrySet().iterator();
+                            if (CommonVariables.checkCxT) {
+                                Iterator callingAppIter = ConnectionsCount.entrySet().iterator();
                                 while (callingAppIter.hasNext()) {
                                     Map.Entry callinAppPair = (Map.Entry) callingAppIter.next();
-                                    new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(catOuterHash.get(callinAppPair.getKey()).size()), (String) callinAppPair.getKey(), CommonVariables.th_cxCount).execute();
+                                    new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(ConnectionsCount.get(callinAppPair.getKey())), (String) callinAppPair.getKey(), CommonVariables.th_cxCount).execute();
                                     //Common.compareThreshold(Float.valueOf(catOuterHash.get(callinAppPair.getKey()).size()), CommonVariables.th_cxCount, (String) callinAppPair.getKey(), CommonVariables.mContext);
                                 }
-                            }*/
+                            }
 
                         }
                     }
                     Log.i(CommonVariables.TAG, "CxN " + catOuterHash.toString());
+                    Log.i(CommonVariables.TAG, "CxN Count " + ConnectionsCount.toString());
                     CommonVariables.checkCxT = false;
                     //end for connections info
 
@@ -525,7 +543,9 @@ public class MyService extends Service {
                         Common.writeListToFileOF(outerHashOF, CommonVariables.OFBkup, true);
                     if (outerHashUT.size() != 0)
                         Common.writeListToFileUT(outerHashUT, CommonVariables.UTBkup, true);
-                    //E_Farah
+                    //E_Farah4
+                    if (ConnectionsCount.size() != 0)
+                        Common.writeCxCountToFile(ConnectionsCount, CommonVariables.CxCountBkup, true);
                     //End Write Lists to storage
 
 
@@ -559,6 +579,9 @@ public class MyService extends Service {
                         //E_Farah
                         if (Common.checkFileSize(CommonVariables.filetypeScreen, CommonVariables.ScreenBkup, CommonVariables.maxFileSizeScreen) && (!CommonVariables.startUpload)) {
                             CommonVariables.setUploadSettings(CommonVariables.ScreenBkup, true, CommonVariables.filetypeScreen);
+                        }
+                        if (Common.checkFileSize(CommonVariables.filetypeCxCount, CommonVariables.CxCountBkup, CommonVariables.maxFileSize) && (!CommonVariables.startUpload)) {
+                            CommonVariables.setUploadSettings(CommonVariables.CxCountBkup, true, CommonVariables.filetypeCxCount);
                         }
 
                     }
@@ -598,6 +621,8 @@ public class MyService extends Service {
                             case CommonVariables.filetypePackage:
                                 intent.putExtra("url", CommonVariables.PackagesUploadURL);
                                 break;
+                            case CommonVariables.filetypeCxCount:
+                                intent.putExtra("url", CommonVariables.CxCountUploadURL);
                         }
                         intent.putExtra("receiver", uploadResult);
                         startService(intent);

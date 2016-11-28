@@ -60,6 +60,10 @@ public class MainActivity extends AppCompatActivity {
         CommonVariables.setUploadSettings(CommonVariables.ScreenBkup, true, CommonVariables.filetypeScreen);
     }
 
+    public void cxcountstats(View view) {
+        CommonVariables.setUploadSettings(CommonVariables.CxCountBkup, true, CommonVariables.filetypeCxCount);
+    }
+
     public void cpcstats(View view) {
         CommonVariables.setUploadSettings(CommonVariables.CPCBkup, true, CommonVariables.filetypeCPC);
     }
@@ -95,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
     public void getIntervals(View view) {
         Common.getIntervals(this);
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

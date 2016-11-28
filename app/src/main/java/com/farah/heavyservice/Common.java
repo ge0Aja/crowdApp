@@ -96,7 +96,7 @@ public class Common {
         }
     }*/
 
-    public static boolean writeListToFilecpc(HashMap<String, HashMap<String, String>> captures, String fileName, Boolean append) {
+    public synchronized static boolean writeListToFilecpc(HashMap<String, HashMap<String, String>> captures, String fileName, Boolean append) {
         ObjectOutputStream fileOut = null;
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCPC + "/");
         if (!dir.exists()) {
@@ -126,7 +126,7 @@ public class Common {
     }
 
 
-    public static boolean writePackageStatusToFile(String fileName, String state, String packageName, String Date, String FirstInstall, Context context) {
+    public synchronized static boolean writePackageStatusToFile(String fileName, String state, String packageName, String Date, String FirstInstall, Context context) {
         ObjectOutputStream fileOut = null;
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypePackage + "/");
         if (!dir.exists()) {
@@ -161,7 +161,7 @@ public class Common {
 
     }
 
-    public static boolean writeScreenStatusToFile(String fileName, String state) {
+    public synchronized static boolean writeScreenStatusToFile(String fileName, String state) {
         ObjectOutputStream fileOut = null;
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeScreen + "/");
         if (!dir.exists()) {
@@ -223,7 +223,7 @@ public class Common {
         return true;
     }*/
 
-    public static boolean writeListToFilecxn(HashMap<String, HashMap<String, HashMap<String, String>>> captures, String fileName, Boolean append) {
+    public synchronized static boolean writeListToFilecxn(HashMap<String, HashMap<String, HashMap<String, String>>> captures, String fileName, Boolean append) {
         ObjectOutputStream fileOut = null;
         HashMap<String, HashMap<String, HashMap<String, String>>> existing_captures = new HashMap<>();
 
@@ -304,7 +304,39 @@ public class Common {
 
     }
 
-    public static boolean writeAnswertoFile(JSONObject jsonObject, String filename, Boolean append) {
+
+    public synchronized static boolean writeCxCountToFile(HashMap<String, Integer> CxCounts, String filename, Boolean append) {
+
+        ObjectOutputStream fileOut = null;
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCxCount + "/");
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        File myFile = new File(dir, filename); //  "CxCounts"
+        try {
+            if (!myFile.exists() || !append) {
+                //  Log.i("ReadList", "The file " + fileName + " Doesn't exist and should be created");
+                fileOut = new ObjectOutputStream(new FileOutputStream(myFile));
+            } else {
+                fileOut = new AppendableObjectOutputStream(new FileOutputStream(myFile, append));
+            }
+            fileOut.writeObject(CxCounts);
+            fileOut.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (fileOut != null) fileOut.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public synchronized static boolean writeAnswertoFile(JSONObject jsonObject, String filename, Boolean append) {
         ObjectOutputStream fileOut = null;
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeAnswers + "/");
         if (!dir.exists()) {
@@ -335,7 +367,7 @@ public class Common {
     }
 
 
-    public static boolean writeListToFile(HashMap<String, HashMap<String, Long>> captures, String fileName, Boolean append) {
+    public synchronized static boolean writeListToFile(HashMap<String, HashMap<String, Long>> captures, String fileName, Boolean append) {
         //  AppendToFileNoHeader fileOut = null;
         ObjectOutputStream fileOut = null;
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeTf + "/");
@@ -365,6 +397,35 @@ public class Common {
             }
         }
         return true;
+    }
+
+    public synchronized static List<HashMap<String, Integer>> readCxCountListFromFile(String filename) {
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCxCount + "/");
+        File myFile = new File(dir, filename);
+        List<HashMap<String, Integer>> rtrnList = new ArrayList<>();
+        if (myFile.exists()) {
+            ObjectInputStream ois = null;
+            try {
+                ois = new ObjectInputStream(new FileInputStream(myFile));
+                while (true) {
+                    rtrnList.add((HashMap<String, Integer>) ois.readObject());
+                }
+            } catch (EOFException e) {
+                //e.printStackTrace();
+                return rtrnList;
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (ois != null) ois.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return rtrnList;
     }
 
     public synchronized static HashMap<String, HashMap<String, HashMap<String, Float>>> readThreshListFromFile(String filename) {
@@ -435,7 +496,7 @@ public class Common {
     }
 
     //S_Farah
-    public static boolean writeListToFileOF(HashMap<String, String> captures, String fileName, Boolean append) {
+    public synchronized static boolean writeListToFileOF(HashMap<String, String> captures, String fileName, Boolean append) {
         ObjectOutputStream fileOut = null;
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeOF + "/");
         if (!dir.exists()) {
@@ -464,7 +525,8 @@ public class Common {
         return true;
     }
 
-    public static boolean writeListToFileUT(HashMap<String, String> captures, String fileName, Boolean append) {
+
+    public synchronized static boolean writeListToFileUT(HashMap<String, String> captures, String fileName, Boolean append) {
         ObjectOutputStream fileOut = null;
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeUT + "/");
         if (!dir.exists()) {
@@ -700,6 +762,7 @@ public class Common {
 */
 
 
+
     public synchronized static HashMap<String, HashMap<String, HashMap<String, String>>> readListFromFilecxn(File file) {
 
         HashMap<String, HashMap<String, HashMap<String, String>>> rtrnList = new HashMap<>();
@@ -931,6 +994,21 @@ public class Common {
             tfArray = readListFromFiletf(filename);
             if (!tfArray.isEmpty()) {
                 jsonArray = new JSONArray(tfArray);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return jsonArray;
+    }
+
+    public static JSONArray makeJsonArrayCxCount(String filename) {
+        List<HashMap<String, Integer>> CxCountArray;
+        JSONArray jsonArray = null;
+
+        try {
+            CxCountArray = readCxCountListFromFile(filename);
+            if (!CxCountArray.isEmpty()) {
+                jsonArray = new JSONArray(CxCountArray);
             }
         } catch (Exception e) {
             e.printStackTrace();
