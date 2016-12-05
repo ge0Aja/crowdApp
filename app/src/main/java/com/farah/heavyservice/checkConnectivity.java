@@ -25,7 +25,7 @@ public class checkConnectivity extends AsyncTask<Void, Void, Void> {
         if (isWifi) {
             try {
                 //HttpURLConnection urlc = (HttpURLConnection) (new URL("http://192.168.137.79").openConnection());
-                HttpURLConnection urlc = (HttpURLConnection) (new URL("http://google.com").openConnection());
+                HttpURLConnection urlc = (HttpURLConnection) (new URL("http://192.168.137.79").openConnection());
                 urlc.setRequestProperty("User-Agent", "Test");
                 urlc.setRequestProperty("Connection", "close");
                 urlc.setConnectTimeout(10000);

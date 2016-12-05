@@ -11,6 +11,8 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -64,7 +66,7 @@ public class DownloadThresholdsTask extends AsyncTask<String, Void, Void> {
         String tempOutput = "";
         // SharedPreferences.Editor editor = context.getSharedPreferences(context.getString(R.string.trsh_preference), 0).edit();
         HttpsURLConnection thre_con = Common.setUpHttpsConnection(urlString, context, "GET");
-
+        HttpsURLConnection rethre_con = Common.setUpHttpsConnection(CommonVariables.SubmitThresholdUpdate, context, "POST");
         if (thre_con != null) {
             try {
                 thre_con.connect();
@@ -77,6 +79,7 @@ public class DownloadThresholdsTask extends AsyncTask<String, Void, Void> {
                 HashMap<String, HashMap<String, HashMap<String, Float>>> app_thresholds = new HashMap<>();
                 if (sb.length() != 0) {
                     JSONObject json = new JSONObject(sb.toString());
+                    JSONObject rejson = new JSONObject();
                     if (json.getString("status").equals("success")) {
                         JSONObject th = (JSONObject) json.get("thresholds");
                         Iterator<?> keys = th.keys();
@@ -97,6 +100,30 @@ public class DownloadThresholdsTask extends AsyncTask<String, Void, Void> {
                             }
                         }
                         Common.writeThreshListToFile(app_thresholds, CommonVariables.thresholdsFile, false);
+                        if (thre_con != null) {
+                            thre_con.disconnect();
+                        }
+
+
+                        if (rethre_con != null) {
+                            OutputStream os = rethre_con.getOutputStream();
+                            OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
+                            rejson.put("status", "1");
+                            rejson.put("timestamp", System.currentTimeMillis());
+                            rethre_con.connect();
+                            osw.write(rejson.toString());
+                            osw.flush();
+                            osw.close();
+                            sb.setLength(0);
+                            BufferedReader br2 = new BufferedReader(new InputStreamReader(rethre_con.getInputStream()));
+                            while ((tempOutput = br2.readLine()) != null) {
+                                sb.append(tempOutput);
+                            }
+                            if (sb.length() != 0 && !sb.toString().equals("")) {
+                                Log.d(CommonVariables.TAG, "Threshold Update Server Response is " + sb.toString());
+                            }
+                        }
+
                         return true;
                     }
                 }
@@ -105,8 +132,8 @@ public class DownloadThresholdsTask extends AsyncTask<String, Void, Void> {
             } catch (JSONException e) {
                 e.printStackTrace();
             } finally {
-                if (thre_con != null) {
-                    thre_con.disconnect();
+                if (rethre_con != null) {
+                    rethre_con.disconnect();
                 }
             }
         }

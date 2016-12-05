@@ -116,6 +116,7 @@ public class CommonVariables {
         public static String CxCountUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertCxCount.php";
         public static String ScreenUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertScreen.php";
         public static String PackagesUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertPackages.php";
+        public static String SubmitThresholdUpdate = "https://72.14.183.152:4433/CrowdApp/userThresholdUpdate.php";
         public static String UploadHost = "72.14.183.152";
     */
     public static String TFUploadURL = "https://192.168.137.79/CrowdApp/InsertTF.php";
@@ -137,6 +138,7 @@ public class CommonVariables {
     public static String CxCountUploadURL = "https://192.168.137.79/CrowdApp/InsertCxCount.php";
     public static String ScreenUploadURL = "https://192.168.137.79/CrowdApp/InsertScreen.php";
     public static String PackagesUploadURL = "https://192.168.137.79/CrowdApp/InsertPackages.php";
+    public static String SubmitThresholdUpdate = "https://192.168.137.79/CrowdApp/userThresholdUpdate.php";
     public static String UploadHost = "192.168.137.79";
 
 

@@ -96,7 +96,7 @@ public class AlertActivity extends AppCompatActivity {
                 String AnswerIdx = String.valueOf(idx+1);
                 Log.d(CommonVariables.TAG,"Answer "+AnswerIdx);
                 new SubmitAnswerTask(this,this,notId).execute(CommonVariables.SubmitAnswerURL,Qid,AnswerIdx);
-
+                this.finish();
             }else{
                 Toast.makeText(this,"Please Choose an Answer",Toast.LENGTH_SHORT);
             }

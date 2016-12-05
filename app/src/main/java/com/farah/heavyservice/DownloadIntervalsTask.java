@@ -100,8 +100,9 @@ public class DownloadIntervalsTask extends AsyncTask<String, Void, Void> {
                                 }
                             }
                         }
-
-                        interv_con.disconnect();
+                        if (interv_con != null) {
+                            interv_con.disconnect();
+                        }
                         if (reinterv_con != null) {
                             OutputStream os = reinterv_con.getOutputStream();
                             OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
@@ -130,8 +131,8 @@ public class DownloadIntervalsTask extends AsyncTask<String, Void, Void> {
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             } finally {
-                if (interv_con != null) {
-                    interv_con.disconnect();
+                if (reinterv_con != null) {
+                    reinterv_con.disconnect();
                 }
             }
         }

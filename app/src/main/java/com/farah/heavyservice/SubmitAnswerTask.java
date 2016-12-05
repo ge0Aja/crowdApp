@@ -37,7 +37,7 @@ public class SubmitAnswerTask extends AsyncTask<String, Void, Void> {
 
     @Override
     protected Void doInBackground(String... params) {
-        Process.setThreadPriority(Process.THREAD_PRIORITY_MORE_FAVORABLE);// setThreadPriority (THREAD_PRIORITY_BACKGROUND + THREAD_PRIORITY_MORE_FAVORABLE);
+        Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND + Process.THREAD_PRIORITY_MORE_FAVORABLE);// setThreadPriority (THREAD_PRIORITY_BACKGROUND + THREAD_PRIORITY_MORE_FAVORABLE);
         jsonObject = new JSONObject();
         try {
             jsonObject.put("Ansid", params[2]);
@@ -58,7 +58,7 @@ public class SubmitAnswerTask extends AsyncTask<String, Void, Void> {
             Common.writeAnswertoFile(jsonObject, CommonVariables.AnswersBkup, true);
             Toast.makeText(mContext, "Your Answer is Saved", Toast.LENGTH_SHORT);
         }
-        activity.finish();
+        // activity.finish();
     }
 
     private boolean SubmitAnswer(String urlString, JSONObject jsonObject, Context context) {
