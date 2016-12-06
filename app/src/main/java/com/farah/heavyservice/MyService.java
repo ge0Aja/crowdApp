@@ -580,7 +580,7 @@ public class MyService extends Service {
                         if (Common.checkFileSize(CommonVariables.filetypeScreen, CommonVariables.ScreenBkup, CommonVariables.maxFileSizeScreen) && (!CommonVariables.startUpload)) {
                             CommonVariables.setUploadSettings(CommonVariables.ScreenBkup, true, CommonVariables.filetypeScreen);
                         }
-                        if (Common.checkFileSize(CommonVariables.filetypeCxCount, CommonVariables.CxCountBkup, CommonVariables.maxFileSize) && (!CommonVariables.startUpload)) {
+                        if (Common.checkFileSize(CommonVariables.filetypeCxCount, CommonVariables.CxCountBkup, CommonVariables.maxFileSizeOFUT) && (!CommonVariables.startUpload)) {
                             CommonVariables.setUploadSettings(CommonVariables.CxCountBkup, true, CommonVariables.filetypeCxCount);
                         }
 

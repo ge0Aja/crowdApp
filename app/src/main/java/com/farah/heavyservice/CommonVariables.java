@@ -60,7 +60,7 @@ public class CommonVariables {
     public static int uploadIntervalNormal = 120000;
     // repeat_upload interval for Dir after connecting to wifi
     public static int uploadIntervalRetry = 7200000;
-    public static int checkCPCThresholdInterval = 240 * 1000;
+    public static int checkCPCThresholdInterval = 120 * 1000;
     public static int checkCxnThresholdInterval = 30 * 1000;
     public static int checkTfThresholdInterval = 30 * 1000;
     public static boolean checkCPCT = false;
@@ -73,7 +73,7 @@ public class CommonVariables {
     public static int maxFileSizeScreen = 5;
     //set max file size for OF UT log
     public static int maxFileSizeOFUT = 5;
-    public static int checkEvents = 1;
+    public static int checkEvents = 0123;
     public static boolean screenOn = false;
     public static boolean isWiFi = false;
     public static boolean startUpload = false;
