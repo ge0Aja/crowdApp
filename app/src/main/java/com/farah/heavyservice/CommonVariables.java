@@ -73,7 +73,7 @@ public class CommonVariables {
     public static int maxFileSizeScreen = 5;
     //set max file size for OF UT log
     public static int maxFileSizeOFUT = 5;
-    public static int checkEvents = 0123;
+    public static int checkEvents = 1;
     public static boolean screenOn = false;
     public static boolean isWiFi = false;
     public static boolean startUpload = false;
