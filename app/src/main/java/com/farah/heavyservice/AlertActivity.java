@@ -19,6 +19,7 @@ public class AlertActivity extends AppCompatActivity {
     private String question;
     private String message;
     private String notId;
+    private int More = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +49,7 @@ public class AlertActivity extends AppCompatActivity {
 
     public void understandClick(View view){
         String dialogMessage = "";
+        More = 1;
         if (type != null) {
             switch (type) {
                 case "1":
@@ -63,8 +65,10 @@ public class AlertActivity extends AppCompatActivity {
                     dialogMessage = getString(R.string.ramMessage);
                     break;
                 case "5":
-                    dialogMessage = getString(R.string.connectionMessage);
+                    dialogMessage = getString(R.string.connectionAgeMessage);
                     break;
+                case "6":
+                    dialogMessage = getString(R.string.connectionCountMessage);
                 default:
                     dialogMessage = "Message";
                     break;
@@ -95,7 +99,7 @@ public class AlertActivity extends AppCompatActivity {
                 int idx = group.indexOfChild(radioButton);
                 String AnswerIdx = String.valueOf(idx+1);
                 Log.d(CommonVariables.TAG,"Answer "+AnswerIdx);
-                new SubmitAnswerTask(this,this,notId).execute(CommonVariables.SubmitAnswerURL,Qid,AnswerIdx);
+                new SubmitAnswerTask(this, this, notId).execute(CommonVariables.SubmitAnswerURL, Qid, AnswerIdx, String.valueOf(More));
                 this.finish();
             }else{
                 Toast.makeText(this,"Please Choose an Answer",Toast.LENGTH_SHORT);

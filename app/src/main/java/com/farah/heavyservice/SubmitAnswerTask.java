@@ -28,6 +28,7 @@ public class SubmitAnswerTask extends AsyncTask<String, Void, Void> {
     private Activity activity;
     private JSONObject jsonObject = new JSONObject();
     private int notid;
+    private int More;
 
     public SubmitAnswerTask(Activity calling, Context context,String Notid) {
         mContext = context;
@@ -40,6 +41,7 @@ public class SubmitAnswerTask extends AsyncTask<String, Void, Void> {
         Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND + Process.THREAD_PRIORITY_MORE_FAVORABLE);// setThreadPriority (THREAD_PRIORITY_BACKGROUND + THREAD_PRIORITY_MORE_FAVORABLE);
         jsonObject = new JSONObject();
         try {
+            jsonObject.put("More", params[3]);
             jsonObject.put("Ansid", params[2]);
             jsonObject.put("Qid", params[1]);
             jsonObject.put("Timestamp",String.valueOf(System.currentTimeMillis()));

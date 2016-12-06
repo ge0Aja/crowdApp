@@ -458,7 +458,7 @@ public class MyService extends Service {
                     }
                     while (iterator3rdParty.hasNext()) {
                         appName = iterator3rdParty.next().toString();
-                        if (appName.equals("com.farah.heavyservice")) { //Common.getAppInfo(CommonVariables.mContext, appName) != null
+                        if (!appName.equals("com.farah.heavyservice")) { //Common.getAppInfo(CommonVariables.mContext, appName) != null
                             ApplicationInfo app = Common.getAppInfo(CommonVariables.mContext, appName);
                             if (app != null) {
                                 int uid = app.uid;
