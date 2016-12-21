@@ -15,7 +15,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
+import javax.crypto.NoSuchPaddingException;
 import javax.net.ssl.HttpsURLConnection;
 
 /**
@@ -57,7 +60,15 @@ public class SubmitAnswerTask extends AsyncTask<String, Void, Void> {
         if (b) {
             Toast.makeText(mContext, "Your Answer is Submitted", Toast.LENGTH_SHORT);
         } else {
-            Common.writeAnswertoFile(jsonObject, CommonVariables.AnswersBkup, true);
+            try {
+                Common.writeAnswertoFile(jsonObject, CommonVariables.AnswersBkup, true);
+            } catch (NoSuchPaddingException e) {
+                e.printStackTrace();
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            } catch (InvalidKeyException e) {
+                e.printStackTrace();
+            }
             Toast.makeText(mContext, "Your Answer is Saved", Toast.LENGTH_SHORT);
         }
         // activity.finish();

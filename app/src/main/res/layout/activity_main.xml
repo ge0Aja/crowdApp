@@ -18,7 +18,8 @@
         android:layout_marginTop="40dp"
         android:nestedScrollingEnabled="false"
         android:onClick="startCollecting"
-        android:text="Start Service" />
+        android:text="Start Service"
+        android:visibility="invisible" />
 
     <Button
         android:id="@+id/stopButton"
@@ -27,7 +28,8 @@
         android:layout_alignParentEnd="true"
         android:layout_alignTop="@+id/startButton"
         android:onClick="stopCollecting"
-        android:text="Stop Service" />
+        android:text="Stop Service"
+        android:visibility="invisible" />
 
     <Button
         android:id="@+id/btn_screen"
@@ -37,7 +39,8 @@
         android:layout_below="@+id/startButton"
         android:layout_marginTop="54dp"
         android:onClick="screenstats"
-        android:text="Screen" />
+        android:text="Screen"
+        android:visibility="invisible" />
 
     <Button
         android:id="@+id/btn_cpc"
@@ -46,7 +49,8 @@
         android:layout_alignBottom="@+id/btn_screen"
         android:layout_alignParentEnd="true"
         android:onClick="cpcstats"
-        android:text="CPC" />
+        android:text="CPC"
+        android:visibility="invisible" />
 
     <Button
         android:id="@+id/btn_tf"
@@ -56,7 +60,8 @@
         android:layout_below="@+id/btn_screen"
         android:layout_marginTop="58dp"
         android:onClick="tfstats"
-        android:text="TF" />
+        android:text="TF"
+        android:visibility="invisible" />
 
     <Button
         android:id="@+id/btn_cx"
@@ -65,7 +70,8 @@
         android:layout_alignBottom="@+id/btn_tf"
         android:layout_alignParentEnd="true"
         android:onClick="cxstats"
-        android:text="Cx" />
+        android:text="Cx"
+        android:visibility="invisible" />
 
     <Button
         android:id="@+id/btn_of"
@@ -75,7 +81,8 @@
         android:layout_below="@+id/btn_tf"
         android:layout_marginTop="44dp"
         android:onClick="ofstats"
-        android:text="OF" />
+        android:text="OF"
+        android:visibility="invisible" />
 
     <Button
         android:id="@+id/btn_ut"
@@ -84,7 +91,8 @@
         android:layout_alignParentEnd="true"
         android:layout_alignTop="@+id/btn_of"
         android:onClick="utstats"
-        android:text="UT" />
+        android:text="UT"
+        android:visibility="invisible" />
 
     <Button
         android:id="@+id/btn_reg"
@@ -93,7 +101,8 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
         android:onClick="userreg"
-        android:text="Reg User" />
+        android:text="Reg User"
+        android:visibility="invisible" />
 
     <Button
         android:id="@+id/btn_thresh"
@@ -102,7 +111,8 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
         android:onClick="getthresh"
-        android:text="Thresh" />
+        android:text="Thresh"
+        android:visibility="invisible" />
 
     <Button
         android:id="@+id/btnIntervals"
@@ -111,7 +121,8 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:onClick="getIntervals"
-        android:text="Intervals" />
+        android:text="Intervals"
+        android:visibility="invisible" />
 
     <Button
         android:id="@+id/btn_cxcount"
@@ -120,6 +131,7 @@
         android:layout_alignTop="@+id/btn_of"
         android:layout_centerHorizontal="true"
         android:onClick="cxcountstats"
-        android:text="cx count" />
+        android:text="cx count"
+        android:visibility="invisible" />
 
 </RelativeLayout>

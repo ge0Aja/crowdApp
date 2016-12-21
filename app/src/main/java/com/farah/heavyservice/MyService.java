@@ -19,6 +19,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import javax.crypto.NoSuchPaddingException;
 
 
 public class MyService extends Service {
@@ -419,8 +423,8 @@ public class MyService extends Service {
                                 }
 
                             }
-                            //TODO fix calculating the average count on the server
-                            if (CommonVariables.checkCxT) {
+
+                            if (CommonVariables.checkCxT && CommonVariables.isWiFi && CommonVariables.checkEvents != 0) {
                                 Iterator callingAppIter = ConnectionsCount.entrySet().iterator();
                                 while (callingAppIter.hasNext()) {
                                     Map.Entry callinAppPair = (Map.Entry) callingAppIter.next();
@@ -552,6 +556,12 @@ public class MyService extends Service {
                     //check storage size
 
                 } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (NoSuchPaddingException e) {
+                    e.printStackTrace();
+                } catch (NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                } catch (InvalidKeyException e) {
                     e.printStackTrace();
                 }
                 if (CommonVariables.isWiFi) {

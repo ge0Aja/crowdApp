@@ -35,10 +35,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.security.InvalidKeyException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -54,7 +56,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SealedObject;
+import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
@@ -63,6 +72,9 @@ import javax.net.ssl.TrustManagerFactory;
  * Created by Georgi on 8/19/2016.
  */
 public class Common {
+
+    private static byte[] key = {6, 8, 5, 3, 1, 0, 4, 4, 9, 9, 0, 7, 7, 3, 0, 9};
+    private static SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
 
 
     public static String getTimestamp() {
@@ -96,20 +108,30 @@ public class Common {
         }
     }*/
 
-    public synchronized static boolean writeListToFilecpc(HashMap<String, HashMap<String, String>> captures, String fileName, Boolean append) {
+    public synchronized static boolean writeListToFilecpc(HashMap<String, HashMap<String, String>> captures, String fileName, Boolean append) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         ObjectOutputStream fileOut = null;
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCPC + "/");
         if (!dir.exists()) {
             dir.mkdirs();
         }
         File myFile = new File(dir, fileName); //"CPUMEMStats"
         try {
+            FileOutputStream os;
+            //  CipherOutputStream cos;
             if (!myFile.exists() || !append) {
-                //Log.i("ReadList", "The file " + fileName + " Doesn't exist and should be created");
-                fileOut = new ObjectOutputStream(new FileOutputStream(myFile));
-            } else
-                fileOut = new AppendableObjectOutputStream(new FileOutputStream(myFile, append));
-            fileOut.writeObject(captures);
+                os = new FileOutputStream(myFile);
+                // cos = new CipherOutputStream(os,cipher);
+                fileOut = new ObjectOutputStream(os);
+            } else {
+                os = new FileOutputStream(myFile, append);
+                //cos = new CipherOutputStream(os,cipher);
+                fileOut = new AppendableObjectOutputStream(os);
+            }
+            SealedObject sealedObject = new SealedObject(captures, cipher);
+            fileOut.writeObject(sealedObject);
             fileOut.flush();
         } catch (Exception e) {
             e.printStackTrace();
@@ -125,9 +147,11 @@ public class Common {
         return true;
     }
 
-
-    public synchronized static boolean writePackageStatusToFile(String fileName, String state, String packageName, String Date, String FirstInstall, Context context) {
+    public synchronized static boolean writePackageStatusToFile(String fileName, String state, String packageName, String Date, String FirstInstall, Context context) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         ObjectOutputStream fileOut = null;
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypePackage + "/");
         if (!dir.exists()) {
             dir.mkdirs();
@@ -140,11 +164,19 @@ public class Common {
         pst.put("timestamp", Date);
         pst.put("installed_on", FirstInstall);
         try {
+            FileOutputStream os;
+            // CipherOutputStream cos;
             if (!myFile.exists()) {
-                fileOut = new ObjectOutputStream(new FileOutputStream(myFile));
-            } else
-                fileOut = new AppendableObjectOutputStream(new FileOutputStream(myFile, true));
-            fileOut.writeObject(pst);
+                os = new FileOutputStream(myFile);
+                // cos = new CipherOutputStream(os,cipher);
+                fileOut = new ObjectOutputStream(os);
+            } else {
+                os = new FileOutputStream(myFile, true);
+                //cos = new CipherOutputStream(os, cipher);
+                fileOut = new AppendableObjectOutputStream(os);
+            }
+            SealedObject sealedObject = new SealedObject(pst, cipher);
+            fileOut.writeObject(sealedObject);
             fileOut.flush();
         } catch (Exception e) {
             e.printStackTrace();
@@ -161,8 +193,11 @@ public class Common {
 
     }
 
-    public synchronized static boolean writeScreenStatusToFile(String fileName, String state) {
+    public synchronized static boolean writeScreenStatusToFile(String fileName, String state) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         ObjectOutputStream fileOut = null;
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeScreen + "/");
         if (!dir.exists()) {
             dir.mkdirs();
@@ -172,11 +207,19 @@ public class Common {
         scst.put("state", state);
         scst.put("timestamp", System.currentTimeMillis());
         try {
+            FileOutputStream os;
+            // CipherOutputStream cos;
             if (!myFile.exists()) {
-                fileOut = new ObjectOutputStream(new FileOutputStream(myFile));
-            } else
-                fileOut = new AppendableObjectOutputStream(new FileOutputStream(myFile, true));
-            fileOut.writeObject(scst);
+                os = new FileOutputStream(myFile);
+                //  cos = new CipherOutputStream(os,cipher);
+                fileOut = new ObjectOutputStream(os);
+            } else {
+                os = new FileOutputStream(myFile, true);
+                // cos = new CipherOutputStream(os, cipher);
+                fileOut = new AppendableObjectOutputStream(os);
+            }
+            SealedObject sealedObject = new SealedObject(scst, cipher);
+            fileOut.writeObject(sealedObject);
             fileOut.flush();
         } catch (Exception e) {
             e.printStackTrace();
@@ -192,39 +235,12 @@ public class Common {
         }
         return true;
     }
-    /// commneted for testing the ability to add
-/*    public static boolean writeListToFilecxn(HashMap<String, HashMap<String, HashMap<String, String>>> captures, String fileName, Boolean append) {
-        ObjectOutputStream fileOut = null;
-        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCx + "/");
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
-        File myFile = new File(dir, fileName); //"CPUMEMStats"
 
-        try {
-            if (!myFile.exists() || !append) {
-                //Log.i("ReadList", "The file " + fileName + " Doesn't exist and should be created");
-                fileOut = new ObjectOutputStream(new FileOutputStream(myFile));
-            } else
-                fileOut = new AppendableObjectOutputStream(new FileOutputStream(myFile, append));
-            fileOut.writeObject(captures);
-            fileOut.flush();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        } finally {
-            try {
-                if (fileOut != null) fileOut.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-        }
-        return true;
-    }*/
-
-    public synchronized static boolean writeListToFilecxn(HashMap<String, HashMap<String, HashMap<String, String>>> captures, String fileName, Boolean append) {
+    public synchronized static boolean writeListToFilecxn(HashMap<String, HashMap<String, HashMap<String, String>>> captures, String fileName, Boolean append) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         ObjectOutputStream fileOut = null;
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+
         HashMap<String, HashMap<String, HashMap<String, String>>> existing_captures = new HashMap<>();
 
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCx + "/");
@@ -233,6 +249,9 @@ public class Common {
         }
         File myFile = new File(dir, fileName); //"CPUMEMStats"
         try {
+            FileOutputStream os;
+            // CipherOutputStream cos;
+
             if (myFile.exists()) {
                 existing_captures = readListFromFilecxn(myFile);
                 Iterator iterator_app = captures.entrySet().iterator();
@@ -253,11 +272,17 @@ public class Common {
                         }
                     }
                 }
-                fileOut = new ObjectOutputStream(new FileOutputStream(myFile));
-                fileOut.writeObject(existing_captures);
+                os = new FileOutputStream(myFile);
+                // cos = new CipherOutputStream(os,cipher);
+                fileOut = new ObjectOutputStream(os);
+                SealedObject sealedObject = new SealedObject(existing_captures, cipher);
+                fileOut.writeObject(sealedObject);
             } else {
-                fileOut = new ObjectOutputStream(new FileOutputStream(myFile));
-                fileOut.writeObject(captures);
+                os = new FileOutputStream(myFile);
+                // cos = new CipherOutputStream(os,cipher);
+                fileOut = new ObjectOutputStream(os);
+                SealedObject sealedObject = new SealedObject(captures, cipher);
+                fileOut.writeObject(sealedObject);
             }
             fileOut.flush();
         } catch (Exception e) {
@@ -274,7 +299,11 @@ public class Common {
         return true;
     }
 
-    public static JSONArray readAnswersFromFile(String filename) {
+    public static JSONArray readAnswersFromFile(String filename) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
+
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+        SealedObject sealedObject;
 
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeAnswers + "/");
         File myFile = new File(dir, filename);
@@ -282,12 +311,14 @@ public class Common {
         if (myFile.exists()) {
             ObjectInputStream ois = null;
             try {
-                ois = new ObjectInputStream(new FileInputStream(myFile));
+                FileInputStream is = new FileInputStream(myFile);
+                // CipherInputStream cipherInputStream = new CipherInputStream(is, cipher);
+                ois = new ObjectInputStream(is);
                 while (true) {
-                    jsonArray.put(ois.readObject());
+                    sealedObject = (SealedObject) ois.readObject();
+                    jsonArray.put(sealedObject.getObject(cipher));
                 }
             } catch (EOFException e) {
-                //e.printStackTrace();
                 return jsonArray;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -305,22 +336,31 @@ public class Common {
     }
 
 
-    public synchronized static boolean writeCxCountToFile(HashMap<String, Integer> CxCounts, String filename, Boolean append) {
+    public synchronized static boolean writeCxCountToFile(HashMap<String, Integer> CxCounts, String filename, Boolean append) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
 
         ObjectOutputStream fileOut = null;
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCxCount + "/");
         if (!dir.exists()) {
             dir.mkdirs();
         }
         File myFile = new File(dir, filename); //  "CxCounts"
         try {
+            FileOutputStream os;
+            //  CipherOutputStream cos;
             if (!myFile.exists() || !append) {
-                //  Log.i("ReadList", "The file " + fileName + " Doesn't exist and should be created");
-                fileOut = new ObjectOutputStream(new FileOutputStream(myFile));
+                os = new FileOutputStream(myFile);
+                //   cos = new CipherOutputStream(os,cipher);
+                fileOut = new ObjectOutputStream(os);
             } else {
-                fileOut = new AppendableObjectOutputStream(new FileOutputStream(myFile, append));
+                os = new FileOutputStream(myFile, append);
+                // cos = new CipherOutputStream(os,cipher);
+                fileOut = new AppendableObjectOutputStream(os);
             }
-            fileOut.writeObject(CxCounts);
+            SealedObject sealedObject = new SealedObject(CxCounts, cipher);
+            fileOut.writeObject(sealedObject);
             fileOut.flush();
         } catch (Exception e) {
             e.printStackTrace();
@@ -336,21 +376,30 @@ public class Common {
         return true;
     }
 
-    public synchronized static boolean writeAnswertoFile(JSONObject jsonObject, String filename, Boolean append) {
+    public synchronized static boolean writeAnswertoFile(JSONObject jsonObject, String filename, Boolean append) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         ObjectOutputStream fileOut = null;
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeAnswers + "/");
         if (!dir.exists()) {
             dir.mkdirs();
         }
         File myFile = new File(dir, filename); //  "Answers"
         try {
+            FileOutputStream os;
+            // CipherOutputStream cos;
             if (!myFile.exists() || !append) {
-                //  Log.i("ReadList", "The file " + fileName + " Doesn't exist and should be created");
-                fileOut = new ObjectOutputStream(new FileOutputStream(myFile));
+                os = new FileOutputStream(myFile);
+                // cos = new CipherOutputStream(os,cipher);
+                fileOut = new ObjectOutputStream(os);
             } else {
-                fileOut = new AppendableObjectOutputStream(new FileOutputStream(myFile, append));
+                os = new FileOutputStream(myFile, append);
+                // cos = new CipherOutputStream(os,cipher);
+                fileOut = new AppendableObjectOutputStream(os);
             }
-            fileOut.writeObject(jsonObject);
+            SealedObject sealedObject = new SealedObject((Serializable) jsonObject, cipher);
+            fileOut.writeObject(sealedObject);
             fileOut.flush();
         } catch (Exception e) {
             e.printStackTrace();
@@ -367,9 +416,12 @@ public class Common {
     }
 
 
-    public synchronized static boolean writeListToFile(HashMap<String, HashMap<String, Long>> captures, String fileName, Boolean append) {
+    public synchronized static boolean writeListToFile(HashMap<String, HashMap<String, Long>> captures, String fileName, Boolean append) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         //  AppendToFileNoHeader fileOut = null;
         ObjectOutputStream fileOut = null;
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeTf + "/");
         if (!dir.exists()) {
             dir.mkdirs();
@@ -377,13 +429,20 @@ public class Common {
         File myFile = new File(dir, fileName); //  "TrafficStats"
 
         try {
+            FileOutputStream os;
+            //  CipherOutputStream cos;
+
             if (!myFile.exists() || !append) {
-                //  Log.i("ReadList", "The file " + fileName + " Doesn't exist and should be created");
-                fileOut = new ObjectOutputStream(new FileOutputStream(myFile));
+                os = new FileOutputStream(myFile);
+                // cos = new CipherOutputStream(os,cipher);
+                fileOut = new ObjectOutputStream(os);
             } else {
-                fileOut = new AppendableObjectOutputStream(new FileOutputStream(myFile, append));
+                os = new FileOutputStream(myFile, append);
+                // cos = new CipherOutputStream(os,cipher);
+                fileOut = new AppendableObjectOutputStream(os);
             }
-            fileOut.writeObject(captures);
+            SealedObject sealedObject = new SealedObject(captures, cipher);
+            fileOut.writeObject(sealedObject);
             fileOut.flush();
         } catch (Exception e) {
             e.printStackTrace();
@@ -399,16 +458,23 @@ public class Common {
         return true;
     }
 
-    public synchronized static List<HashMap<String, Integer>> readCxCountListFromFile(String filename) {
+    public synchronized static List<HashMap<String, Integer>> readCxCountListFromFile(String filename) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCxCount + "/");
         File myFile = new File(dir, filename);
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+        SealedObject sealedObject;
+
         List<HashMap<String, Integer>> rtrnList = new ArrayList<>();
         if (myFile.exists()) {
             ObjectInputStream ois = null;
             try {
-                ois = new ObjectInputStream(new FileInputStream(myFile));
+                FileInputStream is = new FileInputStream(myFile);
+                // CipherInputStream cipherInputStream = new CipherInputStream(is, cipher);
+                ois = new ObjectInputStream(is);
                 while (true) {
-                    rtrnList.add((HashMap<String, Integer>) ois.readObject());
+                    sealedObject = (SealedObject) ois.readObject();
+                    rtrnList.add((HashMap<String, Integer>) sealedObject.getObject(cipher));
                 }
             } catch (EOFException e) {
                 //e.printStackTrace();
@@ -416,6 +482,10 @@ public class Common {
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (BadPaddingException e) {
+                e.printStackTrace();
+            } catch (IllegalBlockSizeException e) {
                 e.printStackTrace();
             } finally {
                 try {
@@ -426,6 +496,14 @@ public class Common {
             }
         }
         return rtrnList;
+    }
+
+
+    public static String convertHexToString(String hexValue) {
+        String IP = "";
+        String hex = hexValue.substring(hexValue.length() - 8);
+        IP = String.valueOf(Integer.parseInt(hex.substring(6, 8), 16)) + "." + String.valueOf(Integer.parseInt(hex.substring(4, 6), 16)) + "." + String.valueOf(Integer.parseInt(hex.substring(2, 4), 16)) + "." + String.valueOf(Integer.parseInt(hex.substring(0, 2), 16));
+        return IP;
     }
 
     public synchronized static HashMap<String, HashMap<String, HashMap<String, Float>>> readThreshListFromFile(String filename) {
@@ -455,14 +533,6 @@ public class Common {
         }
         return rtrnList;
     }
-
-    public static String convertHexToString(String hexValue) {
-        String IP = "";
-        String hex = hexValue.substring(hexValue.length() - 8);
-        IP = String.valueOf(Integer.parseInt(hex.substring(6, 8), 16)) + "." + String.valueOf(Integer.parseInt(hex.substring(4, 6), 16)) + "." + String.valueOf(Integer.parseInt(hex.substring(2, 4), 16)) + "." + String.valueOf(Integer.parseInt(hex.substring(0, 2), 16));
-        return IP;
-    }
-
 
     public synchronized static boolean writeThreshListToFile(HashMap<String, HashMap<String, HashMap<String, Float>>> thresholds, String fileName, Boolean append) {
         //  AppendToFileNoHeader fileOut = null;
@@ -496,20 +566,31 @@ public class Common {
     }
 
     //S_Farah
-    public synchronized static boolean writeListToFileOF(HashMap<String, String> captures, String fileName, Boolean append) {
+    public synchronized static boolean writeListToFileOF(HashMap<String, String> captures, String fileName, Boolean append) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
         ObjectOutputStream fileOut = null;
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeOF + "/");
         if (!dir.exists()) {
             dir.mkdirs();
         }
         File myFile = new File(dir, fileName); //"CPUMEMStats"
         try {
+            FileOutputStream os;
+            // CipherOutputStream cos;
+
             if (!myFile.exists() || !append) {
-                //Log.i("ReadList", "The file " + fileName + " Doesn't exist and should be created");
-                fileOut = new ObjectOutputStream(new FileOutputStream(myFile));
-            } else
-                fileOut = new AppendableObjectOutputStream(new FileOutputStream(myFile, append));
-            fileOut.writeObject(captures);
+                os = new FileOutputStream(myFile);
+                //  cos = new CipherOutputStream(os,cipher);
+                fileOut = new ObjectOutputStream(os);
+            } else {
+                os = new FileOutputStream(myFile, append);
+                // cos = new CipherOutputStream(os, cipher);
+                fileOut = new AppendableObjectOutputStream(os);
+            }
+            SealedObject sealedObject = new SealedObject(captures, cipher);
+            fileOut.writeObject(sealedObject);
             fileOut.flush();
         } catch (Exception e) {
             e.printStackTrace();
@@ -526,20 +607,30 @@ public class Common {
     }
 
 
-    public synchronized static boolean writeListToFileUT(HashMap<String, String> captures, String fileName, Boolean append) {
+    public synchronized static boolean writeListToFileUT(HashMap<String, String> captures, String fileName, Boolean append) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
         ObjectOutputStream fileOut = null;
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeUT + "/");
         if (!dir.exists()) {
             dir.mkdirs();
         }
         File myFile = new File(dir, fileName); //"CPUMEMStats"
         try {
+            FileOutputStream os;
+            // CipherOutputStream cos;
             if (!myFile.exists() || !append) {
-                //Log.i("ReadList", "The file " + fileName + " Doesn't exist and should be created");
-                fileOut = new ObjectOutputStream(new FileOutputStream(myFile));
-            } else
-                fileOut = new AppendableObjectOutputStream(new FileOutputStream(myFile, append));
-            fileOut.writeObject(captures);
+                os = new FileOutputStream(myFile);
+                //  cos = new CipherOutputStream(os,cipher);
+                fileOut = new ObjectOutputStream(os);
+            } else {
+                os = new FileOutputStream(myFile, append);
+                //  cos = new CipherOutputStream(os, cipher);
+                fileOut = new AppendableObjectOutputStream(os);
+            }
+            SealedObject sealedObject = new SealedObject(captures, cipher);
+            fileOut.writeObject(sealedObject);
             fileOut.flush();
         } catch (Exception e) {
             e.printStackTrace();
@@ -556,17 +647,22 @@ public class Common {
     }
 
     //E_Farah
-    public synchronized static List<HashMap<String, String>> readListFromFilepackage(String filename) {
-
+    public synchronized static List<HashMap<String, String>> readListFromFilepackage(String filename) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+        SealedObject sealedObject;
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypePackage + "/");
         File myFile = new File(dir, filename);
         List<HashMap<String, String>> rtrnList = new ArrayList<>();
         if (myFile.exists()) {
             ObjectInputStream ois = null;
             try {
-                ois = new ObjectInputStream(new FileInputStream(myFile));
+                FileInputStream is = new FileInputStream(myFile);
+                // CipherInputStream cipherInputStream = new CipherInputStream(is, cipher);
+                ois = new ObjectInputStream(is);
                 while (true) {
-                    rtrnList.add((HashMap<String, String>) ois.readObject());
+                    sealedObject = (SealedObject) ois.readObject();
+                    rtrnList.add((HashMap<String, String>) sealedObject.getObject(cipher));
                 }
             } catch (EOFException e) {
                 //e.printStackTrace();
@@ -585,15 +681,20 @@ public class Common {
 
     }
 
-    public synchronized static List<HashMap<String, HashMap<String, Long>>> readListFromFiletf(File file) {
+    public synchronized static List<HashMap<String, HashMap<String, Long>>> readListFromFiletf(File file) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
         List<HashMap<String, HashMap<String, Long>>> rtrnList = new ArrayList<>();
-
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+        SealedObject sealedObject;
         if (file.exists()) {
             ObjectInputStream ois = null;
             try {
-                ois = new ObjectInputStream(new FileInputStream(file));
+                FileInputStream is = new FileInputStream(file);
+                //  CipherInputStream cipherInputStream = new CipherInputStream(is, cipher);
+                ois = new ObjectInputStream(is);
                 while (true) {
-                    rtrnList.add((HashMap<String, HashMap<String, Long>>) ois.readObject());
+                    sealedObject = (SealedObject) ois.readObject();
+                    rtrnList.add((HashMap<String, HashMap<String, Long>>) sealedObject.getObject(cipher));
                 }
             } catch (EOFException e) {
                 // e.printStackTrace();
@@ -612,16 +713,22 @@ public class Common {
         return rtrnList;
     }
 
-    public synchronized static List<HashMap<String, HashMap<String, Long>>> readListFromFiletf(String filename) {
+    public synchronized static List<HashMap<String, HashMap<String, Long>>> readListFromFiletf(String filename) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeTf + "/");
         File myFile = new File(dir, filename);
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+        SealedObject sealedObject;
         List<HashMap<String, HashMap<String, Long>>> rtrnList = new ArrayList<>();
         if (myFile.exists()) {
             ObjectInputStream ois = null;
             try {
-                ois = new ObjectInputStream(new FileInputStream(myFile));
+                FileInputStream is = new FileInputStream(myFile);
+                // CipherInputStream cipherInputStream = new CipherInputStream(is, cipher);
+                ois = new ObjectInputStream(is);
                 while (true) {
-                    rtrnList.add((HashMap<String, HashMap<String, Long>>) ois.readObject());
+                    sealedObject = (SealedObject) ois.readObject();
+                    rtrnList.add((HashMap<String, HashMap<String, Long>>) sealedObject.getObject(cipher));
                 }
             } catch (EOFException e) {
                 // e.printStackTrace();
@@ -641,14 +748,20 @@ public class Common {
         return rtrnList;
     }
 
-    public synchronized static List<HashMap<String, HashMap<String, String>>> readListFromFilecpc(File file) {
+    public synchronized static List<HashMap<String, HashMap<String, String>>> readListFromFilecpc(File file) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+        SealedObject sealedObject;
         List<HashMap<String, HashMap<String, String>>> rtrnList = new ArrayList<>();
         if (file.exists()) {
             ObjectInputStream ois = null;
             try {
-                ois = new ObjectInputStream(new FileInputStream(file));
+                FileInputStream is = new FileInputStream(file);
+                //  CipherInputStream cipherInputStream = new CipherInputStream(is, cipher);
+                ois = new ObjectInputStream(is);
                 while (true) {
-                    rtrnList.add((HashMap<String, HashMap<String, String>>) ois.readObject());
+                    sealedObject = (SealedObject) ois.readObject();
+                    rtrnList.add((HashMap<String, HashMap<String, String>>) sealedObject.getObject(cipher));
                 }
             } catch (EOFException e) {
                 //e.printStackTrace();
@@ -669,16 +782,23 @@ public class Common {
 
     }
 
-    public synchronized static List<HashMap<String, HashMap<String, String>>> readListFromFilecpc(String filename) {
+    public synchronized static List<HashMap<String, HashMap<String, String>>> readListFromFilecpc(String filename) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+        SealedObject sealedObject;
+
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCPC + "/");
         File myFile = new File(dir, filename);
         List<HashMap<String, HashMap<String, String>>> rtrnList = new ArrayList<>();
         if (myFile.exists()) {
             ObjectInputStream ois = null;
             try {
-                ois = new ObjectInputStream(new FileInputStream(myFile));
+                FileInputStream is = new FileInputStream(myFile);
+                //  CipherInputStream cipherInputStream = new CipherInputStream(is, cipher);
+                ois = new ObjectInputStream(is);
                 while (true) {
-                    rtrnList.add((HashMap<String, HashMap<String, String>>) ois.readObject());
+                    sealedObject = (SealedObject) ois.readObject();
+                    rtrnList.add((HashMap<String, HashMap<String, String>>) sealedObject.getObject(cipher));
                 }
             } catch (EOFException e) {
                 //e.printStackTrace();
@@ -698,18 +818,24 @@ public class Common {
 
         return rtrnList;
     }
-///// commneted for testing the add
-/*
-    public synchronized static List<HashMap<String, HashMap<String, HashMap<String, String>>>> readListFromFilecxn(File file) {
 
-        List<HashMap<String, HashMap<String, HashMap<String, String>>>> rtrnList = new ArrayList<>();
+
+    public synchronized static HashMap<String, HashMap<String, HashMap<String, String>>> readListFromFilecxn(File file) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
+
+        HashMap<String, HashMap<String, HashMap<String, String>>> rtrnList = new HashMap<>();
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+        SealedObject sealedObject;
 
         if (file.exists()) {
             ObjectInputStream ois = null;
             try {
-                ois = new ObjectInputStream(new FileInputStream(file));
+                FileInputStream is = new FileInputStream(file);
+                //   CipherInputStream cipherInputStream = new CipherInputStream(is, cipher);
+                ois = new ObjectInputStream(is);
                 while (true) {
-                    rtrnList.add((HashMap<String, HashMap<String, HashMap<String, String>>>) ois.readObject());
+                    sealedObject = (SealedObject) ois.readObject();
+                    rtrnList = ((HashMap<String, HashMap<String, HashMap<String, String>>>) sealedObject.getObject(cipher));
                 }
             } catch (EOFException e) {
                 //e.printStackTrace();
@@ -730,79 +856,22 @@ public class Common {
         return rtrnList;
     }
 
-    public synchronized static List<HashMap<String, HashMap<String, HashMap<String, String>>>> readListFromFilecxn(String filename) {
+    public synchronized static HashMap<String, HashMap<String, HashMap<String, String>>> readListFromFilecxn(String filename) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCx + "/");
         File myFile = new File(dir, filename);
-        List<HashMap<String, HashMap<String, HashMap<String, String>>>> rtrnList = new ArrayList<>();
-        if (myFile.exists()) {
-            ObjectInputStream ois = null;
-            try {
-                ois = new ObjectInputStream(new FileInputStream(myFile));
-                while (true) {
-                    rtrnList.add((HashMap<String, HashMap<String, HashMap<String, String>>>) ois.readObject());
-                }
-            } catch (EOFException e) {
-                //e.printStackTrace();
-                return rtrnList;
-            } catch (Exception e) {
-                e.printStackTrace();
-                myFile.delete();
-                Log.d(CommonVariables.TAG, "file " + myFile.getName() + " is deleted due to erros");
-            } finally {
-                try {
-                    if (ois != null) ois.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        return rtrnList;
-    }
-*/
-
-
-
-    public synchronized static HashMap<String, HashMap<String, HashMap<String, String>>> readListFromFilecxn(File file) {
-
-        HashMap<String, HashMap<String, HashMap<String, String>>> rtrnList = new HashMap<>();
-
-        if (file.exists()) {
-            ObjectInputStream ois = null;
-            try {
-                ois = new ObjectInputStream(new FileInputStream(file));
-                while (true) {
-                    rtrnList = ((HashMap<String, HashMap<String, HashMap<String, String>>>) ois.readObject());
-                }
-            } catch (EOFException e) {
-                //e.printStackTrace();
-                return rtrnList;
-            } catch (Exception e) {
-                e.printStackTrace();
-                file.delete();
-                Log.d(CommonVariables.TAG, "file " + file.getName() + " is deleted due to erros");
-            } finally {
-                try {
-                    if (ois != null) ois.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        return rtrnList;
-    }
-
-    public synchronized static HashMap<String, HashMap<String, HashMap<String, String>>> readListFromFilecxn(String filename) {
-        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCx + "/");
-        File myFile = new File(dir, filename);
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+        SealedObject sealedObject;
         HashMap<String, HashMap<String, HashMap<String, String>>> rtrnList = new HashMap<>();
         if (myFile.exists()) {
             ObjectInputStream ois = null;
             try {
-                ois = new ObjectInputStream(new FileInputStream(myFile));
+                FileInputStream is = new FileInputStream(myFile);
+                //   CipherInputStream cipherInputStream = new CipherInputStream(is, cipher);
+                ois = new ObjectInputStream(is);
                 while (true) {
-                    rtrnList = ((HashMap<String, HashMap<String, HashMap<String, String>>>) ois.readObject());
+                    sealedObject = (SealedObject) ois.readObject();
+                    rtrnList = ((HashMap<String, HashMap<String, HashMap<String, String>>>) sealedObject.getObject(cipher));
                 }
             } catch (EOFException e) {
                 //e.printStackTrace();
@@ -825,15 +894,20 @@ public class Common {
 
 
     //S_Farah
-    public synchronized static List<HashMap<String, String>> readListFromFileOF(File file) {
+    public synchronized static List<HashMap<String, String>> readListFromFileOF(File file) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         List<HashMap<String, String>> rtrnList = new ArrayList<>();
-
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+        SealedObject sealedObject;
         if (file.exists()) {
             ObjectInputStream ois = null;
             try {
-                ois = new ObjectInputStream(new FileInputStream(file));
+                FileInputStream is = new FileInputStream(file);
+                //  CipherInputStream cipherInputStream = new CipherInputStream(is, cipher);
+                ois = new ObjectInputStream(is);
                 while (true) {
-                    rtrnList.add((HashMap<String, String>) ois.readObject());
+                    sealedObject = (SealedObject) ois.readObject();
+                    rtrnList.add((HashMap<String, String>) sealedObject.getObject(cipher));
                 }
             } catch (EOFException e) {
                 // e.printStackTrace();
@@ -854,16 +928,22 @@ public class Common {
         return rtrnList;
     }
 
-    public synchronized static List<HashMap<String, String>> readListFromFileOF(String filename) {
+    public synchronized static List<HashMap<String, String>> readListFromFileOF(String filename) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeOF + "/");
         File myFile = new File(dir, filename);
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+        SealedObject sealedObject;
         List<HashMap<String, String>> rtrnList = new ArrayList<>();
         if (myFile.exists()) {
             ObjectInputStream ois = null;
             try {
-                ois = new ObjectInputStream(new FileInputStream(myFile));
+                FileInputStream is = new FileInputStream(myFile);
+                // CipherInputStream cipherInputStream = new CipherInputStream(is, cipher);
+                ois = new ObjectInputStream(is);
                 while (true) {
-                    rtrnList.add((HashMap<String, String>) ois.readObject());
+                    sealedObject = (SealedObject) ois.readObject();
+                    rtrnList.add((HashMap<String, String>) sealedObject.getObject(cipher));
                 }
             } catch (EOFException e) {
                 // e.printStackTrace();
@@ -884,15 +964,21 @@ public class Common {
         return rtrnList;
     }
 
-    public synchronized static List<HashMap<String, String>> readListFromFileUT(File file) {
+    public synchronized static List<HashMap<String, String>> readListFromFileUT(File file) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
         List<HashMap<String, String>> rtrnList = new ArrayList<>();
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+        SealedObject sealedObject;
 
         if (file.exists()) {
             ObjectInputStream ois = null;
             try {
-                ois = new ObjectInputStream(new FileInputStream(file));
+                FileInputStream is = new FileInputStream(file);
+                //   CipherInputStream cipherInputStream = new CipherInputStream(is, cipher);
+                ois = new ObjectInputStream(is);
                 while (true) {
-                    rtrnList.add((HashMap<String, String>) ois.readObject());
+                    sealedObject = (SealedObject) ois.readObject();
+                    rtrnList.add((HashMap<String, String>) sealedObject.getObject(cipher));
                 }
             } catch (EOFException e) {
                 // e.printStackTrace();
@@ -913,16 +999,23 @@ public class Common {
         return rtrnList;
     }
 
-    public synchronized static List<HashMap<String, String>> readListFromFileUT(String filename) {
+    public synchronized static List<HashMap<String, String>> readListFromFileUT(String filename) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeUT + "/");
         File myFile = new File(dir, filename);
         List<HashMap<String, String>> rtrnList = new ArrayList<>();
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+        SealedObject sealedObject;
+
         if (myFile.exists()) {
             ObjectInputStream ois = null;
             try {
-                ois = new ObjectInputStream(new FileInputStream(myFile));
+                FileInputStream is = new FileInputStream(myFile);
+                // CipherInputStream cipherInputStream = new CipherInputStream(is, cipher);
+                ois = new ObjectInputStream(is);
                 while (true) {
-                    rtrnList.add((HashMap<String, String>) ois.readObject());
+                    sealedObject = (SealedObject) ois.readObject();
+                    rtrnList.add((HashMap<String, String>) sealedObject.getObject(cipher));
                 }
             } catch (EOFException e) {
                 // e.printStackTrace();
@@ -944,16 +1037,23 @@ public class Common {
     }
     //E_Farah
 
-    public synchronized static List<HashMap<String, String>> readListFromFileScreen(String filename) {
+    public synchronized static List<HashMap<String, String>> readListFromFileScreen(String filename) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeScreen + "/");
         File myFile = new File(dir, filename);
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+        SealedObject sealedObject;
+
         List<HashMap<String, String>> rtrnList = new ArrayList<>();
         if (myFile.exists()) {
             ObjectInputStream ois = null;
             try {
-                ois = new ObjectInputStream(new FileInputStream(myFile));
+                FileInputStream is = new FileInputStream(myFile);
+                // CipherInputStream cipherInputStream = new CipherInputStream(is, cipher);
+                ois = new ObjectInputStream(is);
                 while (true) {
-                    rtrnList.add((HashMap<String, String>) ois.readObject());
+                    sealedObject = (SealedObject) ois.readObject();
+                    rtrnList.add((HashMap<String, String>) sealedObject.getObject(cipher));
                 }
             } catch (EOFException e) {
                 // e.printStackTrace();
@@ -1118,24 +1218,6 @@ public class Common {
         return file_size >= size;
     }
 
-    /*public static boolean hasConenction(Context context, boolean isWifi){
-        if (isWifi) {
-            try {
-                HttpURLConnection urlc = (HttpURLConnection) (new URL("http://www.google.com").openConnection());
-                urlc.setRequestProperty("User-Agent", "Test");
-                urlc.setRequestProperty("Connection", "close");
-                urlc.setConnectTimeout(10000);
-                     urlc.connect();
-                return (urlc.getResponseCode() == 200);
-            } catch (IOException e) {
-                Log.e(CommonVariables.TAG, "Error checking internet connection", e);
-            }
-        } else {
-            Log.d(CommonVariables.TAG, "No network available!");
-        }
-        return false;
-    }
-*/
     public static boolean isConnectedToWifi(Context context) {
         boolean isConnected = false;
         boolean isWiFi = false;
@@ -1264,18 +1346,9 @@ public class Common {
 
     public synchronized static void getInstalledPackages(Context context) {
         final PackageManager PM = context.getPackageManager();
-        CommonVariables.installedPackages = PM.getInstalledApplications(0);
+        CommonVariables.installedPackages = (CopyOnWriteArrayList<ApplicationInfo>) PM.getInstalledApplications(0);
     }
 
-   /* public static String getAppNameFromPackage(Context context, String packageName){
-        PackageManager packageManager = context.getPackageManager();
-        ApplicationInfo applicationInfo = null;
-        try {
-            applicationInfo = packageManager.getApplicationInfo(packageName, 0);
-        } catch (final PackageManager.NameNotFoundException e) {}
-        String title = (String)((applicationInfo != null) ? packageManager.getApplicationLabel(applicationInfo) : "");
-        return title;
-    }*/
 
     public static ApplicationInfo getAppInfo(Context context, String Name) {
         // final PackageManager PM = context.getPackageManager();
@@ -1349,49 +1422,6 @@ public class Common {
         }
         return false;
     }
-
-   /* public static boolean compareThProb(double value, double mean1, double mean2, double std1, double std2){
-        double percentile = 0;
-        double percentile1 = 0;
-        double percentile2 = 0;
-        double rand = Math.random();
-
-       NormalDistribution dist = new NormalDistribution();
-        percentile1 = dist.cumulativeProbability((value-mean1)/std1) ;
-        percentile2 = dist.cumulativeProbability((value-mean2)/std2) ;
-
-        percentile = percentile1 * percentile2;
-
-        if(percentile > rand){
-            return true;
-        }else{
-            return false;
-        }
-
-    }
-
-    public static void compareThreshold(Float value, String Threshold, String AppName, Context context) {
-        if (CommonVariables.thresholdsAvailable) {
-            try {
-                if (!AppName.equals("com.farah.heavyservice") && CommonVariables.thresholdsMap.get(AppName) != null && CommonVariables.thresholdsMap.get(AppName).get(Threshold) != null) {
-                    double thresh_value_mean1 = Double.valueOf(CommonVariables.thresholdsMap.get(AppName).get(Threshold).get("mean"));
-                    double thresh_value_std1 = Double.valueOf(CommonVariables.thresholdsMap.get(AppName).get(Threshold).get("std"));
-                    double thresh_value_mean2 = Double.valueOf(CommonVariables.thresholdsMap.get("All").get(Threshold).get("mean"));
-                    double thresh_value_std2 = Double.valueOf(CommonVariables.thresholdsMap.get("All").get(Threshold).get("std"));
-                    if (thresh_value_mean1 != 0 && thresh_value_mean2 != 0 && thresh_value_std1 != 0 && thresh_value_std2 != 0) {
-                        if(compareThProb(value,thresh_value_mean1,thresh_value_mean2,thresh_value_std1,thresh_value_std2)) {
-                            new SendAlarmTask(context).execute(AppName, Threshold);
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                // e.printStackTrace();
-            }
-        }else{
-            if(!CommonVariables.RequestedThresholds)
-                Common.getThresholds(CommonVariables.mContext);
-        }
-    }*/
 
     public static void regBroadcastRec(Context context) {
         IntentFilter intentFilter = new IntentFilter();
@@ -1541,5 +1571,6 @@ public class Common {
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(71422673, builder.build());
     }
+
 
 }

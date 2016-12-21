@@ -11,10 +11,9 @@ import android.util.Log;
 
 import com.google.firebase.crash.FirebaseCrash;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Created by Georgi on 8/23/2016.
@@ -61,8 +60,8 @@ public class CommonVariables {
     // repeat_upload interval for Dir after connecting to wifi
     public static int uploadIntervalRetry = 7200000;
     public static int checkCPCThresholdInterval = 120 * 1000;
-    public static int checkCxnThresholdInterval = 30 * 1000;
-    public static int checkTfThresholdInterval = 30 * 1000;
+    public static int checkCxnThresholdInterval = 120 * 1000;
+    public static int checkTfThresholdInterval = 120 * 1000;
     public static boolean checkCPCT = false;
     public static boolean checkTfT = false;
     public static boolean checkCxT = false;
@@ -73,7 +72,7 @@ public class CommonVariables {
     public static int maxFileSizeScreen = 5;
     //set max file size for OF UT log
     public static int maxFileSizeOFUT = 5;
-    public static int checkEvents = 1;
+    public static int checkEvents = 0;
     public static boolean screenOn = false;
     public static boolean isWiFi = false;
     public static boolean startUpload = false;
@@ -98,27 +97,29 @@ public class CommonVariables {
     public static HashMap<String, HashMap<String, HashMap<String, Float>>> thresholdsMap;
     public static String thresholdsFile = "Thresholds";
 
-    /*
-        public static String TFUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertTF.php";
-        public static String CPCUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertCPC.php";
-        public static String CxUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertCx.php";
-        public static String registrationUrl = "https://72.14.183.152:4433/CrowdApp/fcm_insert.php";
-        public static String DownloadThresholdsURL = "https://72.14.183.152:4433/CrowdApp/getThresholds.php";
-        public static String DownloadIntervalsURL = "https://72.14.183.152:4433/CrowdApp/getIntervals.php";
-        public static String SubmitAnswerURL = "https://72.14.183.152:4433/CrowdApp/submitAnswer.php";
-        public static String SubmitIntervalUpdate = "https://72.14.183.152:4433/CrowdApp/userIntervalUpdate.php";
-        public static String SubmitAlarm = "https://72.14.183.152:4433/CrowdApp/submitAlarm.php";
-            public static String SubmitMultiAlarm = "https://72.14.183.152:4433/CrowdApp/submitAnswerMulti.php";
-        //S_Farah
-        public static String OFUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertOF.php";
-        public static String UTUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertUT.php";
-        //E_Farah
-        public static String CxCountUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertCxCount.php";
-        public static String ScreenUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertScreen.php";
-        public static String PackagesUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertPackages.php";
-        public static String SubmitThresholdUpdate = "https://72.14.183.152:4433/CrowdApp/userThresholdUpdate.php";
-        public static String UploadHost = "72.14.183.152";
-    */
+
+   /* public static String TFUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertTF.php";
+    public static String CPCUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertCPC.php";
+    public static String CxUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertCx.php";
+
+    // public static String CxUploadURL = "https://192.168.137.79/CrowdApp/InsertCxSpecial.php";
+    public static String registrationUrl = "https://72.14.183.152:4433/CrowdApp/fcm_insert.php";
+    public static String DownloadThresholdsURL = "https://72.14.183.152:4433/CrowdApp/getThresholds.php";
+    public static String DownloadIntervalsURL = "https://72.14.183.152:4433/CrowdApp/getIntervals.php";
+    public static String SubmitAnswerURL = "https://72.14.183.152:4433/CrowdApp/submitAnswer.php";
+    public static String SubmitIntervalUpdate = "https://72.14.183.152:4433/CrowdApp/userIntervalUpdate.php";
+    public static String SubmitAlarm = "https://72.14.183.152:4433/CrowdApp/submitAlarm.php";
+    public static String SubmitMultiAnswer = "https://72.14.183.152:4433/CrowdApp/submitAnswerMulti.php";
+    //S_Farah
+    public static String OFUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertOF.php";
+    public static String UTUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertUT.php";
+    //E_Farah
+    public static String CxCountUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertCxCount.php";
+    public static String ScreenUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertScreen.php";
+    public static String PackagesUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertPackages.php";
+    public static String SubmitThresholdUpdate = "https://72.14.183.152:4433/CrowdApp/userThresholdUpdate.php";
+    public static String UploadHost = "72.14.183.152";*/
+
     public static String TFUploadURL = "https://192.168.137.79/CrowdApp/InsertTF.php";
     public static String CPCUploadURL = "https://192.168.137.79/CrowdApp/InsertCPC.php";
     public static String CxUploadURL = "https://192.168.137.79/CrowdApp/InsertCx.php";
@@ -145,8 +146,8 @@ public class CommonVariables {
     public static String UploadTypeFile = "File";
     public static String UploadTypeDir = "Dir";
 
-    public static List<String> installed3rdPartyApps = new ArrayList<>();
-    public static  List<ApplicationInfo> installedPackages;
+    public static CopyOnWriteArrayList<String> installed3rdPartyApps = new CopyOnWriteArrayList<>();
+    public static CopyOnWriteArrayList<ApplicationInfo> installedPackages;
 
     public static Calendar cal = Calendar.getInstance();
     public static AlarmManager alarm;

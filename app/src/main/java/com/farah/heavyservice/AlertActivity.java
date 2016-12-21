@@ -69,6 +69,7 @@ public class AlertActivity extends AppCompatActivity {
                     break;
                 case "6":
                     dialogMessage = getString(R.string.connectionCountMessage);
+                    break;
                 default:
                     dialogMessage = "Message";
                     break;
