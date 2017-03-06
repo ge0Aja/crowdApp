@@ -22,7 +22,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *
  * thresholds and intervals have a preset value at the start of the application in case of the App
  * didn't find a way to connect to the server
- * then , the thresholds and invervals will get updated once the app is connected
+ * then , the thresholds and invervals will get updated once the app is connectedrererererererer
  */
 public class CommonVariables {
 

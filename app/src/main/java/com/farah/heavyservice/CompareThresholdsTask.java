@@ -55,7 +55,7 @@ public class CompareThresholdsTask extends AsyncTask<Void, Void, Void> {
                     double thresh_value_std2 = Double.valueOf(CommonVariables.thresholdsMap.get("All").get(Threshold).get("std"));
                     if (thresh_value_mean1 != 0 && thresh_value_mean2 != 0 && thresh_value_std1 != 0 && thresh_value_std2 != 0) {
                         if (compareThProb(value, thresh_value_mean1, thresh_value_mean2, thresh_value_std1, thresh_value_std2)) {
-                            double prt = value / thresh_value_mean2 - 1;
+                            double prt = (value / thresh_value_mean2);
                             new SendAlarmTask(context).execute(AppName, Threshold, String.valueOf(prt), String.valueOf(thresh_value_mean2));
                         }
                     }
