@@ -7,6 +7,8 @@ import android.util.Log;
 
 /**
  * Created by Georgi on 10/7/2016.
+ *
+ * this broadcast receiver is reponsible to make sure that the service is running at all times
  */
 public class RestartServiceReceiver extends BroadcastReceiver {
     @Override

@@ -8,6 +8,9 @@ import com.google.firebase.iid.FirebaseInstanceIdService;
 
 /**
  * Created by Georgi on 9/3/2016.
+ * the class is part of the notification receiving process it is called to obtain and initialize
+ * a firebase token from the firebase server
+ * and saves the obtained token in the application preferences
  */
 public class FcmInstanceIdService extends FirebaseInstanceIdService {
 

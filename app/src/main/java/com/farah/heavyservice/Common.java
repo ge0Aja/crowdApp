@@ -48,10 +48,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -70,20 +67,25 @@ import javax.net.ssl.TrustManagerFactory;
 
 /**
  * Created by Georgi on 8/19/2016.
+ * the common class contains static mehtods that are used on a global scale
+ *
+ * read and write hashmaps and lists methods all use an encryption key to encrypt the saved stats and
+ * lists with AES algorithm
  */
 public class Common {
 
+    /*the ciphered key is used to encrypt the binary objects which we are storing in the binary files*/
     private static byte[] key = {6, 8, 5, 3, 1, 0, 4, 4, 9, 9, 0, 7, 7, 3, 0, 9};
     private static SecretKeySpec secretKeySpec = new SecretKeySpec(key, "AES");
 
-
+    /*
     public static String getTimestamp() {
         Date date = new Date();
         DateFormat format = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         String timestamp = format.format(date);
         return timestamp;
     }
-
+*/
     /*public static void appendLog(String message) {
         // File dir = getDir(Environment.DIRECTORY_DOCUMENTS,MODE_PRIVATE);
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp");
@@ -108,6 +110,7 @@ public class Common {
         }
     }*/
 
+    // write the hashmaps of CPU and Memory stats to a binary backup file
     public synchronized static boolean writeListToFilecpc(HashMap<String, HashMap<String, String>> captures, String fileName, Boolean append) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         ObjectOutputStream fileOut = null;
         Cipher cipher = Cipher.getInstance("AES");
@@ -147,6 +150,8 @@ public class Common {
         return true;
     }
 
+
+    // write the package information of installation and removal when the event is caught by the Boot receiver broadcast receiver  to a binary files
     public synchronized static boolean writePackageStatusToFile(String fileName, String state, String packageName, String Date, String FirstInstall, Context context) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         ObjectOutputStream fileOut = null;
         Cipher cipher = Cipher.getInstance("AES");
@@ -193,6 +198,7 @@ public class Common {
 
     }
 
+    // write the screen status logs which are caught by the Screen Receiver Broadcast receiver to a binary file
     public synchronized static boolean writeScreenStatusToFile(String fileName, String state) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         ObjectOutputStream fileOut = null;
         Cipher cipher = Cipher.getInstance("AES");
@@ -236,6 +242,7 @@ public class Common {
         return true;
     }
 
+    //write the hashmaps of ConnectionStats to a binary backup file
     public synchronized static boolean writeListToFilecxn(HashMap<String, HashMap<String, HashMap<String, String>>> captures, String fileName, Boolean append) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         ObjectOutputStream fileOut = null;
         Cipher cipher = Cipher.getInstance("AES");
@@ -299,6 +306,9 @@ public class Common {
         return true;
     }
 
+
+    // the method reads the notification answers from the backup file which are stored when there wasn't a connection and the
+    // user answered the notifiation question
     public static JSONArray readAnswersFromFile(String filename) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
 
         Cipher cipher = Cipher.getInstance("AES");
@@ -335,7 +345,7 @@ public class Common {
 
     }
 
-
+    // write the hashmaps of the connectionCount stats to a binary backup file
     public synchronized static boolean writeCxCountToFile(HashMap<String, Integer> CxCounts, String filename, Boolean append) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
 
         ObjectOutputStream fileOut = null;
@@ -376,6 +386,7 @@ public class Common {
         return true;
     }
 
+    // write the user answer for a specific notification to a backup file in case there wasn't a conneciton
     public synchronized static boolean writeAnswertoFile(JSONObject jsonObject, String filename, Boolean append) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         ObjectOutputStream fileOut = null;
         Cipher cipher = Cipher.getInstance("AES");
@@ -415,7 +426,7 @@ public class Common {
         return true;
     }
 
-
+    // write hashmaps of traffic stats to binary backup file
     public synchronized static boolean writeListToFile(HashMap<String, HashMap<String, Long>> captures, String fileName, Boolean append) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         //  AppendToFileNoHeader fileOut = null;
         ObjectOutputStream fileOut = null;
@@ -458,6 +469,9 @@ public class Common {
         return true;
     }
 
+    // read the saved hashmaps of Connections stats from the binary file
+    // this method is called when the upload service call to constrcut a json array with the collected stats
+    // this method is called by another satic method (create JSONCx)
     public synchronized static List<HashMap<String, Integer>> readCxCountListFromFile(String filename) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCxCount + "/");
         File myFile = new File(dir, filename);
@@ -499,13 +513,14 @@ public class Common {
     }
 
 
-    public static String convertHexToString(String hexValue) {
+   /* public static String convertHexToString(String hexValue) {
         String IP = "";
         String hex = hexValue.substring(hexValue.length() - 8);
         IP = String.valueOf(Integer.parseInt(hex.substring(6, 8), 16)) + "." + String.valueOf(Integer.parseInt(hex.substring(4, 6), 16)) + "." + String.valueOf(Integer.parseInt(hex.substring(2, 4), 16)) + "." + String.valueOf(Integer.parseInt(hex.substring(0, 2), 16));
         return IP;
-    }
+    }*/
 
+    // read the thresholds list which are downloaded from the server and saved in a binary file
     public synchronized static HashMap<String, HashMap<String, HashMap<String, Float>>> readThreshListFromFile(String filename) {
 
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/");
@@ -534,6 +549,7 @@ public class Common {
         return rtrnList;
     }
 
+    // write the downloaded thresholds from the server to a binary file
     public synchronized static boolean writeThreshListToFile(HashMap<String, HashMap<String, HashMap<String, Float>>> thresholds, String fileName, Boolean append) {
         //  AppendToFileNoHeader fileOut = null;
         ObjectOutputStream fileOut = null;
@@ -566,6 +582,7 @@ public class Common {
     }
 
     //S_Farah
+    //write the hashmaps of Open frequency stats to a binary file
     public synchronized static boolean writeListToFileOF(HashMap<String, String> captures, String fileName, Boolean append) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
         ObjectOutputStream fileOut = null;
         Cipher cipher = Cipher.getInstance("AES");
@@ -606,7 +623,7 @@ public class Common {
         return true;
     }
 
-
+    //write the hashmap of usagetime stats to a binary file
     public synchronized static boolean writeListToFileUT(HashMap<String, String> captures, String fileName, Boolean append) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
         ObjectOutputStream fileOut = null;
         Cipher cipher = Cipher.getInstance("AES");
@@ -647,6 +664,7 @@ public class Common {
     }
 
     //E_Farah
+    // read package changes from a binary file (installation and removal)
     public synchronized static List<HashMap<String, String>> readListFromFilepackage(String filename) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
@@ -681,6 +699,7 @@ public class Common {
 
     }
 
+    //read the list of traffic stats hashmaps from a binary file (this method takes a file as an input)
     public synchronized static List<HashMap<String, HashMap<String, Long>>> readListFromFiletf(File file) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
         List<HashMap<String, HashMap<String, Long>>> rtrnList = new ArrayList<>();
         Cipher cipher = Cipher.getInstance("AES");
@@ -713,6 +732,7 @@ public class Common {
         return rtrnList;
     }
 
+    //read the list of traffic stats hashmaps from a binary file (this method takes a file name string as an input)
     public synchronized static List<HashMap<String, HashMap<String, Long>>> readListFromFiletf(String filename) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeTf + "/");
         File myFile = new File(dir, filename);
@@ -748,6 +768,7 @@ public class Common {
         return rtrnList;
     }
 
+    //read the list of CPU and MEm stats hashmaps from a binary file (this method takes a file as an input)
     public synchronized static List<HashMap<String, HashMap<String, String>>> readListFromFilecpc(File file) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
@@ -782,6 +803,7 @@ public class Common {
 
     }
 
+    //read the list of CPU and MEm stats hashmaps from a binary file (this method takes a file name string as an input)
     public synchronized static List<HashMap<String, HashMap<String, String>>> readListFromFilecpc(String filename) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
         Cipher cipher = Cipher.getInstance("AES");
         cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
@@ -819,7 +841,7 @@ public class Common {
         return rtrnList;
     }
 
-
+    //read the list of Connection stats hashmaps from a binary file (this method takes a file as an input)
     public synchronized static HashMap<String, HashMap<String, HashMap<String, String>>> readListFromFilecxn(File file) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
 
         HashMap<String, HashMap<String, HashMap<String, String>>> rtrnList = new HashMap<>();
@@ -856,6 +878,7 @@ public class Common {
         return rtrnList;
     }
 
+    //read the list of Connection stats hashmaps from a binary file (this method takes a file name string as an input)
     public synchronized static HashMap<String, HashMap<String, HashMap<String, String>>> readListFromFilecxn(String filename) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeCx + "/");
         File myFile = new File(dir, filename);
@@ -894,6 +917,7 @@ public class Common {
 
 
     //S_Farah
+    //read the list of Open Frequency stats hashmaps from a binary file (this method takes a file as an input)
     public synchronized static List<HashMap<String, String>> readListFromFileOF(File file) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         List<HashMap<String, String>> rtrnList = new ArrayList<>();
         Cipher cipher = Cipher.getInstance("AES");
@@ -928,6 +952,7 @@ public class Common {
         return rtrnList;
     }
 
+    //read the list of Open Frequency stats hashmaps from a binary file (this method takes a file name string as an input)
     public synchronized static List<HashMap<String, String>> readListFromFileOF(String filename) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeOF + "/");
         File myFile = new File(dir, filename);
@@ -964,6 +989,7 @@ public class Common {
         return rtrnList;
     }
 
+    //read the list of Usage time stats hashmaps from a binary file (this method takes a file as an input)
     public synchronized static List<HashMap<String, String>> readListFromFileUT(File file) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
         List<HashMap<String, String>> rtrnList = new ArrayList<>();
         Cipher cipher = Cipher.getInstance("AES");
@@ -999,6 +1025,7 @@ public class Common {
         return rtrnList;
     }
 
+    //read the list of Usage time stats hashmaps from a binary file (this method takes a file name string as an input)
     public synchronized static List<HashMap<String, String>> readListFromFileUT(String filename) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeUT + "/");
         File myFile = new File(dir, filename);
@@ -1037,6 +1064,7 @@ public class Common {
     }
     //E_Farah
 
+    // read the log of screen activity which is appended to a file when received in the screen broadcast receiver
     public synchronized static List<HashMap<String, String>> readListFromFileScreen(String filename) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + CommonVariables.filetypeScreen + "/");
         File myFile = new File(dir, filename);
@@ -1087,6 +1115,8 @@ public class Common {
         return appName;
     }
 
+    //create a json array of traffic stats called when uploading the stats which are logged in the binary files
+    // the method calls readListFromFiletf method inside
     public static JSONArray makeJsonArraytf(String filename) {
         List<HashMap<String, HashMap<String, Long>>> tfArray;
         JSONArray jsonArray = null;
@@ -1101,6 +1131,8 @@ public class Common {
         return jsonArray;
     }
 
+    //create a json array of Connections Count stats called when uploading the stats which are logged in the binary files
+    // the method calls readCxCountListFromFile method inside
     public static JSONArray makeJsonArrayCxCount(String filename) {
         List<HashMap<String, Integer>> CxCountArray;
         JSONArray jsonArray = null;
@@ -1116,6 +1148,8 @@ public class Common {
         return jsonArray;
     }
 
+    //create a json array of CPU and Mem stats called when uploading the stats which are logged in the binary files
+    // the method calls readListFromFilecpc method inside
     public static JSONArray makeJsonArraycpc(String filename) {
         List<HashMap<String, HashMap<String, String>>> cpcArray;
         JSONArray jsonArray = null;
@@ -1130,6 +1164,8 @@ public class Common {
         return jsonArray;
     }
 
+    //create a json array of Connections stats called when uploading the stats which are logged in the binary files
+    // the method calls readListFromFilecxn method inside
     public static JSONObject makeJsonArraycxn(String filename) {
         HashMap<String, HashMap<String, HashMap<String, String>>> cpcArray;
         JSONObject jsonObject = null;
@@ -1152,6 +1188,8 @@ public class Common {
     }
 
     //S_Farah
+    //create a json array of Open Frequency called when uploading the stats which are logged in the binary files
+    // the method calls readListFromFileOF method inside
     public static JSONArray makeJsonArrayOF(String filename) {
         List<HashMap<String, String>> OFArray;
         JSONArray jsonArray = null;
@@ -1166,6 +1204,8 @@ public class Common {
         return jsonArray;
     }
 
+    //create a json array of Usage Time called when uploading the stats which are logged in the binary files
+    // the method calls readListFromFileUT method inside
     public static JSONArray makeJsonArrayUT(String filename) {
         List<HashMap<String, String>> UTArray;
         JSONArray jsonArray = null;
@@ -1181,6 +1221,8 @@ public class Common {
     }
     //E_Farah
 
+    //create a json array of Screen activity logs when uploading the stats which are logged in the binary files
+    // the method calls readListFromFileScreen method inside
     public static JSONArray makeJsonArrayScreen(String filename) {
         List<HashMap<String, String>> UTArray;
         JSONArray jsonArray = null;
@@ -1195,6 +1237,9 @@ public class Common {
         return jsonArray;
     }
 
+    //craete a json array of Packet information (removal and installation) which is saved in binary files
+    // when received in the BootReceiver broadcast receiver
+    // this method calls readListFromFilepackage inside
     public static JSONArray makeJsonArrayPackages(String filename) {
         List<HashMap<String, String>> UTArray;
         JSONArray jsonArray = null;
@@ -1210,6 +1255,8 @@ public class Common {
     }
 
 
+    // the method is used to check the file size against a specific threshold
+    // downloaded from the server
     public static boolean checkFileSize(String type, String filename, int size) {
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/");
         File myFile = new File(dir, filename);
@@ -1218,6 +1265,7 @@ public class Common {
         return file_size >= size;
     }
 
+    // starts an Async task to check the connection state (wifi + certain IP is reachable)
     public static boolean isConnectedToWifi(Context context) {
         boolean isConnected = false;
         boolean isWiFi = false;
@@ -1233,6 +1281,9 @@ public class Common {
         return isWiFi;
     }
 
+    // create an Https connection using a specific URL provided when the upload service is starting the upload process
+    // the method uses a certificate generated and signed by the App server
+    // and set the content that should be sent in as json
     public static HttpsURLConnection setUpHttpsConnection(String urlString, Context context, String type) {
         HttpsURLConnection urlConnection = null;
         String userCredentials = CommonVariables.username + ":" + CommonVariables.password;
@@ -1303,6 +1354,8 @@ public class Common {
         return urlConnection;
     }
 
+    // create an Http connection using a specific URl provided when the upload service is starting the upload process
+    // this method is not used because of the security concerns
     public static HttpURLConnection setUpHttpConnection(String urlString, String type) {
 
         try {
@@ -1328,6 +1381,7 @@ public class Common {
         return null;
     }
 
+    // get the installed thrid part Apps
     public synchronized static void get3rdPartyApps() {
         String pLine = null;
         CommonVariables.installed3rdPartyApps.clear();
@@ -1344,12 +1398,13 @@ public class Common {
         }
     }
 
+    // get all installed packages
     public synchronized static void getInstalledPackages(Context context) {
         final PackageManager PM = context.getPackageManager();
-        CommonVariables.installedPackages = (CopyOnWriteArrayList<ApplicationInfo>) PM.getInstalledApplications(0);
+        CommonVariables.installedPackages = new CopyOnWriteArrayList<ApplicationInfo>(PM.getInstalledApplications(0));
     }
 
-
+    // get app info by app name
     public static ApplicationInfo getAppInfo(Context context, String Name) {
         // final PackageManager PM = context.getPackageManager();
         try {
@@ -1361,6 +1416,8 @@ public class Common {
         return null;
     }
 
+    //get the package install time, this method is called when deleting a package which triggers alisterner
+    // or when reporting the installed packages to the server at user registeration
     public static String getPackageInstallTime(Context context, String Package) {
         try {
             PackageManager pm = context.getPackageManager();
@@ -1375,6 +1432,8 @@ public class Common {
         }
     }
 
+    // start the register user task at first run of the service or after service restart to make sure
+    // that a user is registered
     public static void regUser(Context context) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.app_preference), Context.MODE_PRIVATE);
         final String user = sharedPreferences.getString(context.getString(R.string.user_name), "");
@@ -1399,10 +1458,12 @@ public class Common {
         }
     }
 
+    //check connection checks that the phone is conneced to WIFI and a certain IP is reachable
     public static void checkConnection(Context context) {
         new checkConnectivity(context).execute();
     }
 
+    // triggers the getThresholds task to update the threshold values from the server
     public static boolean getThresholds(Context context) {
         CommonVariables.RequestedThresholds = true;
         SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.trsh_preference), Context.MODE_PRIVATE);
@@ -1423,6 +1484,7 @@ public class Common {
         return false;
     }
 
+    // register the broadcast receiver at application start
     public static void regBroadcastRec(Context context) {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
@@ -1439,6 +1501,7 @@ public class Common {
         context.getPackageManager().setComponentEnabledSetting(restartcomponent, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
     }
 
+    // delete the binary files in a directory after upload has sucessfully finished
     public static void deleteRecursive(File fileOrDirectory) {
         if (fileOrDirectory.isDirectory()) {
             for (File child : fileOrDirectory.listFiles()) {
@@ -1448,6 +1511,8 @@ public class Common {
         fileOrDirectory.delete();
     }
 
+    // delete the application directory if a new version of the App is installed
+    // the method is called to prevent App files compatibilty issues
     public static boolean deleteAppDirectory() {
 
         File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/");
@@ -1458,6 +1523,7 @@ public class Common {
         return true;
     }
 
+    //report if this is the first run of the service
     public static boolean checkFirstRun(Context context, SharedPreferences sharedPreferences) {
         final String state = sharedPreferences.getString(context.getString(R.string.firstrun), "");
         try {
@@ -1470,6 +1536,8 @@ public class Common {
         return false;
     }
 
+    //checks if it is the first run of the service and if yes it deletes the old files from the old
+    //service version
     public static void SafeFirstRun(Context context) {
         SharedPreferences editor = context.getSharedPreferences(context.getString(R.string.interval_preference), Context.MODE_PRIVATE);
         PackageManager manager = context.getPackageManager();
@@ -1495,6 +1563,7 @@ public class Common {
         }
     }
 
+    //calls an asyn task to download the intervals from the server and update the current invetvals values
     public static boolean getIntervals(Context context) {
 
         SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.interval_preference), Context.MODE_PRIVATE);
@@ -1512,7 +1581,7 @@ public class Common {
         return false;
     }
 
-
+    // check if the App has been granted the required permissions in case of Android OS 6.0
     public static boolean hasPermissions(Context context, String... permissions) {
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && context != null && permissions != null) {
             for (String permission : permissions) {
@@ -1524,6 +1593,8 @@ public class Common {
         return true;
     }
 
+    // delete a specific file in a specific directory called when the single file upload has finished
+    // successfully
     public static void deleteFilesFromDirectory(String type, String currentfile) {
         String Dir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/";
         File f = new File(Dir);
@@ -1550,6 +1621,8 @@ public class Common {
         }
     }
 
+    // check if the service running when the event broadcast receiver receives that the phone
+    // has completed the boot operation
     public static boolean isMyServiceRunning(Class<?> serviceClass, Context context) {
         ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
@@ -1560,6 +1633,8 @@ public class Common {
         return false;
     }
 
+
+    // shows a sticky notification that the service is running
     public static void showNotificationRunning(Context context) {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context);

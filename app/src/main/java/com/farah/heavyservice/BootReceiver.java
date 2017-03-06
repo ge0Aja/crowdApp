@@ -13,6 +13,10 @@ import javax.crypto.NoSuchPaddingException;
 
 /**
  * Created by Georgi on 8/21/2016.
+ *
+ * in the Bootreceiver BroadcastReceiver we catch the following broadcasts:
+ * Package Install / Remove
+ * we started with this receiver as a boot receiver then we changed its usage
  */
 public class BootReceiver extends BroadcastReceiver {
 
@@ -25,6 +29,7 @@ public class BootReceiver extends BroadcastReceiver {
 
 
         switch (action) {
+            // in case of package installation get the package info and write a log with the package info
             case "android.intent.action.PACKAGE_INSTALL":
             case "android.intent.action.PACKAGE_ADDED":
                 Uri uriadd = intent.getData();
@@ -44,6 +49,8 @@ public class BootReceiver extends BroadcastReceiver {
                 Common.getInstalledPackages(context);
                 Log.i(CommonVariables.TAG, "Package Logged  Added");
                 break;
+            // incase or package remove try to get the installation time of the package if available and
+            // log the package information
             case "android.intent.action.PACKAGE_REMOVED":
                 Uri uri = intent.getData();
                 packageName = uri != null ? uri.getSchemeSpecificPart() : null;

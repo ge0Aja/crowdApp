@@ -18,8 +18,8 @@
         android:layout_marginTop="25dp"
         android:gravity="center_horizontal"
         android:hint="Notification Text"
-        android:lines="2"
-        android:maxLines="2"
+        android:lines="5"
+        android:maxLines="5"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textStyle="bold" />
 
@@ -27,9 +27,8 @@
         android:id="@+id/txt_question"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
         android:layout_below="@+id/txt_notification"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="28dp"
         android:gravity="center_horizontal"
         android:hint="Question Text"
         android:lines="2"

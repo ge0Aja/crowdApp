@@ -23,6 +23,8 @@ import javax.net.ssl.HttpsURLConnection;
 
 /**
  * Created by Georgi on 9/17/2016.
+ *
+ * this async task is called after the user submits an answer for a received notification
  */
 public class SubmitAnswerTask extends AsyncTask<String, Void, Void> {
 
@@ -41,9 +43,14 @@ public class SubmitAnswerTask extends AsyncTask<String, Void, Void> {
 
     @Override
     protected Void doInBackground(String... params) {
+        // we've set the thread priority to highest to make sure that the response is submitted directly
         Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND + Process.THREAD_PRIORITY_MORE_FAVORABLE);// setThreadPriority (THREAD_PRIORITY_BACKGROUND + THREAD_PRIORITY_MORE_FAVORABLE);
         jsonObject = new JSONObject();
         try {
+            // the response include a flag which indicates if the user clickd the more button
+            // the answer
+            // the question id which is received with the notification
+            // a timestamp
             jsonObject.put("More", params[3]);
             jsonObject.put("Ansid", params[2]);
             jsonObject.put("Qid", params[1]);
@@ -57,6 +64,8 @@ public class SubmitAnswerTask extends AsyncTask<String, Void, Void> {
 
     @Override
     protected void onPostExecute(Void aVoid) {
+        // if the reponse is submitted with no problems OK
+        // else save the response to a backup file to be uploaded as soon the connection is back
         if (b) {
             Toast.makeText(mContext, "Your Answer is Submitted", Toast.LENGTH_SHORT);
         } else {
@@ -74,6 +83,7 @@ public class SubmitAnswerTask extends AsyncTask<String, Void, Void> {
         // activity.finish();
     }
 
+    // this method submits the answer of th user to a spicified notification
     private boolean SubmitAnswer(String urlString, JSONObject jsonObject, Context context) {
 
         StringBuilder sb = new StringBuilder();

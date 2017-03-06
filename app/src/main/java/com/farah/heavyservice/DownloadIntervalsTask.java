@@ -20,6 +20,11 @@ import javax.net.ssl.HttpsURLConnection;
 
 /**
  * Created by Georgi on 9/27/2016.
+ *
+ * the task is called to update the thresholds which are used to compare against
+ * the task checks a flag in the shared preferences and obtain the last update time for the thresholds
+ * if the thresholds were not obtained from the server it will assign a fixed value saved in the strings resources file
+ * the task replies to the server when successfully updating the thresholds to update the users table in the databse
  */
 public class DownloadIntervalsTask extends AsyncTask<String, Void, Void> {
     private Context mContext;

@@ -12,6 +12,14 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+/**
+ * Created by Georgi on 8/19/2016.
+ * the Alert activity is triggered when a notifiation is received form the server and the user clicks
+ * on that notification.
+ * the activity will show the title and message of the notification
+ * with a radio button box that allows the user to answer the message sent with the notification
+ */
+
 public class AlertActivity extends AppCompatActivity {
 
     private String type;
@@ -25,9 +33,12 @@ public class AlertActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_alert);
+        // make sure that the screen layout is portrait
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         try {
+            // get the notification information from the intent sent when the notification is received
+            // message and question
             Intent intent = getIntent();
             TextView not_message = (TextView) findViewById(R.id.txt_notification);
             TextView not_quest = (TextView) findViewById(R.id.txt_question);
@@ -38,6 +49,8 @@ public class AlertActivity extends AppCompatActivity {
             question = intent.getStringExtra("question");
             not_quest.setText(question);
 
+            // the type of the notification is sent from the server along with the question ID
+            // for tracking the answers
             type = intent.getStringExtra("type");
             Qid = intent.getStringExtra("Qid");
             notId = intent.getStringExtra("notid");
@@ -47,6 +60,8 @@ public class AlertActivity extends AppCompatActivity {
 
     }
 
+    // this method shows the text that appears when the user clicks on I don't understand button
+    // the messages are saved in the App assets locally
     public void understandClick(View view){
         String dialogMessage = "";
         More = 1;
@@ -91,6 +106,9 @@ public class AlertActivity extends AppCompatActivity {
         }
     }
 
+
+    //when the user clicks on submit we make sure that an answer is selected then we start an async task
+    // to submit the answer
     public void submitAnswer(View view){
         try {
             RadioGroup group = (RadioGroup) findViewById(R.id.radioGroup);

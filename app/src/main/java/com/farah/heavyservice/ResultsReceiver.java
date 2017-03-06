@@ -1,14 +1,18 @@
 package com.farah.heavyservice;
 
-        import android.annotation.SuppressLint;
-        import android.os.Bundle;
-        import android.os.Handler;
-        import android.os.ResultReceiver;
-
-        import java.sql.ResultSet;
+import android.annotation.SuppressLint;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.ResultReceiver;
 
 /**
  * Created by Georgi on 8/15/2016.
+ *
+ * we created two instances of this class to receive the results of the upload methods
+ *
+ * first instance is used with the single upload method and is located in the MyService.java file
+ *
+ * second instalce is used with the mutiple files upload method and is located in the commonvariables.java file
  */
 @SuppressLint("ParcelCreator")
 public class ResultsReceiver extends ResultReceiver {
@@ -29,14 +33,14 @@ public class ResultsReceiver extends ResultReceiver {
         mReceiver = receiver;
     }
 
-    public interface Receiver {
-        public void onReceiveResult(int resultCode, Bundle resultData);
-    }
-
     @Override
     protected void onReceiveResult(int resultCode, Bundle resultData) {
         if (mReceiver != null) {
             mReceiver.onReceiveResult(resultCode, resultData);
         }
+    }
+
+    public interface Receiver {
+        void onReceiveResult(int resultCode, Bundle resultData);
     }
 }

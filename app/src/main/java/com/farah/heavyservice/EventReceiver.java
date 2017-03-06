@@ -15,6 +15,14 @@ import java.io.File;
 
 /**
  * Created by Georgi on 10/7/2016.
+ *
+ * the Event receiver catch the boot and connectivity change events plus battery level warnings
+ *
+ * on the boot complete we are starting the service and asking for permissions in the case of OS 6.0
+ *
+ * in the case of connectivity change I'm starting the upload process for the All directories
+ *
+ * in case of a battery level warning we decrease the collect interval to save power
  */
 public class EventReceiver extends BroadcastReceiver {
     @Override

@@ -17,6 +17,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Created by Georgi on 8/23/2016.
+ *
+ * the common variables class include static variables that are used on a global scale in the App
+ *
+ * thresholds and intervals have a preset value at the start of the application in case of the App
+ * didn't find a way to connect to the server
+ * then , the thresholds and invervals will get updated once the app is connected
  */
 public class CommonVariables {
 
@@ -59,6 +65,8 @@ public class CommonVariables {
     public static int uploadIntervalNormal = 120000;
     // repeat_upload interval for Dir after connecting to wifi
     public static int uploadIntervalRetry = 7200000;
+
+    // checking thresholds intervals
     public static int checkCPCThresholdInterval = 120 * 1000;
     public static int checkCxnThresholdInterval = 120 * 1000;
     public static int checkTfThresholdInterval = 120 * 1000;
@@ -98,6 +106,7 @@ public class CommonVariables {
     public static String thresholdsFile = "Thresholds";
 
 
+    // URLS from the server used in the process
    /* public static String TFUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertTF.php";
     public static String CPCUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertCPC.php";
     public static String CxUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertCx.php";
@@ -153,6 +162,12 @@ public class CommonVariables {
     public static AlarmManager alarm;
     public static PendingIntent pintent;
 
+
+    // this reuslt receiver is used with multiple files upload services
+    // the service will broadcast finish information and it will be received in this receiver
+    // the upload service will send the resultCode and and uploaded files type
+    // if the files are uploaded the receiver will delete the files
+    // incase of an error it wil be reported using Firebase
     public static ResultsReceiver uploadResultDir = new ResultsReceiver(new Handler()) {
         @Override
         protected void onReceiveResult(int resultCode, Bundle resultData) {
@@ -219,16 +234,19 @@ public class CommonVariables {
         }
     };
 
+    // a public method to set the wifi property
     public static void setWiFi(boolean WiFi) {
         isWiFi = WiFi;
     }
 
+    // set the upload setting when a file reached the maximum size
     public static void setUploadSettings(String fileName, Boolean upload, String filetypetoupload) {
         fileToUpload = fileName;
         startUpload = upload;
         fileUploadType = filetypetoupload;
     }
 
+    /* change the backup files names when the upload service is started for a specific type*/
     public static void changeCxBkupName(String Name) {
         CxBkup = Name;
     }

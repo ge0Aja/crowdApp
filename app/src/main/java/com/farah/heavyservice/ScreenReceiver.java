@@ -13,6 +13,11 @@ import javax.crypto.NoSuchPaddingException;
 
 /**
  * Created by Georgi on 10/8/2016.
+ *
+ * this broadcast receiver is responsible for logging the screen activity when turning the screen on /off
+ * which calls a method to write the screen activity to binary backup files
+ *
+ * it is also responsible to capture the battery warning broadcast to update the collect interval
  */
 public class ScreenReceiver extends BroadcastReceiver {
     @Override

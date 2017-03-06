@@ -17,6 +17,9 @@ import javax.net.ssl.HttpsURLConnection;
 
 /**
  * Created by Georgi on 10/12/2016.
+ *
+ * this async task is called when the compare threshold task find a significant probability value for the reported feature value
+ * when compared against the downloaded thresholds
  */
 public class SendAlarmTask extends AsyncTask<String, Void, Void> {
 
@@ -24,6 +27,8 @@ public class SendAlarmTask extends AsyncTask<String, Void, Void> {
     private boolean b = false;
     private String Appname = "";
     private String thresh_type = "";
+    private double prt;
+    private double val;
 
     public SendAlarmTask(Context context) {
 
@@ -32,8 +37,12 @@ public class SendAlarmTask extends AsyncTask<String, Void, Void> {
 
     @Override
     protected Void doInBackground(String... params) {
+        // from the input take the appname and threshold type plus the reported value and
+        //ratio  then call a method to submit the event (alarm)
         Appname = params[0];
         thresh_type = params[1];
+        prt = Double.valueOf(params[2]);
+        val = Double.valueOf(params[3]);
 
         b = sendAlaram(params[0], params[1], mContext);
         return null;
@@ -41,6 +50,7 @@ public class SendAlarmTask extends AsyncTask<String, Void, Void> {
 
     @Override
     protected void onPostExecute(Void aVoid) {
+        // log what happened after the method finish the execute
         if (b) {
             Log.d(CommonVariables.TAG, "An Alarm for " + Appname + " for Feature " + thresh_type + " was submitted to the server");
         } else {
@@ -49,6 +59,7 @@ public class SendAlarmTask extends AsyncTask<String, Void, Void> {
     }
 
     private boolean sendAlaram(String App, String thresh_type, Context context) {
+        //added a delay to prevent server carsh
         try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {
@@ -57,6 +68,7 @@ public class SendAlarmTask extends AsyncTask<String, Void, Void> {
         StringBuilder sb = new StringBuilder();
         String tempOutput = "";
 
+        //create a secure connection using the specified URL
         HttpsURLConnection sendalarm_con = Common.setUpHttpsConnection(CommonVariables.SubmitAlarm, context, "POST");
 
         if (sendalarm_con != null) {
@@ -65,17 +77,22 @@ public class SendAlarmTask extends AsyncTask<String, Void, Void> {
                 OutputStream os = sendalarm_con.getOutputStream();
                 OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
 
+                // include the app name and threshold type plus value and ratio and a timestamp
+                // when submitting the event
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("app", App);
                 jsonObject.put("thresh", thresh_type);
+                jsonObject.put("value", val);
+                jsonObject.put("percentage", prt);
                 jsonObject.put("timestamp", System.currentTimeMillis());
-
                 sendalarm_con.connect();
 
                 osw.write(jsonObject.toString());
                 osw.flush();
                 osw.close();
 
+
+                //get the response from the server and log the reason of error
                 BufferedReader br = new BufferedReader(new InputStreamReader(sendalarm_con.getInputStream()));
                 while ((tempOutput = br.readLine()) != null) {
                     sb.append(tempOutput);

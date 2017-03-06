@@ -26,8 +26,12 @@ import java.util.HashMap;
 
 /**
  * Created by Georgi on 8/13/2016.
+ *
+ * this service is used when the main service initiate a file or a directory upload
  */
 public class ClientServerService extends IntentService {
+
+    // reported status of the upload service
     public static final int STATUS_RUNNING = 0;
     public static final int STATUS_FINISHED = 1;
     public static final int STATUS_ERROR = 2;
@@ -47,29 +51,42 @@ public class ClientServerService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
+        // after receiving the intent to start the upload sleep for a specific interval
+        // this was added to decrease the load on the server
         try {
             Thread.sleep(10000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         Log.d(TAG, "Upload Service Started!");
+        // check which receiver should receive the status of the service
+        // and get the upload type file or directory
         final ResultReceiver receiver = intent.getParcelableExtra("receiver");
         String uploadType = intent.getStringExtra("uploadtype");
         Log.d(TAG, "Upload type is " + uploadType);
+        // create a bundle to append the result data to it
         Bundle bundle = new Bundle();
+        // if the upload type is file and we have connection to the server and no other upload service is running start
         if (uploadType.equals(CommonVariables.UploadTypeFile) && CommonVariables.isWiFi && CommonVariables.startUpload && CommonVariables.userRegistered) {
             Log.i(TAG, "The upload type is file and should start uploading");
+            // get the url from the intent
             String url = intent.getStringExtra("url");
+            // get the file name that has exceeded the size
             String filename = intent.getStringExtra("filename");
             Log.d(TAG, "file to upload is " + filename);
+            // get the type of the upload file (CPU , MEM , Traffic , Conn)
             String type = intent.getStringExtra("type");
+            // if the url is not empty
             if (!TextUtils.isEmpty(url)) {
                 bundle.putString("type", type);
                 receiver.send(STATUS_RUNNING, bundle);
                 try {
+                    //call the upload method which uses a secure connection HTTPS
                     String[] results = uploadDataSecure(url, type, filename);
                     Log.i(TAG, String.valueOf(results));
-                /* Sending result back to Service */
+                /* Sending result back to Service
+                * put the file name and the status of the file along with its type
+                * */
                     if (results[0] != null && results.length != 0) {
                         if (!results[0].equals("Unconfirmed")) {
                             bundle.putString("filename", filename);
@@ -100,13 +117,22 @@ public class ClientServerService extends IntentService {
                     this.stopSelf();
                 }
             }
-        } else if (uploadType.equals(CommonVariables.UploadTypeDir) && CommonVariables.isWiFi && CommonVariables.startUploadDir && CommonVariables.userRegistered) {
+        }
+        // if the upload type is directory and the app is connected to wifi and there is no other upload running
+        else if (uploadType.equals(CommonVariables.UploadTypeDir) && CommonVariables.isWiFi && CommonVariables.startUploadDir && CommonVariables.userRegistered) {
+            // check the directory type that we want to upload the files from
+            /*
+            the type of the directories are (All, CPC, TF, CONN, OF, UT)
+            * */
             String type = intent.getStringExtra("type");
             if (!type.equals(CommonVariables.filetypeAll)) {
+                // the directory upload is not multiple
                 Log.i(TAG, "The upload type is one Dir and should start uploading");
                 try {
+                    // call the directory upload method which uses a secure connection
                     HashMap<String, String> results = uploadDataDirSecure(type);
                     bundle.putString("type", type);
+                    /*return the results of the upload to the receiver if the common variables class*/
                     if (results.get("Unauthorized") != null) {
                         bundle.putInt("Status", STATUS_FINISHED_FORBIDDEN);
                         receiver.send(STATUS_FINISHED, bundle);
@@ -136,6 +162,7 @@ public class ClientServerService extends IntentService {
                     this.stopSelf();
                 }
             } else {
+                /*the type of the upload is multi directory and the upload will repeat for each one*/
                 Log.i(TAG, "The upload type is multiple Dir and should start uploading");
                 String[] fileTypes = {CommonVariables.filetypeAnswers, CommonVariables.filetypeCPC, CommonVariables.filetypeCx, CommonVariables.filetypeTf, CommonVariables.filetypeOF, CommonVariables.filetypeUT, CommonVariables.filetypeScreen};
                 for (String t : fileTypes
@@ -144,6 +171,7 @@ public class ClientServerService extends IntentService {
                         receiver.send(STATUS_RUNNING, bundle);
                         HashMap<String, String> results = uploadDataDirSecure(String.valueOf(t));
                         bundle.putString("type", String.valueOf(t));
+                        /*return the results of the upload to the receiver if the common variables class*/
                         if (results.get("Unauthorized") != null) {
                             bundle.putInt("Status", STATUS_FINISHED_FORBIDDEN);
                             receiver.send(STATUS_FINISHED, bundle);
@@ -182,7 +210,9 @@ public class ClientServerService extends IntentService {
         this.stopSelf();
     }
 
+    //secured upload for a directory of files
     private HashMap<String, String> uploadDataDirSecure(String type) throws IOException {
+        /*added the delay to protect the server from being overloaded */
         try {
             Thread.sleep(10000);
         } catch (InterruptedException e) {
@@ -195,6 +225,7 @@ public class ClientServerService extends IntentService {
         HashMap<String, String> output = new HashMap<>();
         JSONArray newJsonArray = null;
         JSONObject newJsonObject = null;
+        /*get the type of the directory and start listing the files */
         String Dir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/";
         File f = new File(Dir);
         if (f != null) {
@@ -208,6 +239,7 @@ public class ClientServerService extends IntentService {
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
+                        // according to the file type set the https connection variables (URL)
                         if (type.equals(CommonVariables.filetypeCPC)) {
                             postUrlConnection = Common.setUpHttpsConnection(CommonVariables.CPCUploadURL, this.getApplicationContext(), "POST");
                             currentFileName = CommonVariables.CPCBkup;
@@ -234,7 +266,11 @@ public class ClientServerService extends IntentService {
                             currentFileName = "Not";
                         }
                         if (postUrlConnection != null) {
-
+                            // start creating the upload JSON array which has the logged stats
+                            // when iterating over the files if we find any file named delete we have to delete it
+                            // this was added to delete the files that were uploaded or caused problems
+                            // iterate over all the files and add each created JSon array to a bigger JSON array structure
+                            // which will be uploaded
                             JSONArray AllFileJsonArray = new JSONArray();
                             for (File fi : files
                                     ) {
@@ -275,6 +311,8 @@ public class ClientServerService extends IntentService {
                                     output.put(fi.getName(), "CurrentFile");
                                 }
                             }
+                            // after creating the json array try to connect to the specified URL and start
+                            // the upload process
                             postUrlConnection.connect();
                             if (AllFileJsonArray != null && AllFileJsonArray.length() != 0) {
                                 OutputStream os = null;
@@ -287,6 +325,9 @@ public class ClientServerService extends IntentService {
                                 }
                                 osw.flush();
                                 osw.close();
+                                // buffer the response that you get from the server
+                                // according to the response of the server we report the status
+                                // of the upload service
                                 BufferedReader br = new BufferedReader(new InputStreamReader(
                                         (postUrlConnection.getInputStream())));
                                 while ((tempOutput = br.readLine()) != null) {
@@ -307,6 +348,9 @@ public class ClientServerService extends IntentService {
                                             File delFR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/delete" + System.currentTimeMillis());
                                             fi.renameTo(delFR);
                                         }*/
+                                            /*if we get an update interval or update threshold flag in the reponse of the server
+                                            * the service will trigger an async task to start updating the intervals / thresholds
+                                            * */
                                             if (json.getString("update_interval").equals("1")) {
                                                 CommonVariables.startUpdateIntervals = true;
                                             }
@@ -360,7 +404,9 @@ public class ClientServerService extends IntentService {
         return output;
     }
 
+    // secure upload file method used to upload a single file
     private String[] uploadDataSecure(String url, String type, String filename) throws IOException {
+        /*added the delay to protect the server from being overloaded*/
         try {
             Thread.sleep(10000);
         } catch (InterruptedException e) {
@@ -372,6 +418,7 @@ public class ClientServerService extends IntentService {
         String[] res = new String[3];
         JSONArray newJsonArray = null;
         JSONObject newJsonObject = null;
+        /*according to the type of file to upload create a json array which contains the logged stats*/
         if (type.equals(CommonVariables.filetypeCPC)) {
             newJsonArray = Common.makeJsonArraycpc(filename);
             //  Log.d("CPC uppload",newJsonArray.toString());
@@ -391,10 +438,10 @@ public class ClientServerService extends IntentService {
             newJsonArray = Common.makeJsonArrayPackages(filename);
         }
         try {
+            /*set the variables of the connection (URL)*/
             postUrlConnection = Common.setUpHttpsConnection(url, this.getApplicationContext(), "POST");
             postUrlConnection.connect();
-            // create JSON OBJECT
-
+            // after connection start the upload process and buffer the reponse from the server
             if ((newJsonArray != null && newJsonArray.length() != 0) || (newJsonObject != null && newJsonObject.length() != 0)) {
                 OutputStream os = postUrlConnection.getOutputStream();
                 OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
@@ -415,6 +462,7 @@ public class ClientServerService extends IntentService {
                 File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/");
                 File myFile = new File(dir, filename);
                 //  Log.d(TAG,"Server Response is "+sb.toString());
+                //report the buffered reponse from the server to be included in the service reponse to the receiver
                 if (sb.length() != 0) {
                     if (sb.toString().equals("")) {
                         myFile.renameTo(new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + type + "/unconfirmed" + System.currentTimeMillis()));
@@ -430,6 +478,9 @@ public class ClientServerService extends IntentService {
                                 myFile.renameTo(delFR);
                             }
                             res[0] = "success";
+                            /*if we get an update interval or update threshold flag in the reponse of the server
+                            * the service will trigger an async task to start updating the intervals / thresholds
+                            * */
                             if (json.getString("update_interval").equals("1")) {
                                 CommonVariables.startUpdateIntervals = true;
                             }

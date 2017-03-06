@@ -24,6 +24,12 @@ import javax.net.ssl.HttpsURLConnection;
 
 /**
  * Created by Georgi on 9/10/2016.
+ *
+ * the task is called when the service start or when the application restarts to register and make sure
+ * that the user is registered
+ * the task send the fcm_token obtained from registering the the app to the firebase server
+ * and os veriosn
+ * and the list of installed 3rd party apps to be saved in the App database
  */
 public class RegisterUserTask extends AsyncTask<String, Void, Void> {
     private Context mContext;
@@ -50,6 +56,8 @@ public class RegisterUserTask extends AsyncTask<String, Void, Void> {
 
     @Override
     protected void onPostExecute(Void aVoid) {
+        // if the user is registered successfully the username will be added to the app preferences to be read
+        // at next startup incase of service restart
         if (b) {
             //   sharedPreferencesApp = mContext.getSharedPreferences(mContext.getString(R.string.app_preference), Context.MODE_PRIVATE);
             CommonVariables.username = sharedPreferencesApp.getString(mContext.getString(R.string.user_name), "");
@@ -66,13 +74,16 @@ public class RegisterUserTask extends AsyncTask<String, Void, Void> {
         }
         StringBuilder sb = new StringBuilder();
         String tempOutput = "";
+        //creates a connection instance with the specified url
         HttpsURLConnection reg_con = Common.setUpHttpsConnection(urlString, context, "POST");
         //  sharedPreferences = context.getSharedPreferences(context.getString(R.string.fcm_preference), Context.MODE_PRIVATE);
+
+        // read the FCM token obtained when registering the App to firebase server and obtain the OS version
         final String token = sharedPreferencesFCM.getString(context.getString(R.string.fcm_token), "");
         final String os_version = String.valueOf(Build.VERSION.SDK_INT);
 
         JSONArray user_apps = new JSONArray();
-
+        // obtain installed 3 party apps
         for (String appname : CommonVariables.installed3rdPartyApps
                 ) {
             try {
@@ -85,7 +96,10 @@ public class RegisterUserTask extends AsyncTask<String, Void, Void> {
                 e.printStackTrace();
             }
         }
-
+        // the json object will contain the fcm_token
+        // os version
+        //list of installed apps
+        // a timestamp
         JSONObject jsonObject = new JSONObject();
         try {
             if (reg_con != null) {

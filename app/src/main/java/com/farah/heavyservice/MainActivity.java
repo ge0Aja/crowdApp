@@ -10,6 +10,9 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
+/*
+* this is the main activity which is basically an empty activity that has two buttons to start and stop the service
+* */
 
 public class MainActivity extends AppCompatActivity {
 
@@ -17,14 +20,17 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        // we make sure that the screen orientation is portrait
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+        // is the OS is Android OS 6.0 and above we ask for the required permissions
         if (!Common.hasPermissions(this, CommonVariables.Permissions)) {
             ActivityCompat.requestPermissions(this, CommonVariables.Permissions, CommonVariables.PERMISSION_ALL);
         } else {
             CommonVariables.startService = true;
         }
 
+        // if all is checked then we can start the service if it is not started
         if (CommonVariables.startService) {
             if (!Common.isMyServiceRunning(MyService.class, getApplicationContext())) {
                 Intent intent = new Intent(this, MyService.class);
@@ -36,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
         }*/
     }
 
+    // on button click check the required permissions before starting the service
     public void startCollecting(View view) {
 
         if (!Common.hasPermissions(this, CommonVariables.Permissions)) {
@@ -51,6 +58,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // stop the service
+    // however the service will not stop because it automatically restarts
     public void stopCollecting(View view) {
         Intent intent = new Intent(this, MyService.class);
         stopService(intent);

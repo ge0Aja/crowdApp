@@ -35,7 +35,13 @@ import javax.crypto.NoSuchPaddingException;
 
 public class MyService extends Service {
 
-    //Results receiver for the upload service
+    //A Result receiver for the single file upload service, the upload service returns the result code
+    //of the upload operation and a bundle that has the type of the uploaded file to be used when changing
+    // the storage file name
+    //when the results are received the receiver deletes the uploaded file and checks if an update interval
+    // or update threshold flag is turned on by the server in the response
+    // if yes the result receiver triggers the update interval/threshold task
+    // in case of an error the result receiver reports the error using Firebase
     public static ResultsReceiver uploadResult = new ResultsReceiver(new Handler()) {
         @Override
         protected void onReceiveResult(int resultCode, Bundle resultData) {
@@ -134,11 +140,27 @@ public class MyService extends Service {
             }
         }
     };
+
+    // intializing variables to be used in the service
     String messageLogged = "";
     String regex = "[^\\d]";
     String protocol = "";
     String previousOnTop = "";
+
+    //timestamps to comapre against the check thresholds interval
     long stamp, startStamp, ThreshStampCPC, ThreshStampCxn, ThreshStampTF;
+
+    //Hashmaps to store the extracted data
+    //catOuterHash for connections information stats
+    //ConnectionsCount for number of connections stats
+    //outerHash for traffic stats
+    //outerHashCPUMEM for CPU and memory stats
+    // outerHashOF for open frequency stats
+    // usedProtocols is used when extracting connections stats
+    // cumulativeOuterHash and CumulativeOuterHashCx are lists used in storing cumulative information about the
+    //traffic and connections stats to update the collected stats at each iteration for the service
+    // interval is the collectInterval which is set in the database and updated at first run of the service
+    //which is the interval of the service timer
     HashMap<String, HashMap<String, HashMap<String, String>>> catOuterHash = new HashMap<>();
     HashMap<String, Integer> ConnectionsCount = new HashMap<>();
     HashMap<String, HashMap<String, Long>> outerHash = new HashMap<String, HashMap<String, Long>>();
@@ -156,7 +178,7 @@ public class MyService extends Service {
     // These define the collection frequency (collect every 10 seconds)
     Timer timer = new Timer();
 
-
+    //the method initializes the backup files names at first run or after service restart
     private void setBkupFiles() {
         CommonVariables.CxBkup = "CxStatsBkup" + String.valueOf(System.currentTimeMillis());
         CommonVariables.CPCBkup = "CPUMEMStatsBkup" + String.valueOf(System.currentTimeMillis());
@@ -168,6 +190,9 @@ public class MyService extends Service {
         CommonVariables.CxCountBkup = "CxCountBkup" + String.valueOf(System.currentTimeMillis());
     }
 
+    // this method extracts the cumulative information which is backedup if files in case of service crash
+    // the extracted information updates the values stored in the cumulative lists to be used in updating the
+    // values in catOuterHash and outerHash Hashmaps
     private void getOuterHashes() {
         try {
             //Log.i("ListCumTraffic",Common.readListFromFiletf("CumulativeTrafficStatsBkup").get(Common.readListFromFilecpc("CumulativeTrafficStatsBkup").size() - 1).toString());
@@ -185,6 +210,16 @@ public class MyService extends Service {
 
     }
 
+    //what happens when the service start
+    // get global application context
+    // check if connected to wifi and ip is reachable
+    // check if the service is running for the first time
+    //init backup files
+    // init outHash lists
+    //get the installed third party apps
+    // get all installed packages
+    // if the user is not registered then start registration task
+    // then start downloading latest thresholds and intervals from the server
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
@@ -207,8 +242,7 @@ public class MyService extends Service {
             Common.getIntervals(CommonVariables.mContext);
         }
 
-        // This snippet runs the Linux top command every 'interval' amount of milliseconds
-
+        // at start set the thresholds timestamps to check against
         stamp = startStamp = System.currentTimeMillis();
         ThreshStampCPC = stamp + 120 * 1000;
         ThreshStampCxn = ThreshStampCPC + 120 * 1000;
@@ -217,16 +251,20 @@ public class MyService extends Service {
         Log.d(CommonVariables.TAG, " Time starting stamp is " + stamp);
         final List<String> installedPackagesRunning = new ArrayList<>();
 
-
+        // repeat this section on background at each interval
         timer.schedule(new TimerTask() {
             public void run() {
                 try {
+                    // first task is to collect CPU and memory stats for all running Apps
+                    // clear associated lists
                     //S_Farah
                     outerHashOF.clear();
                     outerHashUT.clear();
                     //E_Farah
 
                     String tLine = "";
+                    // run the top command at every interval then store the outputs in a buffered reader
+                    // check against the threshold check timestamp and if met set the check threshold flag to true for CPU and MEM
                     Process topProcess = Runtime.getRuntime().exec("top -n 1 -d 0");
                     BufferedReader topBufferedStream = new BufferedReader(new InputStreamReader(topProcess.getInputStream()));
                     outerHashCPUMEM.clear();
@@ -234,6 +272,7 @@ public class MyService extends Service {
                         ThreshStampCPC = System.currentTimeMillis();
                         CommonVariables.checkCPCT = true;
                     }
+                    // while reading the results from the buffered reader store the information in the corresponding hashmap
                     while ((tLine = topBufferedStream.readLine()) != null) {
                         String aName = "";
                         if (!tLine.contains("u0_")) {
@@ -242,6 +281,8 @@ public class MyService extends Service {
                         String[] tokens = tLine.split("\\s+");
                         //  topClass top = new topClass();
                         HashMap<String, String> innerHashCPUMEM = new HashMap<String, String>();
+
+                        //some linux kernels return different results when executing the top command
                         if (tokens.length == 10) { //&& CommonVariables.installed3rdPartyApps.contains(tokens[9])
                             // innerHashCPUMEM.put("PID", tokens[0]);
                             innerHashCPUMEM.put("CPU", tokens[2].replaceAll(regex, ""));
@@ -262,6 +303,8 @@ public class MyService extends Service {
                         innerHashCPUMEM.put("Timestamp", String.valueOf(System.currentTimeMillis()));
                         installedPackagesRunning.add(innerHashCPUMEM.get("pName"));
                         aName = innerHashCPUMEM.get("pName");
+                        // if the check thresholds flag is set to true, after saving the stats for each app check its thresholds
+                        // by triggering separate AsyncTasks
                         if (CommonVariables.installed3rdPartyApps.contains(aName) && !aName.equals("com.farah.heavyservice")) {
                             outerHashCPUMEM.put(aName, innerHashCPUMEM);
                             if (CommonVariables.checkCPCT && CommonVariables.isWiFi && CommonVariables.checkEvents != 0) {
@@ -273,6 +316,8 @@ public class MyService extends Service {
                                 // Common.compareThreshold(Float.valueOf(innerHashCPUMEM.get("VSS")), CommonVariables.th_prVSS, aName, CommonVariables.mContext);
                             }
                         }
+                        // if the app is running in foreground update the usage time stats and if wasn't previously on foreground
+                        // update the open frequency stats
                         if (CommonVariables.installed3rdPartyApps.contains(innerHashCPUMEM.get("pName")) && !innerHashCPUMEM.get("pName").toString().equals("com.farah.heavyservice")) {
                             if (innerHashCPUMEM.get("PCY").equals("fg") && !aName.equals("top")) {
                                 messageLogged = aName + " on top";
@@ -297,22 +342,26 @@ public class MyService extends Service {
                         }
 
                     }
+                    // after finishing set the check threshold for CPU and Mem to false
                     CommonVariables.checkCPCT = false;
-                    // add the results of the while to the cumulative list
-                    //CPUMEMStats.add(outerHashCPUMEM);
                     Log.i(CommonVariables.TAG, "CPUMEM " + outerHashCPUMEM.toString());
                     //End CPU and MEM Stats
 
-                    // for conenctions info
+                    // second start collecting connections stats
                     String nLine = null;
                     //  HashSet<String> usedProtocols = new HashSet<String>();
+                    // at each interval execute the netstat command and extract the available connections
+                    // save the infomation to a buffered reader
                     Process nProcess = Runtime.getRuntime().exec("netstat -a");
                     BufferedReader nBufferedStream = new BufferedReader(new InputStreamReader(nProcess.getInputStream()));
                     nBufferedStream.readLine();
+                    // run the top command at every interval then store the outputs in a buffered reader
+                    // check against the threshold check timestamp and if met set the check threshold flag to true for Connections stats
                     if (System.currentTimeMillis() - ThreshStampCxn > CommonVariables.checkCxnThresholdInterval) {
                         ThreshStampCxn = System.currentTimeMillis();
                         CommonVariables.checkCxT = true;
                     }
+                    // while reading from the buffered reader parse the information to save each available protocol
                     while ((nLine = nBufferedStream.readLine()) != null) {
                         String delimiter[] = nLine.split("  ");
                         String temp = delimiter[0].trim();
@@ -321,6 +370,7 @@ public class MyService extends Service {
                             protocol.equals(temp);
                         }
                     }
+                    // some versions of linux kernels do not include tcp6 in the netstat command
                     if (!usedProtocols.contains("tcp6"))
                         usedProtocols.add("tcp6");
 
@@ -328,7 +378,9 @@ public class MyService extends Service {
                     Iterator Iterator = usedProtocols.iterator();
                     catOuterHash.clear();
                     ConnectionsCount.clear();
-
+                    // for each available protocol in the netstat command
+                    //read the corresponding file at /proc/net and extract connections information
+                    // save the extracted information in another buffered reader
                     while (Iterator.hasNext()) {
                         String P = Iterator.next().toString();
                         if (P.equals("tcp") || P.equals("udp") || P.equals("tcp6")) {
@@ -336,7 +388,7 @@ public class MyService extends Service {
                             Process catProcess = Runtime.getRuntime().exec(command);
                             BufferedReader catBufferedStream = new BufferedReader(new InputStreamReader(catProcess.getInputStream()));
                             catBufferedStream.readLine();
-
+                            // for each extracted line in the second buffer reader parse connections information
                             while ((catLine = catBufferedStream.readLine()) != null) {
                                 String[] tokens = catLine.split("\\s+");
                                 String sourceIP = tokens[2].split(":")[0];
@@ -353,7 +405,12 @@ public class MyService extends Service {
                                 } catch (Exception e) {
                                     destinationPort = "";
                                 }
+                                // get the corresponding app from the Uid extracted from the parsed line
                                 String callingApp = CommonVariables.mContext.getPackageManager().getNameForUid(Integer.valueOf(tokens[8]));
+
+                                // if there is a corresponding app and it is not our service save its information to the corresponding hashmap
+                                // multiple steps are done inside this section of code to save the extracted information cumulatively for each connection
+                                // and to insure we don't add new lines for existing connections
                                 if (callingApp != null) {
                                     callingApp = callingApp.split(":")[0];
                                     if (CommonVariables.installed3rdPartyApps.contains(callingApp) && !callingApp.equals("com.farah.heavyservice")) {
@@ -423,7 +480,8 @@ public class MyService extends Service {
                                 }
 
                             }
-
+                            // if the check flag for connections is set to true and we are connected to wifi start
+                            // comparing the threshold for each connection on a separate asyn task
                             if (CommonVariables.checkCxT && CommonVariables.isWiFi && CommonVariables.checkEvents != 0) {
                                 Iterator callingAppIter = ConnectionsCount.entrySet().iterator();
                                 while (callingAppIter.hasNext()) {
@@ -443,23 +501,29 @@ public class MyService extends Service {
 
                     //Start Traffic Stats
                     // This for loop removes installed apps which are not running (installedPackages - !installedPackagesRunning)
-                    for (Iterator<ApplicationInfo> iterator = CommonVariables.installedPackages.iterator(); iterator.hasNext(); ) {
+                   /* for (Iterator<ApplicationInfo> iterator = CommonVariables.installedPackages.iterator(); iterator.hasNext(); ) {
                         if (!installedPackagesRunning.contains(iterator.next().packageName)) {
                             iterator.remove();
                         }
-                    }
+                    }*/
 
                     // This for loop computes the 4 traffic stats for each running app (collected value - previous value)
                     HashMap<String, Long> innerHash = new HashMap<String, Long>();
-
+                    // clear the temp hashmap
                     outerHash.clear();
                     String appName = "";
+                    // get an iterator over the installed third party Apps
                     Iterator<String> iterator3rdParty = CommonVariables.installed3rdPartyApps.iterator();
                     // for (String appName : CommonVariables.installed3rdPartyApps) {
+
+                    // check against the threshold check timestamp and if met set the check threshold flag to true for Traffic stats
                     if (System.currentTimeMillis() - ThreshStampTF > CommonVariables.checkTfThresholdInterval) {
                         ThreshStampTF = System.currentTimeMillis();
                         CommonVariables.checkTfT = true;
                     }
+                    // for each third party app get the uid of that app and check the traffic counters if changed
+                    // if there's a change in the traffic for that app log the change in the traffic hashmap
+                    // the code was edited to make sure that we only log the changes to prevent redundancy
                     while (iterator3rdParty.hasNext()) {
                         appName = iterator3rdParty.next().toString();
                         if (!appName.equals("com.farah.heavyservice")) { //Common.getAppInfo(CommonVariables.mContext, appName) != null
@@ -500,7 +564,8 @@ public class MyService extends Service {
                                         // Common.appendLog(messageLogged);
                                         Log.i(CommonVariables.TAG, "Traffic " + messageLogged);
 
-
+                                        // if the check threshold flag was set to true for traffic stats start an Async task
+                                        // to check the traffic thresholds for each App
                                         if (CommonVariables.checkTfT && CommonVariables.isWiFi && CommonVariables.checkEvents != 0) {
                                             new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(innerHash.get("txBytes")), appName, CommonVariables.th_txBytes).execute();
                                             // Common.compareThreshold(Float.valueOf(innerHash.get("txBytes")), CommonVariables.th_txBytes, appName, CommonVariables.mContext);
@@ -513,7 +578,6 @@ public class MyService extends Service {
                                         }
 
                                     }
-
                                     cumulativeOuterHash.get(appName).put("txBytes", txBytes);
                                     cumulativeOuterHash.get(appName).put("rxBytes", rxBytes);
                                     cumulativeOuterHash.get(appName).put("txPackets", txPackets);
@@ -524,6 +588,7 @@ public class MyService extends Service {
 
                         }
                     }
+                    //after finishing the check set the check threshold app for the traffic to false
                     CommonVariables.checkTfT = false;
                     //  Log.i(CommonVariables.TAG, "TrafficHash " + cumulativeOuterHash.toString());
                     //  trafficStats.add(cumulativeOuterHash);
@@ -531,6 +596,9 @@ public class MyService extends Service {
 
                     // End Traffic Stats
 
+
+                    // after finishing from stats collection for CPU, MEM, Conn, Traffic
+                    // append the collected stats in hashmaps to the initialized binary files
                     // Start Write Lists to Storage
                     if (outerHash.size() != 0)
                         Common.writeListToFile(outerHash, CommonVariables.TFBkup, true);
@@ -552,9 +620,6 @@ public class MyService extends Service {
                         Common.writeCxCountToFile(ConnectionsCount, CommonVariables.CxCountBkup, true);
                     //End Write Lists to storage
 
-
-                    //check storage size
-
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (NoSuchPaddingException e) {
@@ -564,6 +629,11 @@ public class MyService extends Service {
                 } catch (InvalidKeyException e) {
                     e.printStackTrace();
                 }
+                //check storage size
+                // check the size of the saved files and if any file exceeds a specific size start the upload service
+                // for that file
+                // checking the file size is set at a 2 min interval
+
                 if (CommonVariables.isWiFi) {
                     if ((System.currentTimeMillis() - stamp) >= 120 * 1000) {
                         stamp = System.currentTimeMillis();
@@ -595,6 +665,8 @@ public class MyService extends Service {
                         }
 
                     }
+                    // one a day check if there are any new installed packages and send any changes to
+                    // the server
                     if ((System.currentTimeMillis() - startStamp) >= 86400 * 1000) {
                         startStamp = System.currentTimeMillis();
                         if (!CommonVariables.startUpload) {
@@ -602,6 +674,10 @@ public class MyService extends Service {
                         }
                     }
                     Log.i(CommonVariables.TAG, " WIFI The phone is connected to wifi");
+
+                    // if any of the files exceeded the size and there is not other uploading service running
+                    // set the upload variables to meet that file which are
+                    // upload type : file , upload file type : CPU, MEM, Traffic ... , and the upload URL
                     if (CommonVariables.startUpload && !CommonVariables.startUploadDir) {
                         Intent intent = new Intent(Intent.ACTION_SYNC, null, CommonVariables.mContext, ClientServerService.class);
                         intent.putExtra("uploadtype", CommonVariables.UploadTypeFile);
@@ -644,13 +720,14 @@ public class MyService extends Service {
                 }
             }
         }, 0, interval);
-
-
+        // keep the service running in background as long as possible
         return START_STICKY;
     }
 
     @Override
     public void onDestroy() {
+        // if the service stops notify and remove the sticky notification on top then broadcast the service stopped
+        // to restart it again
         Toast.makeText(CommonVariables.mContext, "Service Stopped..", Toast.LENGTH_LONG).show();
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.cancel(71422673);

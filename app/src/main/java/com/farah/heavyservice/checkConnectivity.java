@@ -12,6 +12,16 @@ import java.net.URL;
 
 /**
  * Created by Georgi on 10/20/2016.
+ *
+ * we migrated to check the connection status through an Async task because it involves network
+ * operations
+ *
+ * this task tries to connect to a specific IP witha specified timeout interval
+ * and if the device is connected through wifi and can reach the IP then the App has a connection
+ * and can communicate with the server
+ * we added this part after mark requested that the app should operate within the company only
+ *
+ * the app will not log any events and will not receive any notifications if it is not connected
  */
 public class checkConnectivity extends AsyncTask<Void, Void, Void> {
     Context mContext;

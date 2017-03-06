@@ -8,6 +8,8 @@ import com.android.volley.toolbox.Volley;
 
 /**
  * Created by Georgi on 9/3/2016.
+ *
+ * this class is not used anymore
  */
 public class MySingleton {
     private static MySingleton mInstance;
