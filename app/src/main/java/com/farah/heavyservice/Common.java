@@ -1484,6 +1484,66 @@ public class Common {
         return false;
     }
 
+    // write the received ratings from the server to a binary file as hashmap <string,float>
+    public synchronized static boolean writeAppRatingsToFile(HashMap<String, Float> ratings, String filename, Boolean append) {
+        ObjectOutputStream fileOut = null;
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/");
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        File myFile = new File(dir, filename);
+
+        try {
+            if (!myFile.exists() || !append) {
+                fileOut = new ObjectOutputStream(new FileOutputStream(myFile));
+            } else {
+                fileOut = new AppendableObjectOutputStream(new FileOutputStream(myFile, append));
+            }
+            fileOut.writeObject(ratings);
+            fileOut.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (fileOut != null) fileOut.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+    public synchronized static HashMap<String, Float> readAppRatingsListFromFile(String filename) {
+
+        File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/");
+        File myFile = new File(dir, filename);
+        HashMap<String, Float> rtrnList = new HashMap<>();
+        if (myFile.exists()) {
+            ObjectInputStream ois = null;
+            try {
+                ois = new ObjectInputStream(new FileInputStream(myFile));
+                while (true) {
+                    rtrnList = ((HashMap<String, Float>) ois.readObject());
+                }
+            } catch (EOFException e) {
+                //e.printStackTrace();
+                //return rtrnList;
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (ois != null) ois.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return rtrnList;
+    }
+
     // register the broadcast receiver at application start
     public static void regBroadcastRec(Context context) {
         IntentFilter intentFilter = new IntentFilter();

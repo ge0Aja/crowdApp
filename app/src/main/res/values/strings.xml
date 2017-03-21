@@ -11,15 +11,17 @@
     <string name="user_name">com.farah.heavyservice.user_name</string>
 
 
-
     <string name="trsh_preference">com.farah.heavyservice.trsh_preference</string>
 
+    <string name="ratings_preference">com.farah.heavyservice.ratings_preference</string>
+    <string name="ratings_last_updated">com.farah.heavyservice.ratings_last_updated</string>
+    <string name="ratings_update_message">com.farah.heavyservice.ratings_update_message</string>
     <string name="interval_preference">com.farah.heavyservice.interval_preference</string>
 
     <string name="collectInterval">10000</string>
     <string name="uploadIntervalNormal">120000</string>
     <string name="uploadIntervalRetry">7200000</string>
-    <string name="maxFileSize">50</string>
+    <string name="maxFileSize">25</string>
     <string name="maxFileSizeScreen">5</string>
     <string name="maxFileSizeOFUT">5</string>
     <string name="checkEvents">0</string>

@@ -44,52 +44,50 @@
 
         <receiver android:name=".BootReceiver">
             <intent-filter>
-                <action android:name="android.intent.action.PACKAGE_ADDED"/>
-                <action android:name="android.intent.action.PACKAGE_REMOVED"/>
-                <action android:name="android.intent.action.PACKAGE_INSTALL"/>
-                <data android:scheme="package"/>
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+                <action android:name="android.intent.action.PACKAGE_REMOVED" />
+                <action android:name="android.intent.action.PACKAGE_INSTALL" />
+
+                <data android:scheme="package" />
             </intent-filter>
         </receiver>
-
         <receiver android:name=".ScreenReceiver">
             <intent-filter>
-                <action android:name="android.intent.action.SCREEN_OFF"/>
-                <action android:name="android.intent.action.SCREEN_ON"/>
+                <action android:name="android.intent.action.SCREEN_OFF" />
+                <action android:name="android.intent.action.SCREEN_ON" />
                 <action android:name="android.intent.action.ACTION_BATTERY_LOW" />
                 <action android:name="android.intent.action.ACTION_BATTERY_OKAY" />
             </intent-filter>
         </receiver>
-
-        <receiver android:name=".EventReceiver"
-            >
+        <receiver android:name=".EventReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
             </intent-filter>
         </receiver>
-
-        <receiver android:name=".RestartServiceReceiver"
+        <receiver
+            android:name=".RestartServiceReceiver"
             android:enabled="true"
             android:exported="true"
-            android:label="RestartServiceOnStop"
-            >
+            android:label="RestartServiceOnStop">
             <intent-filter>
-                <action android:name="com.farah.heavyservice.RestartSensor"></action>
+                <action android:name="com.farah.heavyservice.RestartSensor" />
             </intent-filter>
         </receiver>
 
         <activity
             android:name=".AlertActivity"
-            android:screenOrientation="nosensor"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:enabled="true"
-            android:exported="true"></activity>
-
-        <activity android:name=".TransferActivity"
-            android:enabled="true"
-            android:screenOrientation="nosensor"
+            android:exported="true"
+            android:screenOrientation="nosensor" />
+        <activity
+            android:name=".TransferActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
-            android:exported="true"></activity>
+            android:enabled="true"
+            android:exported="true"
+            android:screenOrientation="nosensor" />
+        <activity android:name=".AppRatingsActivity"></activity>
     </application>
 
 </manifest>

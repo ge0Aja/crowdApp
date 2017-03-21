@@ -75,7 +75,7 @@ public class CommonVariables {
     public static boolean checkCxT = false;
     public static boolean RequestedThresholds = false;
     //set max file size to upload
-    public static int maxFileSize = 50;
+    public static int maxFileSize = 25;
     //set max file size for screen log
     public static int maxFileSizeScreen = 5;
     //set max file size for OF UT log
@@ -103,8 +103,9 @@ public class CommonVariables {
     public static String CxCountBkup;
     public static String AnswersBkup = "Answers";
     public static HashMap<String, HashMap<String, HashMap<String, Float>>> thresholdsMap;
+    public static HashMap<String, Float> ratingsMap;
     public static String thresholdsFile = "Thresholds";
-
+    public static String ratingsFile = "Ratings";
 
     // URLS from the server used in the process
    /* public static String TFUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertTF.php";
@@ -115,6 +116,7 @@ public class CommonVariables {
     public static String registrationUrl = "https://72.14.183.152:4433/CrowdApp/fcm_insert.php";
     public static String DownloadThresholdsURL = "https://72.14.183.152:4433/CrowdApp/getThresholds.php";
     public static String DownloadIntervalsURL = "https://72.14.183.152:4433/CrowdApp/getIntervals.php";
+    public static String DownloadRatingsURL = "https://72.14.183.152:4433/CrowdApp/getAppRatings.php";
     public static String SubmitAnswerURL = "https://72.14.183.152:4433/CrowdApp/submitAnswer.php";
     public static String SubmitIntervalUpdate = "https://72.14.183.152:4433/CrowdApp/userIntervalUpdate.php";
     public static String SubmitAlarm = "https://72.14.183.152:4433/CrowdApp/submitAlarm.php";
@@ -137,6 +139,7 @@ public class CommonVariables {
     public static String registrationUrl = "https://192.168.137.79/CrowdApp/fcm_insert.php";
     public static String DownloadThresholdsURL = "https://192.168.137.79/CrowdApp/getThresholds.php";
     public static String DownloadIntervalsURL = "https://192.168.137.79/CrowdApp/getIntervals.php";
+    public static String DownloadRatingsURL = "https://192.168.137.79/CrowdApp/getAppRatings.php";
     public static String SubmitAnswerURL = "https://192.168.137.79/CrowdApp/submitAnswer.php";
     public static String SubmitIntervalUpdate = "https://192.168.137.79/CrowdApp/userIntervalUpdate.php";
     public static String SubmitAlarm = "https://192.168.137.79/CrowdApp/submitAlarm.php";

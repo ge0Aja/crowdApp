@@ -109,6 +109,10 @@ public class MainActivity extends AppCompatActivity {
         Common.getIntervals(this);
     }
 
+    public void showRatings(View view) {
+        Intent intent = new Intent(this, AppRatingsActivity.class);
+        startActivity(intent);
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {

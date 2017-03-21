@@ -112,13 +112,25 @@ public class AlertActivity extends AppCompatActivity {
     public void submitAnswer(View view){
         try {
             RadioGroup group = (RadioGroup) findViewById(R.id.radioGroup);
+            RadioGroup group2 = (RadioGroup) findViewById(R.id.radioGroup2);
+
             int btnID = group.getCheckedRadioButtonId();
-            if(btnID !=-1) {
+            int btnID2 = group2.getCheckedRadioButtonId();
+
+            if (btnID != -1 && btnID2 != -1) {
                 View radioButton = group.findViewById(btnID);
+                View radioButton2 = group2.findViewById(btnID2);
+
                 int idx = group.indexOfChild(radioButton);
+                int idx2 = group.indexOfChild(radioButton2);
+
+
                 String AnswerIdx = String.valueOf(idx+1);
-                Log.d(CommonVariables.TAG,"Answer "+AnswerIdx);
-                new SubmitAnswerTask(this, this, notId).execute(CommonVariables.SubmitAnswerURL, Qid, AnswerIdx, String.valueOf(More));
+                String AnswerIdx2 = String.valueOf(idx2 + 1);
+
+                Log.d(CommonVariables.TAG, "Answer: " + AnswerIdx + " Answer2: " + AnswerIdx2);
+
+                new SubmitAnswerTask(this, this, notId).execute(CommonVariables.SubmitAnswerURL, Qid, AnswerIdx, String.valueOf(More), AnswerIdx2);
                 this.finish();
             }else{
                 Toast.makeText(this,"Please Choose an Answer",Toast.LENGTH_SHORT);
