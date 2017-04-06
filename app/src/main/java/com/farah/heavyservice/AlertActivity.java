@@ -122,7 +122,7 @@ public class AlertActivity extends AppCompatActivity {
                 View radioButton2 = group2.findViewById(btnID2);
 
                 int idx = group.indexOfChild(radioButton);
-                int idx2 = group.indexOfChild(radioButton2);
+                int idx2 = group2.indexOfChild(radioButton2);
 
 
                 String AnswerIdx = String.valueOf(idx+1);
