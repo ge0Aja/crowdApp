@@ -52,10 +52,9 @@
         android:id="@+id/radioGroup"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#eeeeee"
         android:layout_below="@+id/txt_question"
-        android:layout_marginTop="85dp"
-        android:layout_toStartOf="@+id/btn_submit"
-        android:background="#eeeeee">
+        android:layout_alignParentStart="true">
 
         <RadioButton
             android:id="@+id/btn_yes"
@@ -80,20 +79,18 @@
         android:id="@+id/btn_submit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/radioGroup2"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="58dp"
         android:onClick="submitAnswer"
-        android:text="Submit" />
+        android:text="Submit"
+        android:layout_above="@+id/txt_understand"
+        android:layout_centerHorizontal="true" />
 
     <RadioGroup
         android:id="@+id/radioGroup2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignTop="@+id/radioGroup"
-        android:layout_toEndOf="@+id/btn_submit"
-        android:background="#eeeeee">
+        android:background="#eeeeee"
+        android:layout_above="@+id/btn_submit"
+        android:layout_alignParentStart="true">
 
         <RadioButton
             android:id="@+id/btn_yes_maj"
@@ -111,28 +108,22 @@
             android:id="@+id/btn_unknown_maj"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="I don't know" />
+            android:text="The majority will reply with &quot;I don&apos;t know&quot;" />
+
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="I don&apos;t know what the majority will reply"
+            android:id="@+id/btn_maj_unknown" />
     </RadioGroup>
 
     <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="What do you think the majority will reply?"
         android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:layout_above="@+id/radioGroup2"
-        android:layout_alignParentStart="true"
-        android:layout_toStartOf="@+id/btn_submit"
-        android:text="Your Answer:"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
-
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/radioGroup2"
-        android:layout_alignParentEnd="true"
-        android:layout_alignStart="@+id/radioGroup2"
-        android:layout_alignTop="@+id/textView"
-        android:text="Majority Answer:"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
+        android:layout_alignParentStart="true" />
 
 </RelativeLayout>

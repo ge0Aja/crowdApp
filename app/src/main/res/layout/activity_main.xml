@@ -102,7 +102,7 @@
         android:layout_alignParentStart="true"
         android:onClick="userreg"
         android:text="Reg User"
-        android:visibility="visible" />
+        android:visibility="invisible" />
 
     <Button
         android:id="@+id/btn_thresh"
@@ -138,9 +138,9 @@
         android:id="@+id/btn_appratings"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/btn_screen"
-        android:layout_toStartOf="@+id/stopButton"
         android:onClick="showRatings"
-        android:text="App Ratings" />
+        android:text="Show App Ratings"
+        android:layout_alignTop="@+id/startButton"
+        android:layout_centerHorizontal="true" />
 
 </RelativeLayout>

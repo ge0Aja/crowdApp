@@ -108,7 +108,7 @@ public class CommonVariables {
     public static String ratingsFile = "Ratings";
 
     // URLS from the server used in the process
-   /* public static String TFUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertTF.php";
+    public static String TFUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertTF.php";
     public static String CPCUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertCPC.php";
     public static String CxUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertCx.php";
 
@@ -129,9 +129,9 @@ public class CommonVariables {
     public static String ScreenUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertScreen.php";
     public static String PackagesUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertPackages.php";
     public static String SubmitThresholdUpdate = "https://72.14.183.152:4433/CrowdApp/userThresholdUpdate.php";
-    public static String UploadHost = "72.14.183.152";*/
+    public static String UploadHost = "72.14.183.152";
 
-    public static String TFUploadURL = "https://192.168.137.79/CrowdApp/InsertTF.php";
+/*    public static String TFUploadURL = "https://192.168.137.79/CrowdApp/InsertTF.php";
     public static String CPCUploadURL = "https://192.168.137.79/CrowdApp/InsertCPC.php";
     public static String CxUploadURL = "https://192.168.137.79/CrowdApp/InsertCx.php";
 
@@ -152,7 +152,7 @@ public class CommonVariables {
     public static String ScreenUploadURL = "https://192.168.137.79/CrowdApp/InsertScreen.php";
     public static String PackagesUploadURL = "https://192.168.137.79/CrowdApp/InsertPackages.php";
     public static String SubmitThresholdUpdate = "https://192.168.137.79/CrowdApp/userThresholdUpdate.php";
-    public static String UploadHost = "192.168.137.79";
+    public static String UploadHost = "192.168.137.79";*/
 
 
     public static String UploadTypeFile = "File";

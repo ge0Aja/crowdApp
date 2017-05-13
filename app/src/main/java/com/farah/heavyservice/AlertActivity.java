@@ -117,7 +117,7 @@ public class AlertActivity extends AppCompatActivity {
             int btnID = group.getCheckedRadioButtonId();
             int btnID2 = group2.getCheckedRadioButtonId();
 
-            if (btnID != -1 && btnID2 != -1) {
+            if (btnID != -1 || btnID2 != -1) {
                 View radioButton = group.findViewById(btnID);
                 View radioButton2 = group2.findViewById(btnID2);
 
@@ -133,7 +133,7 @@ public class AlertActivity extends AppCompatActivity {
                 new SubmitAnswerTask(this, this, notId).execute(CommonVariables.SubmitAnswerURL, Qid, AnswerIdx, String.valueOf(More), AnswerIdx2);
                 this.finish();
             }else{
-                Toast.makeText(this,"Please Choose an Answer",Toast.LENGTH_SHORT);
+                Toast.makeText(this,"Please Choose an Answer for both questions",Toast.LENGTH_SHORT);
             }
         } catch (Exception e) {
             e.printStackTrace();

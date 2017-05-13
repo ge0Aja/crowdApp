@@ -1291,7 +1291,7 @@ public class Common {
         try {
             //Create certificate from the certificate in Assets
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-            InputStream caInput = new BufferedInputStream(context.getAssets().open("zeroG.crt"));
+            InputStream caInput = new BufferedInputStream(context.getAssets().open("apache.crt"));
             Certificate ca;
             try {
                 ca = certificateFactory.generateCertificate(caInput);
