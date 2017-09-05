@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.RadioGroup;
+import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -113,27 +114,28 @@ public class AlertActivity extends AppCompatActivity {
         try {
             RadioGroup group = (RadioGroup) findViewById(R.id.radioGroup);
             RadioGroup group2 = (RadioGroup) findViewById(R.id.radioGroup2);
+            RatingBar rate_answer = (RatingBar) findViewById(R.id.ratingBarAnswer);
 
             int btnID = group.getCheckedRadioButtonId();
             int btnID2 = group2.getCheckedRadioButtonId();
 
-            if (btnID != -1 || btnID2 != -1) {
+            if (btnID != -1 && btnID2 != -1 && rate_answer.getRating() != 0.0) {
                 View radioButton = group.findViewById(btnID);
                 View radioButton2 = group2.findViewById(btnID2);
 
                 int idx = group.indexOfChild(radioButton);
                 int idx2 = group2.indexOfChild(radioButton2);
-
+                float answer_rating = rate_answer.getRating();
 
                 String AnswerIdx = String.valueOf(idx+1);
                 String AnswerIdx2 = String.valueOf(idx2 + 1);
 
                 Log.d(CommonVariables.TAG, "Answer: " + AnswerIdx + " Answer2: " + AnswerIdx2);
 
-                new SubmitAnswerTask(this, this, notId).execute(CommonVariables.SubmitAnswerURL, Qid, AnswerIdx, String.valueOf(More), AnswerIdx2);
+                new SubmitAnswerTask(this, this, notId).execute(CommonVariables.SubmitAnswerURL, Qid, AnswerIdx, String.valueOf(More), AnswerIdx2,String.valueOf(answer_rating));
                 this.finish();
             }else{
-                Toast.makeText(this,"Please Choose an Answer for both questions",Toast.LENGTH_SHORT);
+                Toast.makeText(this,"Please fill all fields",Toast.LENGTH_SHORT);
             }
         } catch (Exception e) {
             e.printStackTrace();

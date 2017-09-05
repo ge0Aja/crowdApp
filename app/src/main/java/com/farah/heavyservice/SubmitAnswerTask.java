@@ -56,7 +56,7 @@ public class SubmitAnswerTask extends AsyncTask<String, Void, Void> {
 
             //added for the majority answer
             jsonObject.put("Ansidmaj", params[4]);
-
+            jsonObject.put("answer_rate",params[5]);
             jsonObject.put("Qid", params[1]);
             jsonObject.put("Timestamp",String.valueOf(System.currentTimeMillis()));
             b = SubmitAnswer(params[0], jsonObject, mContext);

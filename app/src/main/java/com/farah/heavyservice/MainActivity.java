@@ -1,14 +1,26 @@
 package com.farah.heavyservice;
 
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.PopupWindow;
+import android.widget.RatingBar;
+import android.widget.Toast;
 
 /*
 * this is the main activity which is basically an empty activity that has two buttons to start and stop the service
@@ -23,6 +35,40 @@ public class MainActivity extends AppCompatActivity {
         // we make sure that the screen orientation is portrait
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+        //  SharedPreferences editor = getSharedPreferences(getString(R.string.know_q), Context.MODE_PRIVATE);
+        final SharedPreferences sharedPref = getApplicationContext().getSharedPreferences(
+                getString(R.string.know_q), Context.MODE_PRIVATE);
+
+        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View lay = inflater.inflate(R.layout.popupquestion, null, false);
+        final PopupWindow pw = new PopupWindow(lay, 500, 700, true);
+        final RatingBar knowBar = (RatingBar) lay.findViewById(R.id.ratingBarKnowledge);
+        Button btn_sub_k  = (Button) lay.findViewById(R.id.btn_itknow);
+
+        btn_sub_k.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View v) {
+                float rating = knowBar.getRating();
+
+                if(rating == 0.0){
+                    Toast.makeText(getApplicationContext(), "Please select rating", Toast.LENGTH_LONG).show();
+                }else{
+                    sharedPref.edit().putString(getApplicationContext().getString(R.string.know_q), String.valueOf(rating)).apply();
+                    pw.dismiss();
+                }
+            }
+        });
+
+
+        boolean ck = Common.checkKnowledge(getApplicationContext(),sharedPref);
+        if(ck) {
+            new Handler().postDelayed(new Runnable() {
+                public void run() {
+                    pw.showAtLocation(findViewById(R.id.mainLayout), Gravity.CENTER, 0, 0);
+                }
+            }, 1000);
+        }
         // is the OS is Android OS 6.0 and above we ask for the required permissions
         if (!Common.hasPermissions(this, CommonVariables.Permissions)) {
             ActivityCompat.requestPermissions(this, CommonVariables.Permissions, CommonVariables.PERMISSION_ALL);
@@ -40,6 +86,8 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "The Service Cannot Start Due to Missing Permissions", Toast.LENGTH_LONG);
             FirebaseCrash.report(new Exception("The Service Cannot Start Due to Missing Permissions"));
         }*/
+
+
     }
 
     // on button click check the required permissions before starting the service
@@ -112,6 +160,16 @@ public class MainActivity extends AppCompatActivity {
     public void showRatings(View view) {
         Intent intent = new Intent(this, AppRatingsActivity.class);
         startActivity(intent);
+    }
+
+    public void showPopup(){
+        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+        PopupWindow pw = new PopupWindow(inflater.inflate(R.layout.popupquestion, null, false), 500, 700, true);
+        //pw.setFocusable(true);
+
+        pw.showAtLocation(findViewById(R.id.mainLayout), Gravity.CENTER, 0, 0);
+
     }
 
     @Override

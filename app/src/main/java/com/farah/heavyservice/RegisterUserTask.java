@@ -36,11 +36,13 @@ public class RegisterUserTask extends AsyncTask<String, Void, Void> {
     private boolean b = false;
     private SharedPreferences sharedPreferencesApp;
     private SharedPreferences sharedPreferencesFCM;
+    private SharedPreferences sharedPreferencesKnow;
 
     public RegisterUserTask(Context context) {
         mContext = context;
         sharedPreferencesApp = mContext.getSharedPreferences(mContext.getString(R.string.app_preference), Context.MODE_PRIVATE);
         sharedPreferencesFCM = mContext.getSharedPreferences(context.getString(R.string.fcm_preference), Context.MODE_PRIVATE);
+        sharedPreferencesKnow = mContext.getSharedPreferences(mContext.getString(R.string.know_q),Context.MODE_PRIVATE);
     }
 
     @Override
@@ -81,6 +83,7 @@ public class RegisterUserTask extends AsyncTask<String, Void, Void> {
         // read the FCM token obtained when registering the App to firebase server and obtain the OS version
         final String token = sharedPreferencesFCM.getString(context.getString(R.string.fcm_token), "");
         final String os_version = String.valueOf(Build.VERSION.SDK_INT);
+        final String it_knowledge = sharedPreferencesKnow.getString(context.getString(R.string.know_q),"0");
 
         JSONArray user_apps = new JSONArray();
         // obtain installed 3 party apps
@@ -106,6 +109,7 @@ public class RegisterUserTask extends AsyncTask<String, Void, Void> {
                 reg_con.connect();
                 jsonObject.put("fcm_token", token);
                 jsonObject.put("os_version", os_version);
+                jsonObject.put("it_knowledge",it_knowledge);
                 jsonObject.put("timestamp", (System.currentTimeMillis()));
                 jsonObject.put("apps", user_apps);
                 OutputStream os = reg_con.getOutputStream();

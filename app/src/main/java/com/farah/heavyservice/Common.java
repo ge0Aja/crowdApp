@@ -1596,6 +1596,19 @@ public class Common {
         return false;
     }
 
+    //report if this is the first run of the service
+    public static boolean checkKnowledge(Context context, SharedPreferences sharedPreferences) {
+        final String state = sharedPreferences.getString(context.getString(R.string.know_q), "0");
+        try {
+            if (state.equals("0") || state == null) {
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     //checks if it is the first run of the service and if yes it deletes the old files from the old
     //service version
     public static void SafeFirstRun(Context context) {
