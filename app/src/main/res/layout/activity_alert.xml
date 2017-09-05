@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -89,8 +93,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#eeeeee"
-        android:layout_above="@+id/btn_submit"
-        android:layout_alignParentStart="true">
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/textView"
+        android:layout_alignParentLeft="true">
 
         <RadioButton
             android:id="@+id/btn_yes_maj"
@@ -123,7 +128,26 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="What do you think the majority will reply?"
         android:id="@+id/textView"
-        android:layout_above="@+id/radioGroup2"
+        android:layout_marginTop="26dp"
+        android:layout_below="@+id/radioGroup"
         android:layout_alignParentStart="true" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="How Confident are you from this answer ?"
+        android:id="@+id/textView3"
+        android:layout_marginTop="29dp"
+        android:layout_below="@+id/radioGroup2"
+        android:layout_alignParentStart="true" />
+
+    <RatingBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/ratingBarAnswer"
+        android:layout_below="@+id/textView3"
+        android:layout_centerHorizontal="true" />
+
 </RelativeLayout>
+</ScrollView>

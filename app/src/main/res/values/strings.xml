@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">HeavyService</string>
     <string name="upload_service_name">UploadService</string>
-
+    <string name="know_q">com.farah.heavyservice.know_q</string>
     <string name="firstrun">com.farah.heavyservice.firstrun</string>
 
     <string name="fcm_preference">com.farah.heavyservice.fcm_preference</string>
