@@ -49,7 +49,7 @@ public class FcmMessagingService extends FirebaseMessagingService {
             NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this);
             notificationBuilder.setContentTitle(title);
             notificationBuilder.setContentText(message);
-            notificationBuilder.setSmallIcon(R.drawable.mushroom);
+            notificationBuilder.setSmallIcon(R.drawable.crowdapp);
             Uri alarmtone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
             notificationBuilder.setSound(alarmtone);
          //   notificationBuilder.setAutoCancel(false);

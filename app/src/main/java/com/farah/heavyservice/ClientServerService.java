@@ -54,6 +54,7 @@ public class ClientServerService extends IntentService {
         // after receiving the intent to start the upload sleep for a specific interval
         // this was added to decrease the load on the server
         try {
+
             Thread.sleep(10000);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -68,7 +69,7 @@ public class ClientServerService extends IntentService {
         Bundle bundle = new Bundle();
         // if the upload type is file and we have connection to the server and no other upload service is running start
         if (uploadType.equals(CommonVariables.UploadTypeFile) && CommonVariables.isWiFi && CommonVariables.startUpload && CommonVariables.userRegistered) {
-            Log.i(TAG, "The upload type is file and should start uploading");
+            Log.d(TAG, "The upload type is file and should start uploading");
             // get the url from the intent
             String url = intent.getStringExtra("url");
             // get the file name that has exceeded the size
@@ -83,7 +84,7 @@ public class ClientServerService extends IntentService {
                 try {
                     //call the upload method which uses a secure connection HTTPS
                     String[] results = uploadDataSecure(url, type, filename);
-                    Log.i(TAG, String.valueOf(results));
+                    Log.d(TAG, String.valueOf(results));
                 /* Sending result back to Service
                 * put the file name and the status of the file along with its type
                 * */
@@ -127,7 +128,7 @@ public class ClientServerService extends IntentService {
             String type = intent.getStringExtra("type");
             if (!type.equals(CommonVariables.filetypeAll)) {
                 // the directory upload is not multiple
-                Log.i(TAG, "The upload type is one Dir and should start uploading");
+                Log.d(TAG, "The upload type is one Dir and should start uploading");
                 try {
                     // call the directory upload method which uses a secure connection
                     HashMap<String, String> results = uploadDataDirSecure(type);
@@ -163,7 +164,7 @@ public class ClientServerService extends IntentService {
                 }
             } else {
                 /*the type of the upload is multi directory and the upload will repeat for each one*/
-                Log.i(TAG, "The upload type is multiple Dir and should start uploading");
+                Log.d(TAG, "The upload type is multiple Dir and should start uploading");
                 String[] fileTypes = {CommonVariables.filetypeAnswers, CommonVariables.filetypeCPC, CommonVariables.filetypeCx, CommonVariables.filetypeTf, CommonVariables.filetypeOF, CommonVariables.filetypeUT, CommonVariables.filetypeScreen};
                 for (String t : fileTypes
                         ) {

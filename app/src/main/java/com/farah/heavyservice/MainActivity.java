@@ -7,7 +7,9 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -18,6 +20,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.RatingBar;
 import android.widget.Toast;
@@ -41,8 +44,10 @@ public class MainActivity extends AppCompatActivity {
 
         LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View lay = inflater.inflate(R.layout.popupquestion, null, false);
-        final PopupWindow pw = new PopupWindow(lay, 500, 700, true);
+        final PopupWindow pw = new PopupWindow(lay, LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT, true);
         final RatingBar knowBar = (RatingBar) lay.findViewById(R.id.ratingBarKnowledge);
+        LayerDrawable stars = (LayerDrawable) knowBar.getProgressDrawable();
+        stars.getDrawable(2).setColorFilter(Color.LTGRAY, PorterDuff.Mode.SRC_ATOP);
         Button btn_sub_k  = (Button) lay.findViewById(R.id.btn_itknow);
 
         btn_sub_k.setOnClickListener(new View.OnClickListener(){

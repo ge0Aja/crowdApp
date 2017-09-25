@@ -2,6 +2,7 @@ package com.farah.heavyservice;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;
@@ -17,6 +18,7 @@ public class FcmInstanceIdService extends FirebaseInstanceIdService {
     @Override
     public void onTokenRefresh() {
         String recentToken = FirebaseInstanceId.getInstance().getToken();
+       // Log.d("Token", "onTokenRefresh: "+recentToken);
         SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(getString(R.string.fcm_preference), Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(getString(R.string.fcm_token),recentToken);

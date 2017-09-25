@@ -27,6 +27,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class CommonVariables {
 
     public static final int PERMISSION_ALL =1;
+
     public static final String filetypeTf = "TF";
     public static final String filetypeCx = "CX";
     public static final String filetypeCPC = "CP";
@@ -63,6 +64,8 @@ public class CommonVariables {
     public static int collectInterval = 10000;
     // start_upload interval for Dir after connecting to wifi
     public static int uploadIntervalNormal = 120000;
+
+
     // repeat_upload interval for Dir after connecting to wifi
     public static int uploadIntervalRetry = 7200000;
 
@@ -107,77 +110,55 @@ public class CommonVariables {
     public static String thresholdsFile = "Thresholds";
     public static String ratingsFile = "Ratings";
 
-
-    // URLS from the server used in the process
-    public static String TFUploadURL = "https://193.188.131.136:443/CrowdApp/InsertTF.php";
-    public static String CPCUploadURL = "https://193.188.131.136:443/CrowdApp/InsertCPC.php";
-    public static String CxUploadURL = "https://193.188.131.136:443/CrowdApp/InsertCx.php";
-
-    // public static String CxUploadURL = "https://192.168.137.79/CrowdApp/InsertCxSpecial.php";
-    public static String registrationUrl = "https://193.188.131.136:443/CrowdApp/fcm_insert.php";
-    public static String DownloadThresholdsURL = "https://193.188.131.136:443/CrowdApp/getThresholds.php";
-    public static String DownloadIntervalsURL = "https://193.188.131.136:443/CrowdApp/getIntervals.php";
-    public static String DownloadRatingsURL = "https://193.188.131.136:443/CrowdApp/getAppRatings.php";
-    public static String SubmitAnswerURL = "https://193.188.131.136:443/CrowdApp/submitAnswer.php";
-    public static String SubmitIntervalUpdate = "https://193.188.131.136:443/CrowdApp/userIntervalUpdate.php";
-    public static String SubmitAlarm = "https://193.188.131.136:443/CrowdApp/submitAlarm.php";
-    public static String SubmitMultiAnswer = "https://193.188.131.136:443/CrowdApp/submitAnswerMulti.php";
-    //S_Farah
-    public static String OFUploadURL = "https://193.188.131.136:443/CrowdApp/InsertOF.php";
-    public static String UTUploadURL = "https://193.188.131.136:443/CrowdApp/InsertUT.php";
-    //E_Farah
-    public static String CxCountUploadURL = "https://193.188.131.136:443/CrowdApp/InsertCxCount.php";
-    public static String ScreenUploadURL = "https://193.188.131.136:443/CrowdApp/InsertScreen.php";
-    public static String PackagesUploadURL = "https://193.188.131.136:443/CrowdApp/InsertPackages.php";
-    public static String SubmitThresholdUpdate = "https://193.188.131.136:443/CrowdApp/userThresholdUpdate.php";
-    public static String UploadHost = "193.188.131.136";
+    public static boolean checkChange = false ;
 
 //    // URLS from the server used in the process
-//    public static String TFUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertTF.php";
-//    public static String CPCUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertCPC.php";
-//    public static String CxUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertCx.php";
+//    public static String TFUploadURL = "https://192.168.137.43/CrowdApp/InsertTF.php";
+//    public static String CPCUploadURL = "https://192.168.137.43/CrowdApp/InsertCPC.php";
+//    public static String CxUploadURL = "https://192.168.137.43/CrowdApp/InsertCx.php";
 //
 //    // public static String CxUploadURL = "https://192.168.137.79/CrowdApp/InsertCxSpecial.php";
-//    public static String registrationUrl = "https://72.14.183.152:4433/CrowdApp/fcm_insert.php";
-//    public static String DownloadThresholdsURL = "https://72.14.183.152:4433/CrowdApp/getThresholds.php";
-//    public static String DownloadIntervalsURL = "https://72.14.183.152:4433/CrowdApp/getIntervals.php";
-//    public static String DownloadRatingsURL = "https://72.14.183.152:4433/CrowdApp/getAppRatings.php";
-//    public static String SubmitAnswerURL = "https://72.14.183.152:4433/CrowdApp/submitAnswer.php";
-//    public static String SubmitIntervalUpdate = "https://72.14.183.152:4433/CrowdApp/userIntervalUpdate.php";
-//    public static String SubmitAlarm = "https://72.14.183.152:4433/CrowdApp/submitAlarm.php";
-//    public static String SubmitMultiAnswer = "https://72.14.183.152:4433/CrowdApp/submitAnswerMulti.php";
+//    public static String registrationUrl = "https://192.168.137.43/CrowdApp/fcm_insert.php";
+//    public static String DownloadThresholdsURL = "https://192.168.137.43/CrowdApp/getThresholds.php";
+//    public static String DownloadIntervalsURL = "https://192.168.137.43/CrowdApp/getIntervals.php";
+//    public static String DownloadRatingsURL = "https://192.168.137.43/CrowdApp/getAppRatings.php";
+//    public static String SubmitAnswerURL = "https://192.168.137.43/CrowdApp/submitAnswer.php";
+//    public static String SubmitIntervalUpdate = "https://192.168.137.43/CrowdApp/userIntervalUpdate.php";
+//    public static String SubmitAlarm = "https://192.168.137.43/CrowdApp/submitAlarm.php";
+//    public static String SubmitMultiAnswer = "https://192.168.137.43/CrowdApp/submitAnswerMulti.php";
 //    //S_Farah
-//    public static String OFUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertOF.php";
-//    public static String UTUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertUT.php";
+//    public static String OFUploadURL = "https://192.168.137.43/CrowdApp/InsertOF.php";
+//    public static String UTUploadURL = "https://192.168.137.43/CrowdApp/InsertUT.php";
 //    //E_Farah
-//    public static String CxCountUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertCxCount.php";
-//    public static String ScreenUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertScreen.php";
-//    public static String PackagesUploadURL = "https://72.14.183.152:4433/CrowdApp/InsertPackages.php";
-//    public static String SubmitThresholdUpdate = "https://72.14.183.152:4433/CrowdApp/userThresholdUpdate.php";
-//    public static String UploadHost = "72.14.183.152";
+//    public static String CxCountUploadURL = "https://192.168.137.43/CrowdApp/InsertCxCount.php";
+//    public static String ScreenUploadURL = "https://192.168.137.43/CrowdApp/InsertScreen.php";
+//    public static String PackagesUploadURL = "https://192.168.137.43/CrowdApp/InsertPackages.php";
+//    public static String SubmitThresholdUpdate = "https://192.168.137.43/CrowdApp/userThresholdUpdate.php";
+//    public static String UploadHost = "192.168.137.43";
 
-/*    public static String TFUploadURL = "https://192.168.137.79/CrowdApp/InsertTF.php";
-    public static String CPCUploadURL = "https://192.168.137.79/CrowdApp/InsertCPC.php";
-    public static String CxUploadURL = "https://192.168.137.79/CrowdApp/InsertCx.php";
+    // URLS from the server used in the process
+    public static String TFUploadURL = "https://crowdappaub.com/CrowdApp/InsertTF.php";
+    public static String CPCUploadURL = "https://crowdappaub.com/CrowdApp/InsertCPC.php";
+    public static String CxUploadURL = "https://crowdappaub.com/CrowdApp/InsertCx.php";
 
     // public static String CxUploadURL = "https://192.168.137.79/CrowdApp/InsertCxSpecial.php";
-    public static String registrationUrl = "https://192.168.137.79/CrowdApp/fcm_insert.php";
-    public static String DownloadThresholdsURL = "https://192.168.137.79/CrowdApp/getThresholds.php";
-    public static String DownloadIntervalsURL = "https://192.168.137.79/CrowdApp/getIntervals.php";
-    public static String DownloadRatingsURL = "https://192.168.137.79/CrowdApp/getAppRatings.php";
-    public static String SubmitAnswerURL = "https://192.168.137.79/CrowdApp/submitAnswer.php";
-    public static String SubmitIntervalUpdate = "https://192.168.137.79/CrowdApp/userIntervalUpdate.php";
-    public static String SubmitAlarm = "https://192.168.137.79/CrowdApp/submitAlarm.php";
-    public static String SubmitMultiAnswer = "https://192.168.137.79/CrowdApp/submitAnswerMulti.php";
+    public static String registrationUrl = "https://crowdappaub.com/CrowdApp/fcm_insert.php";
+    public static String DownloadThresholdsURL = "https://crowdappaub.com/CrowdApp/getThresholds.php";
+    public static String DownloadIntervalsURL = "https://crowdappaub.com/CrowdApp/getIntervals.php";
+    public static String DownloadRatingsURL = "https://crowdappaub.com/CrowdApp/getAppRatings.php";
+    public static String SubmitAnswerURL = "https://crowdappaub.com/CrowdApp/submitAnswer.php";
+    public static String SubmitIntervalUpdate = "https://crowdappaub.com/CrowdApp/userIntervalUpdate.php";
+    public static String SubmitAlarm = "https://crowdappaub.com/CrowdApp/submitAlarm.php";
+    public static String SubmitMultiAnswer = "https://crowdappaub.com/CrowdApp/submitAnswerMulti.php";
     //S_Farah
-    public static String OFUploadURL = "https://192.168.137.79/CrowdApp/InsertOF.php";
-    public static String UTUploadURL = "https://192.168.137.79/CrowdApp/InsertUT.php";
+    public static String OFUploadURL = "https://crowdappaub.com/CrowdApp/InsertOF.php";
+    public static String UTUploadURL = "https://crowdappaub.com/CrowdApp/InsertUT.php";
     //E_Farah
-    public static String CxCountUploadURL = "https://192.168.137.79/CrowdApp/InsertCxCount.php";
-    public static String ScreenUploadURL = "https://192.168.137.79/CrowdApp/InsertScreen.php";
-    public static String PackagesUploadURL = "https://192.168.137.79/CrowdApp/InsertPackages.php";
-    public static String SubmitThresholdUpdate = "https://192.168.137.79/CrowdApp/userThresholdUpdate.php";
-    public static String UploadHost = "192.168.137.79";*/
+    public static String CxCountUploadURL = "https://crowdappaub.com/CrowdApp/InsertCxCount.php";
+    public static String ScreenUploadURL = "https://crowdappaub.com/CrowdApp/InsertScreen.php";
+    public static String PackagesUploadURL = "https://crowdappaub.com/CrowdApp/InsertPackages.php";
+    public static String SubmitThresholdUpdate = "https://crowdappaub.com/CrowdApp/userThresholdUpdate.php";
+    public static String UploadHost = "crowdappaub.com";
 
 
     public static String UploadTypeFile = "File";
@@ -189,7 +170,6 @@ public class CommonVariables {
     public static Calendar cal = Calendar.getInstance();
     public static AlarmManager alarm;
     public static PendingIntent pintent;
-
 
     // this reuslt receiver is used with multiple files upload services
     // the service will broadcast finish information and it will be received in this receiver
@@ -211,9 +191,9 @@ public class CommonVariables {
                     switch (status) {
                         case ClientServerService.STATUS_FINISHED_SUCCESS:
                             type = resultData.getString("type");
-                            Log.i(ClientServerService.TAG, "Files from " + type + " directory are uploaded !");
+                            Log.d(ClientServerService.TAG, "Files from " + type + " directory are uploaded !");
                             currentFile = resultData.getString("currentfile");
-                            Log.i(TAG, "attempt to delete the file " + currentFile + " of type " + type);
+                            Log.d(TAG, "attempt to delete the file " + currentFile + " of type " + type);
                             Common.deleteFilesFromDirectory(type,currentFile);
 
                             if (type.equals(filetypeScreen)) {
@@ -227,10 +207,10 @@ public class CommonVariables {
                             break;
                         case ClientServerService.STATUS_FINISHED_NOFILES:
                             type = resultData.getString("type");
-                            Log.i(ClientServerService.TAG, "No Files found in " + type + " directory !");
+                            Log.d(ClientServerService.TAG, "No Files found in " + type + " directory !");
                             break;
                         case ClientServerService.STATUS_FINISHED_NOWIFI:
-                            Log.i(ClientServerService.TAG, "No Wifi Schedule upload for later");
+                            Log.d(ClientServerService.TAG, "No Wifi Schedule upload for later");
                             break;
                         case ClientServerService.STATUS_FINISHED_SERVER_ERROR:
                             error = resultData.getString("finished_message");
@@ -244,7 +224,7 @@ public class CommonVariables {
                             FirebaseCrash.report(new Exception("Unauthorized Access"));
                             break;
                         case ClientServerService.STATUS_FINISHED_NO_RESPONSE_FROM_SERVER:
-                            Log.i(ClientServerService.TAG, " DirUpload No response from server !");
+                            Log.d(ClientServerService.TAG, " DirUpload No response from server !");
                             //file not confirmed
                             break;
                     }
@@ -252,8 +232,8 @@ public class CommonVariables {
                     break;
                 case ClientServerService.STATUS_ERROR:
                     error = resultData.getString("result");
-                    Log.i("FileUploadDir", "Boom");
-                    Log.i("FileUploadDir", error);
+                    Log.d("FileUploadDir", "Boom");
+                    Log.d("FileUploadDir", error);
                     FirebaseCrash.report(new Exception(error));
                     startUploadDir = false;
                     break;
@@ -307,5 +287,9 @@ public class CommonVariables {
 
     public static void changeCxCountBkupName(String Name) {
         CxCountBkup = Name;
+    }
+
+    public static void changeCheckFlag(boolean b){
+        checkChange = b;
     }
 }

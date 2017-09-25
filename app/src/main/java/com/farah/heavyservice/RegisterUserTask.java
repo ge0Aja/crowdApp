@@ -48,7 +48,11 @@ public class RegisterUserTask extends AsyncTask<String, Void, Void> {
     @Override
     protected Void doInBackground(String... params) {
         try {
-            b = registerUser(params[0], mContext);
+            Thread.sleep(10000);
+            if(CommonVariables.isWiFi)
+                b = registerUser(params[0], mContext);
+            else
+                Log.d(CommonVariables.TAG, "Not Connected to WiFi will register user later");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -64,16 +68,19 @@ public class RegisterUserTask extends AsyncTask<String, Void, Void> {
             //   sharedPreferencesApp = mContext.getSharedPreferences(mContext.getString(R.string.app_preference), Context.MODE_PRIVATE);
             CommonVariables.username = sharedPreferencesApp.getString(mContext.getString(R.string.user_name), "");
             CommonVariables.userRegistered = true;
-            Log.d("RegisterUser", "User Registered, the new username is :" + CommonVariables.username);
+            Log.d(CommonVariables.TAG, "User Registered, the username is :" + CommonVariables.username);
+        }else{
+            CommonVariables.userRegistered = false;
+            Log.d(CommonVariables.TAG, "User is not Registered");
         }
     }
 
     private boolean registerUser(String urlString, Context context) {
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            Thread.sleep(15000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
         StringBuilder sb = new StringBuilder();
         String tempOutput = "";
         //creates a connection instance with the specified url
@@ -111,6 +118,7 @@ public class RegisterUserTask extends AsyncTask<String, Void, Void> {
                 jsonObject.put("os_version", os_version);
                 jsonObject.put("it_knowledge",it_knowledge);
                 jsonObject.put("timestamp", (System.currentTimeMillis()));
+                jsonObject.put("pass", "3o0r71pp");
                 jsonObject.put("apps", user_apps);
                 OutputStream os = reg_con.getOutputStream();
                 OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
@@ -123,7 +131,7 @@ public class RegisterUserTask extends AsyncTask<String, Void, Void> {
                     sb.append(tempOutput);
                 }
 
-                //     Log.d("User","Server Response is "+sb.toString());
+                    // Log.d("User","Server Response is "+sb.toString());
                 if (!sb.toString().equals("")) {
                     //Log.d("RegisterUser","Server Response is "+sb.toString());
                     JSONObject json = new JSONObject(sb.toString());

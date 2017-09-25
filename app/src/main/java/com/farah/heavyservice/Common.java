@@ -560,7 +560,7 @@ public class Common {
         File myFile = new File(dir, fileName); //  "TrafficStats"
         try {
             if (!myFile.exists() || !append) {
-                //  Log.i("ReadList", "The file " + fileName + " Doesn't exist and should be created");
+                //  Log.d("ReadList", "The file " + fileName + " Doesn't exist and should be created");
                 fileOut = new ObjectOutputStream(new FileOutputStream(myFile));
             } else {
                 fileOut = new AppendableObjectOutputStream(new FileOutputStream(myFile, append));
@@ -1265,7 +1265,7 @@ public class Common {
         return file_size >= size;
     }
 
-    // starts an Async task to check the connection state (wifi + certain IP is reachable)
+    // check the connection state (wifi + certain IP is reachable)
     public static boolean isConnectedToWifi(Context context) {
         boolean isConnected = false;
         boolean isWiFi = false;
@@ -1291,11 +1291,12 @@ public class Common {
         try {
             //Create certificate from the certificate in Assets
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-            InputStream caInput = new BufferedInputStream(context.getAssets().open("apache.crt"));
+            InputStream caInput = new BufferedInputStream(context.getAssets().open("ubu.crt"));
+          //  InputStream caInput = new BufferedInputStream(context.getAssets().open("zeroG.crt"));
             Certificate ca;
             try {
                 ca = certificateFactory.generateCertificate(caInput);
-                //  Log.i(CommonVariables.TAG, "ca= " + ((X509Certificate) ca).getSubjectDN());
+                //  Log.d(CommonVariables.TAG, "ca= " + ((X509Certificate) ca).getSubjectDN());
             } finally {
                 caInput.close();
             }
@@ -1435,22 +1436,22 @@ public class Common {
     // start the register user task at first run of the service or after service restart to make sure
     // that a user is registered
     public static void regUser(Context context) {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.app_preference), Context.MODE_PRIVATE);
-        final String user = sharedPreferences.getString(context.getString(R.string.user_name), "");
+        //SharedPreferences sharedPreferences = context.getSharedPreferences(context.getString(R.string.app_preference), Context.MODE_PRIVATE);
+       // final String user = sharedPreferences.getString(context.getString(R.string.user_name), "");
 
         try {
             // if (user.equals("")) {
             new RegisterUserTask(context).execute(CommonVariables.registrationUrl);
             // }
-            CommonVariables.username = sharedPreferences.getString(context.getString(R.string.user_name), "");
+           // CommonVariables.username = sharedPreferences.getString(context.getString(R.string.user_name), "");
 
-            if (!CommonVariables.username.equals("")) {
-                CommonVariables.userRegistered = true;
-                Log.d(CommonVariables.TAG, "User is registered :" + CommonVariables.username);
-            } else {
-                CommonVariables.userRegistered = false;
-                Log.d(CommonVariables.TAG, "User is not Registered");
-            }
+//            if (!CommonVariables.username.equals("")) {
+//                CommonVariables.userRegistered = true;
+//                Log.d(CommonVariables.TAG, "User is registered :" + CommonVariables.username);
+//            } else {
+//                CommonVariables.userRegistered = false;
+//                Log.d(CommonVariables.TAG, "User is not Registered");
+//            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -1475,7 +1476,7 @@ public class Common {
                 CommonVariables.startUpdateThresholds = false;
                 return true;
             } else {
-                Log.i(CommonVariables.TAG, " Thresholds are set to local values");
+                Log.d(CommonVariables.TAG, " Thresholds are set to local values");
             }
 
         } catch (NumberFormatException e) {
@@ -1678,7 +1679,6 @@ public class Common {
                     if (files.length != 0) {
                         for (File fi : files
                                 ) {
-
                             if (fi != null) {
                                 if (!currentfile.equals("") && !fi.getName().equals(currentfile) && !fi.getName().equals("CumulativeTrafficStatsBkup") && !fi.getName().equals("CumulativeCxStatsBkup")) {
                                     if (fi.delete())
@@ -1690,7 +1690,7 @@ public class Common {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+           // e.printStackTrace();
         }
     }
 
@@ -1713,11 +1713,11 @@ public class Common {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
         builder.setAutoCancel(false);
         builder.setOngoing(true);
-        builder.setSmallIcon(R.drawable.mushroom); // pp
-        builder.setContentTitle("CrowdApp Monitor is Running!!");
+        builder.setSmallIcon(R.drawable.crowdapp); // pp
+        builder.setContentTitle("CrowdApp Monitor is Running!");
         //  Uri alarmtone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(71422673, builder.build());
+        notificationManager.notify(96369636, builder.build());
     }
 
 

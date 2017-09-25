@@ -35,7 +35,7 @@ public class ScreenReceiver extends BroadcastReceiver {
                     e.printStackTrace();
                 }
                 CommonVariables.screenOn = false;
-                Log.i(CommonVariables.TAG, " Screen Logged  Off");
+                Log.d(CommonVariables.TAG, " Screen Logged  Off");
                 break;
             case "android.intent.action.SCREEN_ON":
                 try {
@@ -48,7 +48,7 @@ public class ScreenReceiver extends BroadcastReceiver {
                     e.printStackTrace();
                 }
                 CommonVariables.screenOn = true;
-                Log.i(CommonVariables.TAG, "Screen Logged  On");
+                Log.d(CommonVariables.TAG, "Screen Logged  On");
                 break;
             case "android.intent.action.ACTION_BATTERY_LOW":
                 CommonVariables.collectInterval *= 2;

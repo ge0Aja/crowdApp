@@ -91,7 +91,7 @@ public class DownloadAppRatingsTask extends AsyncTask<String, Void, Void> {
                         return true;
                     }else if (json.getString("status").equals("finished")){
                         error_message = json.getString("error_message");
-                        Log.i(CommonVariables.TAG,"App ratings download finished with message "+error_message);
+                        Log.d(CommonVariables.TAG,"App ratings download finished with message "+error_message);
                     }
                 }
 

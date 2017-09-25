@@ -45,7 +45,7 @@ public class MyService extends Service {
     public static ResultsReceiver uploadResult = new ResultsReceiver(new Handler()) {
         @Override
         protected void onReceiveResult(int resultCode, Bundle resultData) {
-            Log.i(ClientServerService.TAG, "Results are received in the MyServiceReceiver");
+            Log.d(ClientServerService.TAG, "Results are received in the MyServiceReceiver");
             switch (resultCode) {
                 case ClientServerService.STATUS_RUNNING:
                     String filenametype = (String) resultData.get("type");
@@ -77,10 +77,10 @@ public class MyService extends Service {
                             CommonVariables.changeCxCountBkupName("CxCount" + System.currentTimeMillis());
                             break;
                     }
-                    Log.i("FileName", "Backup File Name are changed");
+                    Log.d("FileName", "Backup File Name are changed");
                     break;
                 case ClientServerService.STATUS_FINISHED_NOWIFI:
-                    Log.i(ClientServerService.TAG, "Wifi Schedule upload for later");
+                    Log.d(ClientServerService.TAG, "Wifi Schedule upload for later");
                     break;
                 case ClientServerService.STATUS_FINISHED:
                     //delete the file from filename
@@ -89,11 +89,11 @@ public class MyService extends Service {
                     String filePlannedType = resultData.getString("type");
                     switch (status) {
                         case ClientServerService.STATUS_FINISHED_SUCCESS:
-                            Log.i(ClientServerService.TAG, " FileUpload Files are Uploaded Successfully");
+                            Log.d(ClientServerService.TAG, " FileUpload Files are Uploaded Successfully");
                             File delF = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + filePlannedType + "/" + filePlanned);
                             boolean del = delF.delete();
                             if (del)
-                                Log.i("FileUpload", "Files are Deleted Successfully");
+                                Log.d("FileUpload", "Files are Deleted Successfully");
                             else {
                                 File delFR = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/CrowdApp/" + filePlannedType + "/delete" + System.currentTimeMillis());
                                 delF.renameTo(delFR);
@@ -109,7 +109,7 @@ public class MyService extends Service {
                             }
                             break;
                         case ClientServerService.STATUS_FINISHED_NO_RESPONSE_FROM_SERVER:
-                            Log.i(ClientServerService.TAG, " FileUpload No response from server !");
+                            Log.d(ClientServerService.TAG, " FileUpload No response from server !");
                             // FirebaseCrash.report(new Exception("Server Response is Blank"));
                             break;
                         case ClientServerService.STATUS_FINISHED_ERROR:
@@ -132,8 +132,8 @@ public class MyService extends Service {
                     break;
                 case ClientServerService.STATUS_ERROR:
                     String error = resultData.getString("result");
-                    Log.i(ClientServerService.TAG, "FileUpload Boom");
-                    Log.i(ClientServerService.TAG, "FileUpload" + error);
+                    Log.d(ClientServerService.TAG, "FileUpload Boom");
+                    Log.d(ClientServerService.TAG, "FileUpload" + error);
                     FirebaseCrash.report(new Exception(error));
                     CommonVariables.startUpload = false;
                     break;
@@ -195,13 +195,13 @@ public class MyService extends Service {
     // values in catOuterHash and outerHash Hashmaps
     private void getOuterHashes() {
         try {
-            //Log.i("ListCumTraffic",Common.readListFromFiletf("CumulativeTrafficStatsBkup").get(Common.readListFromFilecpc("CumulativeTrafficStatsBkup").size() - 1).toString());
+            //Log.d("ListCumTraffic",Common.readListFromFiletf("CumulativeTrafficStatsBkup").get(Common.readListFromFilecpc("CumulativeTrafficStatsBkup").size() - 1).toString());
             cumulativeOuterHash = Common.readListFromFiletf("CumulativeTrafficStatsBkup").get(Common.readListFromFiletf("CumulativeTrafficStatsBkup").size() - 1);
         } catch (Exception e) {
             cumulativeOuterHash = new HashMap<String, HashMap<String, Long>>();
         }
         try {
-            //  Log.i("ListCumCx",Common.readListFromFilecpc("CumulativeCxStatsBkup").get(Common.readListFromFilecpc("CumulativeCxStatsBkup").size() - 1).toString());
+            //  Log.d("ListCumCx",Common.readListFromFilecpc("CumulativeCxStatsBkup").get(Common.readListFromFilecpc("CumulativeCxStatsBkup").size() - 1).toString());
             ///// commented for test the add
             cumulativeOuterHashCx = Common.readListFromFilecxn("CumulativeCxStatsBkup"); //.get(Common.readListFromFilecpc("CumulativeCxStatsBkup").size() - 1)
         } catch (Exception e) {
@@ -224,7 +224,6 @@ public class MyService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         CommonVariables.mContext = getApplicationContext();
-        //CommonVariables.isWiFi = Common.isConnectedToWifi(CommonVariables.mContext);
         Common.checkConnection(CommonVariables.mContext);
         Common.SafeFirstRun(CommonVariables.mContext);
         setBkupFiles();
@@ -234,9 +233,8 @@ public class MyService extends Service {
         Common.get3rdPartyApps();
         Common.getInstalledPackages(getApplicationContext());
         Common.regBroadcastRec(CommonVariables.mContext);
-        if (CommonVariables.isWiFi) {
-            Common.regUser(CommonVariables.mContext);
-        }
+        Common.regUser(CommonVariables.mContext);
+
         if (CommonVariables.isWiFi && CommonVariables.userRegistered) {
             Common.getThresholds(CommonVariables.mContext);
             Common.getIntervals(CommonVariables.mContext);
@@ -255,6 +253,17 @@ public class MyService extends Service {
         timer.schedule(new TimerTask() {
             public void run() {
                 try {
+                    //check the conn change flag and start tasks accordingly
+                    if(CommonVariables.checkChange){
+                        Common.regUser(CommonVariables.mContext);
+
+                        if (CommonVariables.isWiFi && CommonVariables.userRegistered) {
+                            Common.getThresholds(CommonVariables.mContext);
+                            Common.getIntervals(CommonVariables.mContext);
+                        }
+                        CommonVariables.changeCheckFlag(false);
+                    }
+
                     // first task is to collect CPU and memory stats for all running Apps
                     // clear associated lists
                     //S_Farah
@@ -329,7 +338,7 @@ public class MyService extends Service {
                                 if (!aName.equals(previousOnTop)) {
                                     messageLogged = aName + " opened";
                                     // Common.appendLog(messageLogged);
-                                    Log.i(CommonVariables.TAG, "Reduced " + messageLogged);
+                                    Log.d(CommonVariables.TAG, "Reduced " + messageLogged);
                                     previousOnTop = aName;
                                     //S_Farah
                                     outerHashOF.put("appName", aName);
@@ -344,7 +353,7 @@ public class MyService extends Service {
                     }
                     // after finishing set the check threshold for CPU and Mem to false
                     CommonVariables.checkCPCT = false;
-                    Log.i(CommonVariables.TAG, "CPUMEM " + outerHashCPUMEM.toString());
+                    Log.d(CommonVariables.TAG, "CPUMEM " + outerHashCPUMEM.toString());
                     //End CPU and MEM Stats
 
                     // second start collecting connections stats
@@ -470,15 +479,9 @@ public class MyService extends Service {
                                                     //Common.compareThreshold(Float.valueOf(catInnerHash.get("Age")), CommonVariables.th_cxAge, callingApp, CommonVariables.mContext);
                                                 }
                                             }
-
                                         }
-
-
                                     }
-
-
                                 }
-
                             }
                             // if the check flag for connections is set to true and we are connected to wifi start
                             // comparing the threshold for each connection on a separate asyn task
@@ -493,8 +496,8 @@ public class MyService extends Service {
 
                         }
                     }
-                    Log.i(CommonVariables.TAG, "CxN " + catOuterHash.toString());
-                    Log.i(CommonVariables.TAG, "CxN Count " + ConnectionsCount.toString());
+                    Log.d(CommonVariables.TAG, "CxN " + catOuterHash.toString());
+                    Log.d(CommonVariables.TAG, "CxN Count " + ConnectionsCount.toString());
                     CommonVariables.checkCxT = false;
                     //end for connections info
 
@@ -508,7 +511,7 @@ public class MyService extends Service {
                     }*/
 
                     // This for loop computes the 4 traffic stats for each running app (collected value - previous value)
-                    HashMap<String, Long> innerHash = new HashMap<String, Long>();
+
                     // clear the temp hashmap
                     outerHash.clear();
                     String appName = "";
@@ -536,13 +539,6 @@ public class MyService extends Service {
                                 long rxPackets = TrafficStats.getUidRxPackets(uid);
 
                                 if (!cumulativeOuterHash.containsKey(appName)) {
-                               /* innerHash.put("txBytes", Long.valueOf(0));
-                                innerHash.put("rxBytes", Long.valueOf(0));
-                                innerHash.put("txPackets", Long.valueOf(0));
-                                innerHash.put("rxPackets", Long.valueOf(0));
-                                innerHash.put("Timestamp", System.currentTimeMillis());
-                                outerHash.put(appName, innerHash);*/
-
                                     HashMap<String, Long> cumulativeInnerHash = new HashMap<String, Long>();
                                     cumulativeInnerHash.put("txBytes", txBytes);
                                     cumulativeInnerHash.put("rxBytes", rxBytes);
@@ -550,6 +546,7 @@ public class MyService extends Service {
                                     cumulativeInnerHash.put("rxPackets", rxPackets);
                                     cumulativeOuterHash.put(appName, cumulativeInnerHash);
                                 } else {
+                                    HashMap<String, Long> innerHash = new HashMap<String, Long>();
                                     if ((txBytes - cumulativeOuterHash.get(appName).get("txBytes")) != 0 ||
                                             (rxBytes - cumulativeOuterHash.get(appName).get("rxBytes")) != 0 ||
                                             (txPackets - cumulativeOuterHash.get(appName).get("txPackets") != 0) ||
@@ -560,9 +557,10 @@ public class MyService extends Service {
                                         innerHash.put("rxPackets", rxPackets - cumulativeOuterHash.get(appName).get("rxPackets"));
                                         innerHash.put("Timestamp", System.currentTimeMillis());
                                         outerHash.put(appName, innerHash);
-                                        messageLogged = appName + " TxBytes " + outerHash.get(appName).get("txBytes") + " RxBytes " + outerHash.get(appName).get("rxBytes") + " TxPackets " + outerHash.get(appName).get("txPackets") + " RxPackets " + outerHash.get(appName).get("rxPackets");
+                                        cumulativeOuterHash.put(appName, innerHash);
+                                       // messageLogged = appName + " TxBytes " + outerHash.get(appName).get("txBytes") + " RxBytes " + outerHash.get(appName).get("rxBytes") + " TxPackets " + outerHash.get(appName).get("txPackets") + " RxPackets " + outerHash.get(appName).get("rxPackets");
                                         // Common.appendLog(messageLogged);
-                                        Log.i(CommonVariables.TAG, "Traffic " + messageLogged);
+                                      //  Log.d(CommonVariables.TAG, "Traffic " + messageLogged);
 
                                         // if the check threshold flag was set to true for traffic stats start an Async task
                                         // to check the traffic thresholds for each App
@@ -576,21 +574,15 @@ public class MyService extends Service {
                                             new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(innerHash.get("rxPackets")), appName, CommonVariables.th_rxPackets).execute();
                                             // Common.compareThreshold(Float.valueOf(innerHash.get("rxPackets")), CommonVariables.th_rxPackets, appName, CommonVariables.mContext);
                                         }
-
                                     }
-                                    cumulativeOuterHash.get(appName).put("txBytes", txBytes);
-                                    cumulativeOuterHash.get(appName).put("rxBytes", rxBytes);
-                                    cumulativeOuterHash.get(appName).put("txPackets", txPackets);
-                                    cumulativeOuterHash.get(appName).put("rxPackets", rxPackets);
-                                    cumulativeOuterHash.get(appName).put("Timestamp", System.currentTimeMillis());
                                 }
                             }
-
                         }
                     }
+                    Log.d(CommonVariables.TAG, "Traffic " + outerHash.toString());
                     //after finishing the check set the check threshold app for the traffic to false
                     CommonVariables.checkTfT = false;
-                    //  Log.i(CommonVariables.TAG, "TrafficHash " + cumulativeOuterHash.toString());
+                    //  Log.d(CommonVariables.TAG, "TrafficHash " + cumulativeOuterHash.toString());
                     //  trafficStats.add(cumulativeOuterHash);
                     // cumulativeTrafficStats.add(cumulativeOuterHash);
 
@@ -673,7 +665,7 @@ public class MyService extends Service {
                             CommonVariables.setUploadSettings(CommonVariables.PackagesBkup, true, CommonVariables.filetypePackage);
                         }
                     }
-                    Log.i(CommonVariables.TAG, " WIFI The phone is connected to wifi");
+                    Log.d(CommonVariables.TAG, " WIFI The phone is connected to wifi");
 
                     // if any of the files exceeded the size and there is not other uploading service running
                     // set the upload variables to meet that file which are
@@ -715,7 +707,7 @@ public class MyService extends Service {
                     }
 
                 } else {
-                    Log.i(CommonVariables.TAG, "WIFI Phone is not connected wait");
+                    Log.d(CommonVariables.TAG, "WIFI Phone is not connected wait");
                     //wait for the broadcast recevier
                 }
             }
@@ -730,7 +722,7 @@ public class MyService extends Service {
         // to restart it again
         Toast.makeText(CommonVariables.mContext, "Service Stopped..", Toast.LENGTH_LONG).show();
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.cancel(71422673);
+        notificationManager.cancel(96369636);
         timer.cancel();
         Intent broadcastStop = new Intent("com.farah.heavyservice.RestartSensor");
         sendBroadcast(broadcastStop);

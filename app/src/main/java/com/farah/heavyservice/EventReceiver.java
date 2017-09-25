@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Environment;
 import android.util.Log;
@@ -12,6 +13,10 @@ import android.util.Log;
 import com.google.firebase.crash.FirebaseCrash;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.concurrent.Executor;
 
 /**
  * Created by Georgi on 10/7/2016.
@@ -55,22 +60,36 @@ public class EventReceiver extends BroadcastReceiver {
                 }
                 break;
             case "android.net.conn.CONNECTIVITY_CHANGE":
-                Common.checkConnection(context);
                 if (Common.isConnectedToWifi(context)) {
-                    // CommonVariables.setWiFi(true);
-                    if (!CommonVariables.userRegistered && CommonVariables.isWiFi) {
-                        Common.regUser(context);
-                    }
-                    Log.i(CommonVariables.TAG, "ConnectivityChange: The WIFI status should change");
+                    final PendingResult pendingResult = goAsync();
+                    AsyncTask<Void, Void, Void> asyncTask = new AsyncTask<Void, Void, Void>() {
+                        @Override
+                        protected Void doInBackground(Void... params) {
+                            if(hasConenction()){
+                                CommonVariables.setWiFi(true);
+                                Log.d(CommonVariables.TAG, "Connectivity The Phone is Connected to internet");
+                            }else{
+                                CommonVariables.setWiFi(false);
+                                Log.d(CommonVariables.TAG, "Connectivity The Phone is NOT Connected to internet");
+                            }
+                            pendingResult.finish();
+                            return null;
+                        }
+                    };
+                    asyncTask.execute();
+
                     Intent intentStartUpload = new Intent(context, ClientServerService.class);
                     intentStartUpload.putExtra("uploadtype", CommonVariables.UploadTypeDir);
                     intentStartUpload.putExtra("receiver", CommonVariables.uploadResultDir);
                     intentStartUpload.putExtra("type", CommonVariables.filetypeAll);
                     CommonVariables.pintent = PendingIntent.getService(context, 0, intentStartUpload, PendingIntent.FLAG_ONE_SHOT);
+
                     CommonVariables.alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
                     CommonVariables.startUploadDir = true;
+                    CommonVariables.changeCheckFlag(true);
                     CommonVariables.alarm.setRepeating(AlarmManager.RTC_WAKEUP, CommonVariables.cal.getTimeInMillis() + CommonVariables.uploadIntervalNormal, CommonVariables.uploadIntervalRetry, CommonVariables.pintent);
-                    Log.i(CommonVariables.TAG, "Upload Scheduled after" + CommonVariables.uploadIntervalNormal / 1000 + " Seconds");
+                    Log.d(CommonVariables.TAG, "Upload Scheduled after" + CommonVariables.uploadIntervalNormal / 1000 + " Seconds");
+
                 } else {
                     CommonVariables.setWiFi(false);
                     CommonVariables.startUploadDir = false;
@@ -78,20 +97,24 @@ public class EventReceiver extends BroadcastReceiver {
                     if (CommonVariables.alarm != null && CommonVariables.pintent != null) {
                         CommonVariables.alarm.cancel(CommonVariables.pintent);
                     }
-                    Log.i(CommonVariables.TAG, "Connectivity Change The WIFI status should change");
                 }
-                break;
-            case "android.intent.action.ACTION_BATTERY_LOW":
-                CommonVariables.collectInterval *= 2;
-                break;
-            case "android.intent.action.ACTION_BATTERY_OKAY":
-                int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
-                boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING;
-
-                if (isCharging) {
-                    CommonVariables.collectInterval = 10000;
-                }
+                Log.d(CommonVariables.TAG, "Connectivity Change The WIFI status should change");
                 break;
         }
+    }
+
+    private static boolean hasConenction() {
+
+        try {
+            HttpURLConnection urlc = (HttpURLConnection) (new URL("http://" + CommonVariables.UploadHost).openConnection());
+            urlc.setRequestProperty("User-Agent", "Test");
+            urlc.setRequestProperty("Connection", "close");
+            urlc.setConnectTimeout(10000);
+            urlc.connect();
+            return (urlc.getResponseCode() == 200);
+        } catch (IOException e) {
+            Log.d(CommonVariables.TAG, "Error checking internet connection", e);
+        }
+        return false;
     }
 }

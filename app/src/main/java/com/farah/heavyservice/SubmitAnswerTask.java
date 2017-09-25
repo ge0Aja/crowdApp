@@ -71,7 +71,7 @@ public class SubmitAnswerTask extends AsyncTask<String, Void, Void> {
         // if the reponse is submitted with no problems OK
         // else save the response to a backup file to be uploaded as soon the connection is back
         if (b) {
-            Toast.makeText(mContext, "Your Answer is Submitted", Toast.LENGTH_SHORT);
+            Toast.makeText(mContext, "Your Answer is Submitted", Toast.LENGTH_SHORT).show();
         } else {
             try {
                 Common.writeAnswertoFile(jsonObject, CommonVariables.AnswersBkup, true);
@@ -82,7 +82,7 @@ public class SubmitAnswerTask extends AsyncTask<String, Void, Void> {
             } catch (InvalidKeyException e) {
                 e.printStackTrace();
             }
-            Toast.makeText(mContext, "Your Answer is Saved", Toast.LENGTH_SHORT);
+            Toast.makeText(mContext, "Your Answer is Saved", Toast.LENGTH_SHORT).show();
         }
         // activity.finish();
     }
