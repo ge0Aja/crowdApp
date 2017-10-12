@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
+import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 
@@ -46,7 +47,7 @@ public class EventReceiver extends BroadcastReceiver {
                 File myFilecx = new File(dircx, "CumulativeCxStatsBkup");
                 if (myFilecx.exists())
                     myFilecx.delete();
-                if (Common.hasPermissions(context, CommonVariables.Permissions)) {
+                if (Common.hasPermissions(context, CommonVariables.Permissions) && android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
                     CommonVariables.startService = true;
                 }
                 if (CommonVariables.startService) {
@@ -55,8 +56,8 @@ public class EventReceiver extends BroadcastReceiver {
                         context.startService(startServiceIntent);
                     }
                 } else {
-                    Log.d(CommonVariables.TAG, "The Service Cannot Start Due to Missing Permissions");
-                    FirebaseCrash.report(new Exception("The Service Cannot Start Due to Missing Permissions"));
+                    Log.d(CommonVariables.TAG, "The Service Cannot Start Due to Missing Permissions or incompatible API");
+                   // FirebaseCrash.report(new Exception("The Service Cannot Start Due to Missing Permissions"));
                 }
                 break;
             case "android.net.conn.CONNECTIVITY_CHANGE":
@@ -67,9 +68,11 @@ public class EventReceiver extends BroadcastReceiver {
                         protected Void doInBackground(Void... params) {
                             if(hasConenction()){
                                 CommonVariables.setWiFi(true);
+                                CommonVariables.setServerReachable(true);
                                 Log.d(CommonVariables.TAG, "Connectivity The Phone is Connected to internet");
                             }else{
                                 CommonVariables.setWiFi(false);
+                                CommonVariables.setServerReachable(false);
                                 Log.d(CommonVariables.TAG, "Connectivity The Phone is NOT Connected to internet");
                             }
                             pendingResult.finish();
@@ -88,9 +91,28 @@ public class EventReceiver extends BroadcastReceiver {
                     CommonVariables.startUploadDir = true;
                     CommonVariables.changeCheckFlag(true);
                     CommonVariables.alarm.setRepeating(AlarmManager.RTC_WAKEUP, CommonVariables.cal.getTimeInMillis() + CommonVariables.uploadIntervalNormal, CommonVariables.uploadIntervalRetry, CommonVariables.pintent);
-                    Log.d(CommonVariables.TAG, "Upload Scheduled after" + CommonVariables.uploadIntervalNormal / 1000 + " Seconds");
+                    Log.d(CommonVariables.TAG, "Upload Scheduled after " + CommonVariables.uploadIntervalNormal / 1000 + " Seconds");
 
                 } else {
+                    if(Common.isConnectedToDataPlan(context)){
+                        final PendingResult pendingResult = goAsync();
+                        AsyncTask<Void, Void, Void> asyncTask = new AsyncTask<Void, Void, Void>() {
+                            @Override
+                            protected Void doInBackground(Void... params) {
+                                if(hasConenction()){
+                                    CommonVariables.setServerReachable(true);
+                                    Log.d(CommonVariables.TAG, "Connectivity The Site is reachable through data plan");
+                                }else{
+                                    CommonVariables.setServerReachable(false);
+                                    Log.d(CommonVariables.TAG, "Connectivity The Site is NOT reachable");
+                                }
+                                pendingResult.finish();
+                                return null;
+                            }
+                        };
+                        asyncTask.execute();
+                    }
+
                     CommonVariables.setWiFi(false);
                     CommonVariables.startUploadDir = false;
                     CommonVariables.startUpload = false;
@@ -98,7 +120,7 @@ public class EventReceiver extends BroadcastReceiver {
                         CommonVariables.alarm.cancel(CommonVariables.pintent);
                     }
                 }
-                Log.d(CommonVariables.TAG, "Connectivity Change The WIFI status should change");
+                Log.d(CommonVariables.TAG, "Connectivity Change The WIFI and Internet status should change");
                 break;
         }
     }

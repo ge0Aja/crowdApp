@@ -13,7 +13,7 @@ import javax.crypto.NoSuchPaddingException;
 
 /**
  * Created by Georgi on 8/21/2016.
- *
+ * <p>
  * in the Bootreceiver BroadcastReceiver we catch the following broadcasts:
  * Package Install / Remove
  * we started with this receiver as a boot receiver then we changed its usage
@@ -32,35 +32,12 @@ public class BootReceiver extends BroadcastReceiver {
             // in case of package installation get the package info and write a log with the package info
             case "android.intent.action.PACKAGE_INSTALL":
             case "android.intent.action.PACKAGE_ADDED":
-                Uri uriadd = intent.getData();
-                packageName = uriadd != null ? uriadd.getSchemeSpecificPart() : null;
-                if (packageName != null) {
-                    try {
-                        Common.writePackageStatusToFile(CommonVariables.PackagesBkup, "ADD", packageName, String.valueOf(System.currentTimeMillis()), "", context);
-                    } catch (NoSuchPaddingException e) {
-                        e.printStackTrace();
-                    } catch (NoSuchAlgorithmException e) {
-                        e.printStackTrace();
-                    } catch (InvalidKeyException e) {
-                        e.printStackTrace();
-                    }
-                }
-                Common.get3rdPartyApps();
-                Common.getInstalledPackages(context);
-                Log.d(CommonVariables.TAG, "Package Logged  Added");
-                break;
-            // incase or package remove try to get the installation time of the package if available and
-            // log the package information
-            case "android.intent.action.PACKAGE_REMOVED":
-                Uri uri = intent.getData();
-                packageName = uri != null ? uri.getSchemeSpecificPart() : null;
-                if (packageName.equals("com.farah.heavyservice"))
-                    break;
-
-                String dateAdded = Common.getPackageInstallTime(CommonVariables.mContext, packageName);
-                Log.d(CommonVariables.TAG, "Package Date add for " + packageName + " is " + dateAdded);
                 try {
-                    Common.writePackageStatusToFile(CommonVariables.PackagesBkup, "REMOVE", packageName, String.valueOf(System.currentTimeMillis()), dateAdded, context);
+                    Uri uriadd = intent.getData();
+                    packageName = uriadd != null ? uriadd.getSchemeSpecificPart() : null;
+                    if (packageName != null) {
+                        Common.writePackageStatusToFile(CommonVariables.PackagesBkup, "ADD", packageName, String.valueOf(System.currentTimeMillis()), "", context);
+                    }
                 } catch (NoSuchPaddingException e) {
                     e.printStackTrace();
                 } catch (NoSuchAlgorithmException e) {
@@ -68,9 +45,36 @@ public class BootReceiver extends BroadcastReceiver {
                 } catch (InvalidKeyException e) {
                     e.printStackTrace();
                 }
-                Log.d(CommonVariables.TAG, "Package Logged  Removed");
+
                 Common.get3rdPartyApps();
                 Common.getInstalledPackages(context);
+                Log.d(CommonVariables.TAG, "Package Logged  Added");
+                break;
+            // incase or package remove try to get the installation time of the package if available and
+            // log the package information
+            case "android.intent.action.PACKAGE_REMOVED":
+                try {
+                    Uri uri = intent.getData();
+                    packageName = uri != null ? uri.getSchemeSpecificPart() : null;
+
+                    if (packageName.equals("com.farah.heavyservice"))
+                        break;
+
+                    String dateAdded = Common.getPackageInstallTime(CommonVariables.mContext, packageName);
+                    Log.d(CommonVariables.TAG, "Package Date add for " + packageName + " is " + dateAdded);
+
+                    Common.writePackageStatusToFile(CommonVariables.PackagesBkup, "REMOVE", packageName, String.valueOf(System.currentTimeMillis()), dateAdded, context);
+                    Log.d(CommonVariables.TAG, "Package Logged  Removed");
+                    Common.get3rdPartyApps();
+                    Common.getInstalledPackages(context);
+                } catch (NoSuchPaddingException e) {
+                    e.printStackTrace();
+                } catch (NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                } catch (InvalidKeyException e) {
+                    e.printStackTrace();
+                }
+
                 break;
 
         }

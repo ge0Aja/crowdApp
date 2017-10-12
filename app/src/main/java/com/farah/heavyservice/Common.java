@@ -1281,6 +1281,23 @@ public class Common {
         return isWiFi;
     }
 
+    public static boolean isConnectedToDataPlan(Context context) {
+        boolean isConnected = false;
+        boolean isData = false;
+        ConnectivityManager cm =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        isConnected = activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
+        if (isConnected) {
+            isData = activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE;
+        }
+        return isData;
+    }
+
+
+
     // create an Https connection using a specific URL provided when the upload service is starting the upload process
     // the method uses a certificate generated and signed by the App server
     // and set the content that should be sent in as json
@@ -1291,8 +1308,8 @@ public class Common {
         try {
             //Create certificate from the certificate in Assets
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-            InputStream caInput = new BufferedInputStream(context.getAssets().open("ubu.crt"));
-          //  InputStream caInput = new BufferedInputStream(context.getAssets().open("zeroG.crt"));
+           // InputStream caInput = new BufferedInputStream(context.getAssets().open("ubu.crt"));
+            InputStream caInput = new BufferedInputStream(context.getAssets().open("crowdappaub_com.crt"));
             Certificate ca;
             try {
                 ca = certificateFactory.generateCertificate(caInput);
@@ -1548,15 +1565,34 @@ public class Common {
     // register the broadcast receiver at application start
     public static void regBroadcastRec(Context context) {
         IntentFilter intentFilter = new IntentFilter();
+
+
+
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
         intentFilter.addAction(Intent.ACTION_SCREEN_ON);
         intentFilter.addAction(Intent.ACTION_BATTERY_OKAY);
         intentFilter.addAction(Intent.ACTION_BATTERY_LOW);
+
+
         ScreenReceiver sBroadcast = new ScreenReceiver();
+        EventReceiver eventReceiver = new EventReceiver();
         context.registerReceiver(sBroadcast, intentFilter);
+
+//
+//        if(android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.M){
+//            IntentFilter intentFilter1 = new IntentFilter();
+//            intentFilter1.addAction("android.net.conn.CONNECTIVITY_CHANGE"); //android.net.conn.CONNECTIVITY_CHANGE  android.net.ConnectivityManager.CONNECTIVITY_ACTION
+//           Intent ss =  context.registerReceiver(eventReceiver,intentFilter1);
+//
+//            if(ss != null){
+//                Log.d(CommonVariables.TAG, "regBroadcastRec: The broadcast is sticky");
+//            }
+//        }
+
         ComponentName eventcomponent = new ComponentName(context, EventReceiver.class);
         ComponentName bootcomponent = new ComponentName(context, BootReceiver.class);
         ComponentName restartcomponent = new ComponentName(context, RestartServiceReceiver.class);
+
         context.getPackageManager().setComponentEnabledSetting(bootcomponent, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
         context.getPackageManager().setComponentEnabledSetting(eventcomponent, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
         context.getPackageManager().setComponentEnabledSetting(restartcomponent, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
@@ -1714,7 +1750,7 @@ public class Common {
         builder.setAutoCancel(false);
         builder.setOngoing(true);
         builder.setSmallIcon(R.drawable.crowdapp); // pp
-        builder.setContentTitle("CrowdApp Monitor is Running!");
+        builder.setContentTitle("CrowdApp Monitor");
         //  Uri alarmtone = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(96369636, builder.build());

@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.BATTERY_STATS" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:allowBackup="true"
@@ -87,7 +88,16 @@
             android:enabled="true"
             android:exported="true"
             android:screenOrientation="nosensor" />
-        <activity android:name=".AppRatingsActivity"></activity>
+
+        <activity
+            android:name=".TransferActivityToken"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:enabled="true"
+            android:exported="true"
+            android:screenOrientation="nosensor"
+            ></activity>
+        <activity android:name=".AppRatingsActivity" />
+        <activity android:name=".TokenDraw"></activity>
     </application>
 
 </manifest>

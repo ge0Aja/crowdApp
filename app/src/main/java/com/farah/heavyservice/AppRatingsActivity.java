@@ -7,6 +7,7 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.widget.ListView;
+import android.widget.Toast;
 
 public class AppRatingsActivity extends ListActivity implements OnAppRatingsDownloadCompleted {
 
@@ -20,7 +21,7 @@ public class AppRatingsActivity extends ListActivity implements OnAppRatingsDown
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_app_ratings);
         // make sure that the screen layout is portrait
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+       // setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         ratingspref = getApplicationContext().getSharedPreferences(getString(R.string.ratings_preference), Context.MODE_PRIVATE);
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
@@ -28,7 +29,10 @@ public class AppRatingsActivity extends ListActivity implements OnAppRatingsDown
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                new DownloadAppRatingsTask(getApplicationContext(),AppRatingsActivity.this).execute(CommonVariables.DownloadRatingsURL);
+                if(CommonVariables.userRegistered)
+                    new DownloadAppRatingsTask(getApplicationContext(),AppRatingsActivity.this).execute(CommonVariables.DownloadRatingsURL);
+                else
+                    Toast.makeText(AppRatingsActivity.this, "User is not registered, try later", Toast.LENGTH_SHORT).show();
             }
         });
         mListView = (ListView) findViewById(android.R.id.list);

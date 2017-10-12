@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -74,7 +75,7 @@ public class DownloadAppRatingsTask extends AsyncTask<String, Void, Void> {
                     sb.append(tempOutput);
                 }
                 br.close();
-                HashMap<String,Float> app_ratings = new HashMap<>();
+                LinkedHashMap<String,Float> app_ratings = new LinkedHashMap<>();
 
                 if(sb.length() != 0){
                     JSONObject json = new JSONObject(sb.toString());

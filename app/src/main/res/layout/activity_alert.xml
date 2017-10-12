@@ -21,8 +21,8 @@
         android:layout_marginTop="25dp"
         android:gravity="center_horizontal"
         android:hint="Notification Text"
-        android:lines="3"
-        android:maxLines="3"
+        android:lines="4"
+        android:maxLines="4"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textStyle="bold" />
 
@@ -33,6 +33,7 @@
         android:layout_below="@+id/txt_notification"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="28dp"
+        android:layout_marginBottom="30dp"
         android:gravity="center_horizontal"
         android:hint="Question Text"
         android:lines="2"
@@ -107,7 +108,7 @@
         android:text="What do you think the majority will reply?"
         android:id="@+id/textView"
         android:layout_marginTop="26dp"
-        android:layout_below="@+id/radioGroup"
+        android:layout_below="@+id/ratingBarAnswer"
         android:layout_alignParentStart="true" />
 
     <TextView
@@ -117,7 +118,7 @@
         android:text="How Confident are you from this answer ?"
         android:id="@+id/textView3"
         android:layout_marginTop="29dp"
-        android:layout_below="@+id/radioGroup2"
+        android:layout_below="@+id/radioGroup"
         android:layout_alignParentStart="true" />
 
     <RatingBar
@@ -133,14 +134,14 @@
         android:layout_height="wrap_content"
         android:onClick="submitAnswer"
         android:text="Submit"
-        android:layout_below="@+id/ratingBarAnswer"
-        android:layout_centerHorizontal="true" />
+        android:layout_below="@+id/radioGroup2"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="33dp" />
 
     <TextView
         android:id="@+id/txt_understand"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:onClick="understandClick"
         android:layout_marginTop="10dp"

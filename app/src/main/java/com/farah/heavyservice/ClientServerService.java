@@ -26,7 +26,7 @@ import java.util.HashMap;
 
 /**
  * Created by Georgi on 8/13/2016.
- *
+ * <p/>
  * this service is used when the main service initiate a file or a directory upload
  */
 public class ClientServerService extends IntentService {
@@ -54,161 +54,166 @@ public class ClientServerService extends IntentService {
         // after receiving the intent to start the upload sleep for a specific interval
         // this was added to decrease the load on the server
         try {
-
             Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        Log.d(TAG, "Upload Service Started!");
-        // check which receiver should receive the status of the service
-        // and get the upload type file or directory
-        final ResultReceiver receiver = intent.getParcelableExtra("receiver");
-        String uploadType = intent.getStringExtra("uploadtype");
-        Log.d(TAG, "Upload type is " + uploadType);
-        // create a bundle to append the result data to it
-        Bundle bundle = new Bundle();
-        // if the upload type is file and we have connection to the server and no other upload service is running start
-        if (uploadType.equals(CommonVariables.UploadTypeFile) && CommonVariables.isWiFi && CommonVariables.startUpload && CommonVariables.userRegistered) {
-            Log.d(TAG, "The upload type is file and should start uploading");
-            // get the url from the intent
-            String url = intent.getStringExtra("url");
-            // get the file name that has exceeded the size
-            String filename = intent.getStringExtra("filename");
-            Log.d(TAG, "file to upload is " + filename);
-            // get the type of the upload file (CPU , MEM , Traffic , Conn)
-            String type = intent.getStringExtra("type");
-            // if the url is not empty
-            if (!TextUtils.isEmpty(url)) {
-                bundle.putString("type", type);
-                receiver.send(STATUS_RUNNING, bundle);
-                try {
-                    //call the upload method which uses a secure connection HTTPS
-                    String[] results = uploadDataSecure(url, type, filename);
-                    Log.d(TAG, String.valueOf(results));
+         //   Log.d(TAG, "onHandleIntent: "+ intent.toString());
+            Log.d(TAG, "Upload Service Started!");
+            // check which receiver should receive the status of the service
+            // and get the upload type file or directory
+            if(intent.getParcelableExtra("receiver") == null || intent.getStringExtra("uploadtype") == null){
+                Log.d(TAG, "Post Service Stopping! Because false intent");
+                this.stopSelf();
+            }else {
+                final ResultReceiver receiver = intent.getParcelableExtra("receiver");
+                String uploadType = intent.getStringExtra("uploadtype");
+                Log.d(TAG, "Upload type is " + uploadType);
+                // create a bundle to append the result data to it
+                Bundle bundle = new Bundle();
+                // if the upload type is file and we have connection to the server and no other upload service is running start
+                if (uploadType.equals(CommonVariables.UploadTypeFile) && CommonVariables.isWiFi && CommonVariables.startUpload && CommonVariables.userRegistered) {
+                    Log.d(TAG, "The upload type is file and should start uploading");
+                    // get the url from the intent
+                    String url = intent.getStringExtra("url");
+                    // get the file name that has exceeded the size
+                    String filename = intent.getStringExtra("filename");
+                    Log.d(TAG, "file to upload is " + filename);
+                    // get the type of the upload file (CPU , MEM , Traffic , Conn)
+                    String type = intent.getStringExtra("type");
+                    // if the url is not empty
+                    if (!TextUtils.isEmpty(url)) {
+                        bundle.putString("type", type);
+                        receiver.send(STATUS_RUNNING, bundle);
+                        try {
+                            //call the upload method which uses a secure connection HTTPS
+                            String[] results = uploadDataSecure(url, type, filename);
+                            Log.d(TAG, String.valueOf(results));
                 /* Sending result back to Service
                 * put the file name and the status of the file along with its type
                 * */
-                    if (results[0] != null && results.length != 0) {
-                        if (!results[0].equals("Unconfirmed")) {
-                            bundle.putString("filename", filename);
-                            bundle.putString("type", type);
-                            if (results[0].equals("success")
-                                    ) {
-                                bundle.putInt("Status", STATUS_FINISHED_SUCCESS);
-                                // bundle.putStringArray("result", results);
-                            } else {
-                                bundle.putInt("Status", STATUS_FINISHED_ERROR);
-                                bundle.putStringArray("result", results);
+                            if (results[0] != null && results.length != 0) {
+                                if (!results[0].equals("Unconfirmed")) {
+                                    bundle.putString("filename", filename);
+                                    bundle.putString("type", type);
+                                    if (results[0].equals("success")
+                                            ) {
+                                        bundle.putInt("Status", STATUS_FINISHED_SUCCESS);
+                                        // bundle.putStringArray("result", results);
+                                    } else {
+                                        bundle.putInt("Status", STATUS_FINISHED_ERROR);
+                                        bundle.putStringArray("result", results);
+                                    }
+                                    receiver.send(STATUS_FINISHED, bundle);
+                                } else { // Handled
+                                    bundle.putInt("Status", STATUS_FINISHED_NO_RESPONSE_FROM_SERVER);
+                                    receiver.send(STATUS_FINISHED, bundle);
+                                }
+                                Log.d(TAG, "Upload Service executed successfully!");
                             }
-                            receiver.send(STATUS_FINISHED, bundle);
-                        } else { // Handled
-                            bundle.putInt("Status", STATUS_FINISHED_NO_RESPONSE_FROM_SERVER);
-                            receiver.send(STATUS_FINISHED, bundle);
-                        }
-                        Log.d(TAG, "Upload Service executed successfully!");
-                    }
-                    this.stopSelf();
-                    //    }
-                } catch (Exception e) {
+                            this.stopSelf();
+                            //    }
+                        } catch (Exception e) {
                 /* Sending error message back to activity */
-                    e.printStackTrace();
-                    bundle.putString("result", e.toString());
-                    receiver.send(STATUS_ERROR, bundle);
-                    Log.d(TAG, "Upload Service executed with errors!");
-                    this.stopSelf();
+                            e.printStackTrace();
+                            bundle.putString("result", e.toString());
+                            receiver.send(STATUS_ERROR, bundle);
+                            Log.d(TAG, "Upload Service executed with errors!");
+                            this.stopSelf();
+                        }
+                    }
                 }
-            }
-        }
-        // if the upload type is directory and the app is connected to wifi and there is no other upload running
-        else if (uploadType.equals(CommonVariables.UploadTypeDir) && CommonVariables.isWiFi && CommonVariables.startUploadDir && CommonVariables.userRegistered) {
-            // check the directory type that we want to upload the files from
+                // if the upload type is directory and the app is connected to wifi and there is no other upload running
+                else if (uploadType.equals(CommonVariables.UploadTypeDir) && CommonVariables.isWiFi && CommonVariables.startUploadDir && CommonVariables.userRegistered) {
+                    // check the directory type that we want to upload the files from
             /*
             the type of the directories are (All, CPC, TF, CONN, OF, UT)
             * */
-            String type = intent.getStringExtra("type");
-            if (!type.equals(CommonVariables.filetypeAll)) {
-                // the directory upload is not multiple
-                Log.d(TAG, "The upload type is one Dir and should start uploading");
-                try {
-                    // call the directory upload method which uses a secure connection
-                    HashMap<String, String> results = uploadDataDirSecure(type);
-                    bundle.putString("type", type);
+                    String type = intent.getStringExtra("type");
+                    if (!type.equals(CommonVariables.filetypeAll)) {
+                        // the directory upload is not multiple
+                        Log.d(TAG, "The upload type is one Dir and should start uploading");
+                        try {
+                            // call the directory upload method which uses a secure connection
+                            HashMap<String, String> results = uploadDataDirSecure(type);
+                            bundle.putString("type", type);
                     /*return the results of the upload to the receiver if the common variables class*/
-                    if (results.get("Unauthorized") != null) {
-                        bundle.putInt("Status", STATUS_FINISHED_FORBIDDEN);
-                        receiver.send(STATUS_FINISHED, bundle);
-                    } else if (results.get("finished") != null) {
-                        bundle.putString("finished_message", results.get("finished"));
-                        bundle.putInt("Status", STATUS_FINISHED_SERVER_ERROR);
-                        receiver.send(STATUS_FINISHED, bundle);
-                    } else if (results.get("Error") != null) {
-                        bundle.putString("Error_message", results.get("Error"));
-                        bundle.putInt("Status", STATUS_FINISHED_ERROR);
-                        receiver.send(STATUS_FINISHED, bundle);
-                    } else if (results.get("Unconfirmed") != null) {
-                        bundle.putInt("Status", STATUS_FINISHED_NO_RESPONSE_FROM_SERVER);
-                        receiver.send(STATUS_FINISHED, bundle);
-                    } else {
-                        bundle.putInt("Status", STATUS_FINISHED_SUCCESS);
-                        bundle.putString("currentfile", results.get("currentfile"));
-                        receiver.send(STATUS_FINISHED, bundle);
-                    }
-                    Log.d(TAG, "Upload Service executed successfully!");
-                    this.stopSelf();
-                } catch (java.io.IOException e) {
-                    e.printStackTrace();
-                    bundle.putString("result", e.toString());
-                    receiver.send(STATUS_ERROR, bundle);
-                    Log.d(TAG, "Upload Service executed with errors!");
-                    this.stopSelf();
-                }
-            } else {
-                /*the type of the upload is multi directory and the upload will repeat for each one*/
-                Log.d(TAG, "The upload type is multiple Dir and should start uploading");
-                String[] fileTypes = {CommonVariables.filetypeAnswers, CommonVariables.filetypeCPC, CommonVariables.filetypeCx, CommonVariables.filetypeTf, CommonVariables.filetypeOF, CommonVariables.filetypeUT, CommonVariables.filetypeScreen};
-                for (String t : fileTypes
-                        ) {
-                    try {
-                        receiver.send(STATUS_RUNNING, bundle);
-                        HashMap<String, String> results = uploadDataDirSecure(String.valueOf(t));
-                        bundle.putString("type", String.valueOf(t));
-                        /*return the results of the upload to the receiver if the common variables class*/
-                        if (results.get("Unauthorized") != null) {
-                            bundle.putInt("Status", STATUS_FINISHED_FORBIDDEN);
-                            receiver.send(STATUS_FINISHED, bundle);
-                        } else if (results.get("finished") != null) {
-                            bundle.putString("finished_message", results.get("finished"));
-                            bundle.putInt("Status", STATUS_FINISHED_SERVER_ERROR);
-                            receiver.send(STATUS_FINISHED, bundle);
-                        } else if (results.get("Error") != null) {
-                            bundle.putString("Error_message", results.get("Error"));
-                            bundle.putInt("Status", STATUS_FINISHED_ERROR);
-                            receiver.send(STATUS_FINISHED, bundle);
-                        } else if (results.get("Unconfirmed") != null) {
-                            bundle.putInt("Status", STATUS_FINISHED_NO_RESPONSE_FROM_SERVER);
-                            receiver.send(STATUS_FINISHED, bundle);
-                        } else {
-                            bundle.putInt("Status", STATUS_FINISHED_SUCCESS);
-                            bundle.putString("currentfile", results.get("currentfile"));
-                            receiver.send(STATUS_FINISHED, bundle);
+                            if (results.get("Unauthorized") != null) {
+                                bundle.putInt("Status", STATUS_FINISHED_FORBIDDEN);
+                                receiver.send(STATUS_FINISHED, bundle);
+                            } else if (results.get("finished") != null) {
+                                bundle.putString("finished_message", results.get("finished"));
+                                bundle.putInt("Status", STATUS_FINISHED_SERVER_ERROR);
+                                receiver.send(STATUS_FINISHED, bundle);
+                            } else if (results.get("Error") != null) {
+                                bundle.putString("Error_message", results.get("Error"));
+                                bundle.putInt("Status", STATUS_FINISHED_ERROR);
+                                receiver.send(STATUS_FINISHED, bundle);
+                            } else if (results.get("Unconfirmed") != null) {
+                                bundle.putInt("Status", STATUS_FINISHED_NO_RESPONSE_FROM_SERVER);
+                                receiver.send(STATUS_FINISHED, bundle);
+                            } else {
+                                bundle.putInt("Status", STATUS_FINISHED_SUCCESS);
+                                bundle.putString("currentfile", results.get("currentfile"));
+                                receiver.send(STATUS_FINISHED, bundle);
+                            }
+                            Log.d(TAG, "Upload Service executed successfully!");
+                            this.stopSelf();
+                        } catch (java.io.IOException e) {
+                            e.printStackTrace();
+                            bundle.putString("result", e.toString());
+                            receiver.send(STATUS_ERROR, bundle);
+                            Log.d(TAG, "Upload Service executed with errors!");
+                            this.stopSelf();
                         }
-                        Log.d(TAG, "Upload Service executed successfully for type" + String.valueOf(t));
-                        this.stopSelf();
-                    } catch (java.io.IOException e) {
-                        e.printStackTrace();
-                        bundle.putString("result", e.toString());
-                        receiver.send(STATUS_ERROR, bundle);
-                        Log.d(TAG, "Upload Service executed with errors for type: " + String.valueOf(t));
-                        this.stopSelf();
+                    } else {
+                /*the type of the upload is multi directory and the upload will repeat for each one*/
+                        Log.d(TAG, "The upload type is multiple Dir and should start uploading");
+                        String[] fileTypes = {CommonVariables.filetypeAnswers, CommonVariables.filetypeCPC, CommonVariables.filetypeCx, CommonVariables.filetypeTf, CommonVariables.filetypeOF, CommonVariables.filetypeUT, CommonVariables.filetypeScreen};
+                        for (String t : fileTypes
+                                ) {
+                            try {
+                                receiver.send(STATUS_RUNNING, bundle);
+                                HashMap<String, String> results = uploadDataDirSecure(String.valueOf(t));
+                                bundle.putString("type", String.valueOf(t));
+                        /*return the results of the upload to the receiver if the common variables class*/
+                                if (results.get("Unauthorized") != null) {
+                                    bundle.putInt("Status", STATUS_FINISHED_FORBIDDEN);
+                                    receiver.send(STATUS_FINISHED, bundle);
+                                } else if (results.get("finished") != null) {
+                                    bundle.putString("finished_message", results.get("finished"));
+                                    bundle.putInt("Status", STATUS_FINISHED_SERVER_ERROR);
+                                    receiver.send(STATUS_FINISHED, bundle);
+                                } else if (results.get("Error") != null) {
+                                    bundle.putString("Error_message", results.get("Error"));
+                                    bundle.putInt("Status", STATUS_FINISHED_ERROR);
+                                    receiver.send(STATUS_FINISHED, bundle);
+                                } else if (results.get("Unconfirmed") != null) {
+                                    bundle.putInt("Status", STATUS_FINISHED_NO_RESPONSE_FROM_SERVER);
+                                    receiver.send(STATUS_FINISHED, bundle);
+                                } else {
+                                    bundle.putInt("Status", STATUS_FINISHED_SUCCESS);
+                                    bundle.putString("currentfile", results.get("currentfile"));
+                                    receiver.send(STATUS_FINISHED, bundle);
+                                }
+                                Log.d(TAG, "Upload Service executed successfully for type" + String.valueOf(t));
+                                this.stopSelf();
+                            } catch (java.io.IOException e) {
+                                e.printStackTrace();
+                                bundle.putString("result", e.toString());
+                                receiver.send(STATUS_ERROR, bundle);
+                                Log.d(TAG, "Upload Service executed with errors for type: " + String.valueOf(t));
+                                this.stopSelf();
+                            }
+                        }
                     }
+                } else if (!CommonVariables.isWiFi) {
+                    bundle.putInt("Status", STATUS_FINISHED_NOWIFI);
+                    receiver.send(STATUS_FINISHED, bundle);
                 }
+                Log.d(TAG, "Post Service Stopping!");
+                this.stopSelf();
             }
-        } else if (!CommonVariables.isWiFi) {
-            bundle.putInt("Status", STATUS_FINISHED_NOWIFI);
-            receiver.send(STATUS_FINISHED, bundle);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-        Log.d(TAG, "Post Service Stopping!");
-        this.stopSelf();
     }
 
     //secured upload for a directory of files
@@ -234,7 +239,6 @@ public class ClientServerService extends IntentService {
             if (files != null) {
                 if (files.length != 0) {
                     try {
-
                         try {
                             Thread.sleep(5000);
                         } catch (InterruptedException e) {

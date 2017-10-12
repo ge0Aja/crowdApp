@@ -135,7 +135,7 @@ public class AlertActivity extends AppCompatActivity {
                 new SubmitAnswerTask(this, this, notId).execute(CommonVariables.SubmitAnswerURL, Qid, AnswerIdx, String.valueOf(More), AnswerIdx2,String.valueOf(answer_rating));
                 this.finish();
             }else{
-                Toast.makeText(CommonVariables.mContext,"Please fill all fields",Toast.LENGTH_LONG).show();
+                Toast.makeText(CommonVariables.mContext,"Please fill all fields",Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
             e.printStackTrace();

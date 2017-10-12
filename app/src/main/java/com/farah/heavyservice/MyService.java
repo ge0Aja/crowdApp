@@ -2,10 +2,12 @@ package com.farah.heavyservice;
 
 import android.app.NotificationManager;
 import android.app.Service;
+import android.app.usage.NetworkStatsManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.net.TrafficStats;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -140,16 +142,13 @@ public class MyService extends Service {
             }
         }
     };
-
     // intializing variables to be used in the service
     String messageLogged = "";
     String regex = "[^\\d]";
     String protocol = "";
     String previousOnTop = "";
-
     //timestamps to comapre against the check thresholds interval
     long stamp, startStamp, ThreshStampCPC, ThreshStampCxn, ThreshStampTF;
-
     //Hashmaps to store the extracted data
     //catOuterHash for connections information stats
     //ConnectionsCount for number of connections stats
@@ -168,15 +167,14 @@ public class MyService extends Service {
     //S_Farah
     HashMap<String, String> outerHashOF = new HashMap<String, String>();
     HashMap<String, String> outerHashUT = new HashMap<String, String>();
-    //E_Farah
-
     HashSet<String> usedProtocols = new HashSet<String>();
+    //E_Farah
     HashMap<String, HashMap<String, Long>> cumulativeOuterHash;//= new HashMap<String, HashMap<String, Long>>();
     HashMap<String, HashMap<String, HashMap<String, String>>> cumulativeOuterHashCx;//= new HashMap<String, HashMap<String, String>>();
     Integer interval = CommonVariables.collectInterval;
-
     // These define the collection frequency (collect every 10 seconds)
     Timer timer = new Timer();
+    private NetworkStatsManager networkStatsManager;
 
     //the method initializes the backup files names at first run or after service restart
     private void setBkupFiles() {
@@ -224,7 +222,11 @@ public class MyService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         CommonVariables.mContext = getApplicationContext();
-        Common.checkConnection(CommonVariables.mContext);
+        if (android.os.Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
+            Common.checkConnection(CommonVariables.mContext);
+            Common.regUser(CommonVariables.mContext);
+        }
+
         Common.SafeFirstRun(CommonVariables.mContext);
         setBkupFiles();
         Toast.makeText(CommonVariables.mContext, "Service Started..", Toast.LENGTH_LONG).show();
@@ -233,7 +235,9 @@ public class MyService extends Service {
         Common.get3rdPartyApps();
         Common.getInstalledPackages(getApplicationContext());
         Common.regBroadcastRec(CommonVariables.mContext);
-        Common.regUser(CommonVariables.mContext);
+
+
+        // CommonVariables.mContext.registerReceiver(EventReceiver);
 
         if (CommonVariables.isWiFi && CommonVariables.userRegistered) {
             Common.getThresholds(CommonVariables.mContext);
@@ -242,9 +246,9 @@ public class MyService extends Service {
 
         // at start set the thresholds timestamps to check against
         stamp = startStamp = System.currentTimeMillis();
-        ThreshStampCPC = stamp + 120 * 1000;
-        ThreshStampCxn = ThreshStampCPC + 120 * 1000;
-        ThreshStampTF = ThreshStampCxn + 120 * 1000;
+        ThreshStampCPC = stamp + CommonVariables.checkCPCThresholdInterval;
+        ThreshStampCxn = ThreshStampCPC + CommonVariables.checkCxnThresholdInterval;
+        ThreshStampTF = ThreshStampCxn + CommonVariables.checkTfThresholdInterval;
 
         Log.d(CommonVariables.TAG, " Time starting stamp is " + stamp);
         final List<String> installedPackagesRunning = new ArrayList<>();
@@ -254,7 +258,7 @@ public class MyService extends Service {
             public void run() {
                 try {
                     //check the conn change flag and start tasks accordingly
-                    if(CommonVariables.checkChange){
+                    if (CommonVariables.checkChange) {
                         Common.regUser(CommonVariables.mContext);
 
                         if (CommonVariables.isWiFi && CommonVariables.userRegistered) {
@@ -316,10 +320,10 @@ public class MyService extends Service {
                         // by triggering separate AsyncTasks
                         if (CommonVariables.installed3rdPartyApps.contains(aName) && !aName.equals("com.farah.heavyservice")) {
                             outerHashCPUMEM.put(aName, innerHashCPUMEM);
-                            if (CommonVariables.checkCPCT && CommonVariables.isWiFi && CommonVariables.checkEvents != 0) {
+                            if (CommonVariables.checkCPCT && CommonVariables.isServerReachable && CommonVariables.checkEvents != 0) { //Sep 2 changed to isServerReachable
                                 new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(innerHashCPUMEM.get("CPU")), aName, CommonVariables.th_prCPU).execute();
                                 new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(innerHashCPUMEM.get("RSS")), aName, CommonVariables.th_prRSS).execute();
-                                new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(innerHashCPUMEM.get("VSS")), aName, CommonVariables.th_prVSS).execute();
+                                //new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(innerHashCPUMEM.get("VSS")), aName, CommonVariables.th_prVSS).execute();
                                 // Common.compareThreshold(Float.valueOf(innerHashCPUMEM.get("CPU")), CommonVariables.th_prCPU, aName, CommonVariables.mContext);
                                 // Common.compareThreshold(Float.valueOf(innerHashCPUMEM.get("RSS")), CommonVariables.th_prRSS, aName, CommonVariables.mContext);
                                 // Common.compareThreshold(Float.valueOf(innerHashCPUMEM.get("VSS")), CommonVariables.th_prVSS, aName, CommonVariables.mContext);
@@ -474,7 +478,7 @@ public class MyService extends Service {
                                                         catOuterHash.get(callingApp).put(P + sourceIP + sourcePort + destinationIP + destinationPort, catInnerHash);
                                                     }
                                                 }
-                                                if (CommonVariables.checkCxT && CommonVariables.isWiFi && CommonVariables.checkEvents != 0) {
+                                                if (CommonVariables.checkCxT && CommonVariables.isServerReachable && CommonVariables.checkEvents != 0) {
                                                     new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(catInnerHash.get("Age")), callingApp, CommonVariables.th_cxAge).execute();
                                                     //Common.compareThreshold(Float.valueOf(catInnerHash.get("Age")), CommonVariables.th_cxAge, callingApp, CommonVariables.mContext);
                                                 }
@@ -485,7 +489,7 @@ public class MyService extends Service {
                             }
                             // if the check flag for connections is set to true and we are connected to wifi start
                             // comparing the threshold for each connection on a separate asyn task
-                            if (CommonVariables.checkCxT && CommonVariables.isWiFi && CommonVariables.checkEvents != 0) {
+                            if (CommonVariables.checkCxT && CommonVariables.isServerReachable && CommonVariables.checkEvents != 0) {
                                 Iterator callingAppIter = ConnectionsCount.entrySet().iterator();
                                 while (callingAppIter.hasNext()) {
                                     Map.Entry callinAppPair = (Map.Entry) callingAppIter.next();
@@ -546,25 +550,32 @@ public class MyService extends Service {
                                     cumulativeInnerHash.put("rxPackets", rxPackets);
                                     cumulativeOuterHash.put(appName, cumulativeInnerHash);
                                 } else {
-                                    HashMap<String, Long> innerHash = new HashMap<String, Long>();
+
                                     if ((txBytes - cumulativeOuterHash.get(appName).get("txBytes")) != 0 ||
                                             (rxBytes - cumulativeOuterHash.get(appName).get("rxBytes")) != 0 ||
                                             (txPackets - cumulativeOuterHash.get(appName).get("txPackets") != 0) ||
                                             (rxPackets - cumulativeOuterHash.get(appName).get("rxPackets") != 0)) {
+                                        HashMap<String, Long> innerHash = new HashMap<String, Long>();
                                         innerHash.put("txBytes", txBytes - cumulativeOuterHash.get(appName).get("txBytes"));
                                         innerHash.put("rxBytes", rxBytes - cumulativeOuterHash.get(appName).get("rxBytes"));
                                         innerHash.put("txPackets", txPackets - cumulativeOuterHash.get(appName).get("txPackets"));
                                         innerHash.put("rxPackets", rxPackets - cumulativeOuterHash.get(appName).get("rxPackets"));
                                         innerHash.put("Timestamp", System.currentTimeMillis());
                                         outerHash.put(appName, innerHash);
-                                        cumulativeOuterHash.put(appName, innerHash);
-                                       // messageLogged = appName + " TxBytes " + outerHash.get(appName).get("txBytes") + " RxBytes " + outerHash.get(appName).get("rxBytes") + " TxPackets " + outerHash.get(appName).get("txPackets") + " RxPackets " + outerHash.get(appName).get("rxPackets");
+
+                                        HashMap<String, Long> cumulativeInnerHash = new HashMap<String, Long>();
+                                        cumulativeInnerHash.put("txBytes", txBytes);
+                                        cumulativeInnerHash.put("rxBytes", rxBytes);
+                                        cumulativeInnerHash.put("txPackets", txPackets);
+                                        cumulativeInnerHash.put("rxPackets", rxPackets);
+                                        cumulativeOuterHash.put(appName, cumulativeInnerHash);
+                                        // messageLogged = appName + " TxBytes " + outerHash.get(appName).get("txBytes") + " RxBytes " + outerHash.get(appName).get("rxBytes") + " TxPackets " + outerHash.get(appName).get("txPackets") + " RxPackets " + outerHash.get(appName).get("rxPackets");
                                         // Common.appendLog(messageLogged);
-                                      //  Log.d(CommonVariables.TAG, "Traffic " + messageLogged);
+                                        //  Log.d(CommonVariables.TAG, "Traffic " + messageLogged);
 
                                         // if the check threshold flag was set to true for traffic stats start an Async task
                                         // to check the traffic thresholds for each App
-                                        if (CommonVariables.checkTfT && CommonVariables.isWiFi && CommonVariables.checkEvents != 0) {
+                                        if (CommonVariables.checkTfT && CommonVariables.isServerReachable && CommonVariables.checkEvents != 0) {
                                             new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(innerHash.get("txBytes")), appName, CommonVariables.th_txBytes).execute();
                                             // Common.compareThreshold(Float.valueOf(innerHash.get("txBytes")), CommonVariables.th_txBytes, appName, CommonVariables.mContext);
                                             new CompareThresholdsTask(CommonVariables.mContext, Float.valueOf(innerHash.get("rxBytes")), appName, CommonVariables.th_rxBytes).execute();
